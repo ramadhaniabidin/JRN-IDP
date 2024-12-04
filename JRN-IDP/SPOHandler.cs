@@ -2,6 +2,7 @@
 using Microsoft.SharePoint.Client;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -15,8 +16,8 @@ namespace JRN_IDP
     public class SPOHandler
     {
         ProsnapHandler prosnap = new ProsnapHandler();
-        //private readonly string connString = "Server=192.168.50.150;Database=IDP_JResources;User ID=sa;Password=sa_P@ssw0rd3L!5!!!;Encrypt=False";
-        private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
+        private readonly string connString = ConfigurationManager.AppSettings["connString"];
+        //private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
         public List<SPOFileModel> GetFileFromSPO()
         {
             DataTable dt = new DataTable();

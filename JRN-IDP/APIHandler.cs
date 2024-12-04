@@ -19,11 +19,10 @@ namespace JRN_IDP
         NACHandler NAC = new NACHandler();
         SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
-        string url = "https://fa-exke-test-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/invoices";
-        string getSupplierUrl = "https://fa-exke-test-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/suppliers";
-        //string getSupplierSiteURL = "https://fa-exke-test-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/suppliers/SupplierID/child/sites";
-        string username = "elistec@jresources.com";
-        string password = "Bky\\_J0x5A?9";
+        private readonly string url = ConfigurationManager.AppSettings["CreateInvoice_Endpoint"];
+        private readonly string getSupplierUrl = ConfigurationManager.AppSettings["GetSupplier_Endpoint"];
+        private readonly string username = ConfigurationManager.AppSettings["username"];
+        private readonly string password = ConfigurationManager.AppSettings["password"];
 
         public static string GenerateRandomString()
         {

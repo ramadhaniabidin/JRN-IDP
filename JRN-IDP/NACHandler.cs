@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -13,12 +14,11 @@ namespace JRN_IDP
 {
     public class NACHandler
     {
-        private readonly string client_id = "ab5f065e-9e7a-4a87-a02b-320d9b90acc1";
-        private readonly string client_secret = "sKJKKtUsItUsLtUsNMItVsPLtSRTsOOMLtW2DtS2XsJMtRUPsPtRVsKtRWsLRFLINQFMMJtWsFRtSsJOF2UsItWsRtUsOKPNNO";
+        private readonly string client_id = ConfigurationManager.AppSettings["client_id"];
+        private readonly string client_secret = ConfigurationManager.AppSettings["client_secret"];
         private readonly string get_token_url = "https://au.nintex.io/authentication/v1/token";
         private readonly string NACBaseURL = "https://au.nintex.io";
         private readonly string workflowURL = "/workflows/v1/designs/586aa111-54a5-4fad-98ff-74a50627997f/instances";
-        //private readonly string notifWorkflowURL = "";
 
         public string GetToken()
         {

@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -15,13 +16,10 @@ namespace JRN_IDP
     public class ProsnapHandler
     {
         private readonly string baseURL = "http://8.215.35.106:3030";
-        //private readonly string baseURL = "http://103.145.196.43:3030";
         private readonly string getTokenURL = "/token";
         private readonly string uploadURL = "/api/transaction/upload";
-        //private readonly string scanURL = "/api/transaction/Scan_V2?";
         private readonly string scanURL = "/api/transaction/Scan_V2?";
-        //private readonly string connString = "Server=192.168.50.150;Database=IDP_JResources;User ID=sa;Password=sa_P@ssw0rd3L!5!!!;Encrypt=False";
-        private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
+        private readonly string connString = ConfigurationManager.AppSettings["connString"];
         NACHandler NAC = new NACHandler();
 
         public void UpdateStatus_SPOFile(int Item_ID, int FileID)
