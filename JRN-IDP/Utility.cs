@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace JRN_IDP
 {
@@ -218,6 +221,73 @@ namespace JRN_IDP
                 }
             }
             return obj;
+        }
+
+        public static byte[] Encrypt(string inputString, byte[] key, byte[] iv)
+        {
+            byte[] cipheredText;
+            using(Aes aes = Aes.Create())
+            {
+                ICryptoTransform encryptor = aes.CreateEncryptor(key, iv);
+                using(MemoryStream memoryStream = new MemoryStream())
+                {
+                    using(CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        using(StreamWriter streamWriter = new StreamWriter(cryptoStream))
+                        {
+                            streamWriter.Write(inputString);
+                        }
+                        cipheredText = memoryStream.ToArray();
+                    }
+                }
+            }
+            return cipheredText;
+        }
+
+        public static string Decrypt(byte[] cipherText, byte[] key, byte[] iv)
+        {
+            using(Aes aes = Aes.Create())
+            {
+                ICryptoTransform decryptor = aes.CreateDecryptor(key, iv);
+                using(MemoryStream memoryStream = new MemoryStream(cipherText))
+                {
+                    using(CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                    {
+                        using(StreamReader streamReader = new StreamReader(cryptoStream))
+                        {
+                            return streamReader.ReadToEnd();
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void UpdateAppSettings(string configFilePath, string key, string newValue)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(configFilePath);
+
+            XmlNode appSettingsNode = doc.SelectSingleNode("configuration/appSettings");
+            if(appSettingsNode == null)
+            {
+                Console.WriteLine("AppSettings section not found in the configuration file.");
+                return;
+            }
+            XmlNode settingNode = appSettingsNode.SelectSingleNode($"add[@key='{key}']");
+            if (settingNode != null)
+            {
+                // Update the value attribute
+                XmlAttribute valueAttribute = settingNode.Attributes["value"];
+                if (valueAttribute != null)
+                {
+                    valueAttribute.Value = newValue;
+                    doc.Save(configFilePath);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Key '{key}' not found in AppSettings.");
+            }
         }
     }
 }

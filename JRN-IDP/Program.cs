@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,12 +23,8 @@ namespace JRN_IDP
             }
             else if(code == "1")
             {
-                string username = ConfigurationManager.AppSettings["username"];
-                string password = ConfigurationManager.AppSettings["password"];
-                string connString = ConfigurationManager.AppSettings["connString"];
-                Console.WriteLine($"Username: {username}");
-                Console.WriteLine($"Password: {password}");
-                Console.WriteLine($"Connection String: {connString}");
+                //spoHander.TestEncryption();
+                spoHander.UpdateCredentials();
             }
             else
             {

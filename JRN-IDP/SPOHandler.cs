@@ -40,7 +40,8 @@ namespace JRN_IDP
         public string GenerateBase64Attachment(string fileUrl)
         {
             // SharePoint site URL and credentials
-            string fileRelativeUrl = fileUrl.ToLower().Replace("%20-%20inv", "");
+            //string fileRelativeUrl = fileUrl.ToLower().Replace("%20-%20inv", "");
+            string fileRelativeUrl = fileUrl.ToLower().Replace("inv", "Supporting%20Doc");
             Console.WriteLine($"File Relative url: {fileRelativeUrl}");
             string siteName = "p2pdocumentation";
             string siteUrl = $"https://jresourcesid.sharepoint.com/sites/{siteName}";
@@ -157,6 +158,70 @@ namespace JRN_IDP
             {
                 string base64 = ConvertToBase64(file);
                 prosnap.UploadFile(file, base64);
+            }
+        }
+
+        public EncryptionModel GetEncryption()
+        {
+            DataTable dt = new DataTable();
+            using(SqlConnection conn = new SqlConnection(connString))
+            {
+                conn.Open();
+                using(SqlCommand cmd = new SqlCommand("usp_Encryption", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    using(SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<EncryptionModel>(dt)[0];
+                    }
+                }
+            }
+
+        }
+
+        public void TestEncryption()
+        {
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            string encryptedUsername = ConfigurationManager.AppSettings["username_"];
+            string encryptedPassword = ConfigurationManager.AppSettings["password_"];
+
+            string username = Utility.Decrypt(Convert.FromBase64String(encryptedUsername), key, iv);
+            string password = Utility.Decrypt(Convert.FromBase64String(encryptedPassword), key, iv);
+
+            Console.WriteLine($"Username encrypt: {encryptedUsername}");
+            Console.WriteLine($"Password decrypt: {username}");
+            Console.WriteLine($"Password encrypt: {encryptedPassword}");
+            Console.WriteLine($"Password decrypt: {password}");
+        }
+
+        public void UpdateCredentials()
+        {
+            Console.Write("Enter your new password: ");
+            string newPass = Console.ReadLine();
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            string newPassEncrypt = Convert.ToBase64String(Utility.Encrypt(newPass, key, iv));
+            UpdateCredentialToSQL(newPassEncrypt);
+            Console.WriteLine("Update Password success");
+        }
+
+        public void UpdateCredentialToSQL(string password)
+        {
+            using(SqlConnection con = new SqlConnection(connString))
+            {
+                con.Open();
+                using(SqlCommand cmd = new SqlCommand("usp_UpdateCreds", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@NewPass", password);
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
     }

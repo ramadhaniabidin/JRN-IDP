@@ -127,6 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIHandler.cs" />
+    <Compile Include="Model\EncryptionModel.cs" />
     <Compile Include="Model\NACModel.cs" />
     <Compile Include="Model\PayloadModel.cs" />
     <Compile Include="Model\SPOFileModel.cs" />
