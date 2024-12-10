@@ -16,10 +16,11 @@ namespace JRN_IDP
             ProsnapHandler prosnap = new ProsnapHandler();
             APIHandler api = new APIHandler();
             //prosnap.TestParsingJSON();
-            string code = "1";
+            string code = "0";
             if(code == "0")
             {
                 spoHander.UploadFileToProsnap();
+                System.Threading.Thread.Sleep(10000);
             }
             else if(code == "1")
             {

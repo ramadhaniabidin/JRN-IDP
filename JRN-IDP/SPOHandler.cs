@@ -22,10 +22,10 @@ namespace JRN_IDP
         public List<SPOFileModel> GetFileFromSPO()
         {
             DataTable dt = new DataTable();
-            using (var con = new SqlConnection(connString))
+            using (var con = new SqlConnection(connString_JRNAzure))
             {
                 con.Open();
-                using (var cmd = new SqlCommand("SPOFile_GetList", con))
+                using (var cmd = new SqlCommand("usp_SPOFile_GetList", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
@@ -157,6 +157,8 @@ namespace JRN_IDP
             List<SPOFileModel> files = GetFileFromSPO();
             foreach(SPOFileModel file in files)
             {
+                Console.WriteLine($"File Name: {file.Document_Name}");
+                Console.WriteLine($"File ID: {file.Item_ID}");
                 string base64 = ConvertToBase64(file);
                 prosnap.UploadFile(file, base64);
             }

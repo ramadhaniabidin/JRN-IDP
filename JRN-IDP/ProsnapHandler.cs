@@ -20,11 +20,12 @@ namespace JRN_IDP
         private readonly string uploadURL = "/api/transaction/upload";
         private readonly string scanURL = "/api/transaction/Scan_V2?";
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
+        private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
         NACHandler NAC = new NACHandler();
 
         public void UpdateStatus_SPOFile(int Item_ID, int FileID)
         {
-            using (var con = new SqlConnection(connString))
+            using (var con = new SqlConnection(connString_JRNAzure))
             {
                 con.Open();
                 string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = {FileID} WHERE Item_ID = {Item_ID}";
@@ -67,10 +68,12 @@ namespace JRN_IDP
                     return "";
                 }
             }
+
         }
 
         public void UploadFile(SPOFileModel file, string base64)
         {
+            Console.WriteLine("Upload to ProSnap - Begin");
             string token = GetToken();
             string url = $"{baseURL}{uploadURL}";
             var payload = new
