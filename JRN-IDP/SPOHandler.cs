@@ -200,17 +200,20 @@ namespace JRN_IDP
 
         public void UpdateCredentials()
         {
+            Console.Write("Enter your new username: ");
+            string newUsername = Console.ReadLine();
             Console.Write("Enter your new password: ");
             string newPass = Console.ReadLine();
             EncryptionModel encryption = GetEncryption();
             byte[] key = Encoding.UTF8.GetBytes(encryption.key);
             byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
             string newPassEncrypt = Convert.ToBase64String(Utility.Encrypt(newPass, key, iv));
-            UpdateCredentialToSQL(newPassEncrypt);
+            string newUsernameEncrypt = Convert.ToBase64String(Utility.Encrypt(newUsername, key, iv));
+            UpdateCredentialToSQL(newPassEncrypt, newUsernameEncrypt);
             Console.WriteLine("Update Password success");
         }
 
-        public void UpdateCredentialToSQL(string password)
+        public void UpdateCredentialToSQL(string password, string username)
         {
             using(SqlConnection con = new SqlConnection(connString))
             {
@@ -220,6 +223,7 @@ namespace JRN_IDP
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@NewPass", password);
+                    cmd.Parameters.AddWithValue("@NewUsername", username);
                     cmd.ExecuteNonQuery();
                 }
             }
