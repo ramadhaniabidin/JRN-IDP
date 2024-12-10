@@ -17,6 +17,7 @@ namespace JRN_IDP
     {
         ProsnapHandler prosnap = new ProsnapHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
+        private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
         //private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
         public List<SPOFileModel> GetFileFromSPO()
         {
@@ -225,6 +226,31 @@ namespace JRN_IDP
                     cmd.Parameters.AddWithValue("@NewPass", password);
                     cmd.Parameters.AddWithValue("@NewUsername", username);
                     cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void TestConnection_JRNAzure()
+        {
+            using(SqlConnection con = new SqlConnection(connString_JRNAzure))
+            {
+                DataTable dt = new DataTable();
+                con.Open();
+                string query = "[usp_SPOFile_GetList_TestConnection]";
+                using(SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    using(SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                    }
+                }
+                List<SPOFileModel> spoFiles = Utility.ConvertDataTableToList<SPOFileModel>(dt);
+                foreach(var file in spoFiles)
+                {
+                    Console.WriteLine($"FileName: {file.Document_Name}");
+                    Console.WriteLine($"FileURL: {file.Document_Url}");
                 }
             }
         }

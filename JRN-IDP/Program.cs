@@ -24,7 +24,8 @@ namespace JRN_IDP
             else if(code == "1")
             {
                 //spoHander.TestEncryption();
-                spoHander.UpdateCredentials();
+                //spoHander.UpdateCredentials();
+                spoHander.TestConnection_JRNAzure();
             }
             else
             {
