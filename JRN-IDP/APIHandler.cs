@@ -477,7 +477,6 @@ namespace JRN_IDP
                 // Sync Transaction to DataTable
                 int ID = data.ID;
                 Console.WriteLine($"HeaderID: {ID}");
-                SyncTransactionToDataTable(ID);
 
                 // Get Invoice Header
                 InvoiceHeaderModel header = GetInvoiceHeader(ID);
