@@ -41,13 +41,14 @@ namespace JRN_IDP
         public string GenerateBase64Attachment(string fileUrl)
         {
             // SharePoint site URL and credentials
-            //string fileRelativeUrl = fileUrl.ToLower().Replace("%20-%20inv", "");
-            string fileRelativeUrl = fileUrl.ToLower().Replace("inv", "Supporting%20Doc");
-            Console.WriteLine($"File Relative url: {fileRelativeUrl}");
-            string siteName = "p2pdocumentation";
-            string siteUrl = $"https://jresourcesid.sharepoint.com/sites/{siteName}";
-            string username = "elistec@jresources.com";
-            string password = "?Mfu1y^X]zrBrro";
+            //string siteName = "p2pdocumentation";
+            //string fileRelativeUrl = fileUrl.ToLower().Replace("inv", "Supporting%20Doc");
+            string fileRelativeUrl = fileUrl.ToLower().Replace("%20-%20inv", "");
+            //Console.WriteLine($"File Relative url: {fileRelativeUrl}");            
+            DecryptionModel decryption = Decrypt("SPO");
+            string username = decryption.username_;
+            string password = decryption.password_;
+            string siteUrl = $"https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
             try
             {
                 SecureString secure = new SecureString();
@@ -99,11 +100,10 @@ namespace JRN_IDP
 
         public string ConvertToBase64(SPOFileModel fileModel)
         {
-            // SharePoint site URL and credentials
-            string siteName = "p2pdocumentation";
-            string siteUrl = $"https://jresourcesid.sharepoint.com/sites/{siteName}";
-            string username = "elistec@jresources.com";
-            string password = "?Mfu1y^X]zrBrro";
+            DecryptionModel decryption = Decrypt("SPO");
+            string username = decryption.username_;
+            string password = decryption.password_;
+            string siteUrl = "https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
             string baseURL = "https://jresourcesid.sharepoint.com";
             try
             {
@@ -253,6 +253,51 @@ namespace JRN_IDP
                     Console.WriteLine($"FileURL: {file.Document_Url}");
                 }
             }
+        }
+
+        public void EncryptCreds()
+        {
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            Console.Write("Enter your username: ");
+            string username = Console.ReadLine();
+            Console.Write("Enter your password: ");
+            string password = Console.ReadLine();
+            byte[] usernameEncyrptBytes = Utility.Encrypt(username, key, iv);
+            string usernameEncrypted = Convert.ToBase64String(usernameEncyrptBytes);
+            byte[] passEncryptBytes = Utility.Encrypt(password, key, iv);
+            string passwordEncrypted = Convert.ToBase64String(passEncryptBytes);
+            Console.WriteLine($"Username encrypt: {usernameEncrypted}");
+            Console.WriteLine($"Password encrypt: {passwordEncrypted}");
+        }
+
+        public DecryptionModel Decrypt(string type_)
+        {
+            DataTable dt = new DataTable();
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            using(SqlConnection con = new SqlConnection(connString))
+            {
+                con.Open();
+                using(SqlCommand cmd = new SqlCommand("usp_Creds_GetByType", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@type", type_);
+                    using(SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                    }
+                }
+            }
+            var decryption = Utility.ConvertDataTableToList<DecryptionModel>(dt)[0];
+            string username = Utility.Decrypt(Convert.FromBase64String(decryption.username_), key, iv);
+            string password = Utility.Decrypt(Convert.FromBase64String(decryption.password_), key, iv);
+            decryption.username_ = username;
+            decryption.password_ = password;
+            return decryption;
         }
     }
 }

@@ -548,7 +548,7 @@ namespace JRN_IDP
                         Console.WriteLine(ex.Message);
                         PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", ex.Message, "");
                     }
-                    UpdateTransactionHeaders(ID);
+                    //UpdateTransactionHeaders(ID);
                 }
                 
                 

@@ -25,7 +25,8 @@ namespace JRN_IDP
             {
                 //spoHander.TestEncryption();
                 //spoHander.UpdateCredentials();
-                spoHander.TestConnection_JRNAzure();
+                //spoHander.TestConnection_JRNAzure();
+                spoHander.EncryptCreds();
             }
             else
             {

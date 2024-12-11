@@ -11,4 +11,10 @@ namespace JRN_IDP.Model
         public string key { get; set; }
         public string iv { get; set; }
     }
+
+    public class DecryptionModel
+    {
+        public string username_ { get; set; }
+        public string password_ { get; set; }
+    }
 }
