@@ -63,6 +63,29 @@ namespace JRN_IDP
             }).Wait();
         }
 
+        public async Task CallNotificationWorkflow_Production()
+        {
+            NintexWorkflowCloud nwcModel = new NintexWorkflowCloud();
+            nwcModel.url = NACBaseURL;
+            string token = GetToken();
+            string workflowEndpoint = ConfigurationManager.AppSettings["NotificationWorkflow_Url_Production"];
+            string requestBody = System.Text.Json.JsonSerializer.Serialize(nwcModel.param);
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.
+                AuthenticationHeaderValue("Bearer", token);
+            client.BaseAddress = new Uri(nwcModel.url);
+            client.DefaultRequestHeaders.Accept.
+                Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, workflowEndpoint);
+            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            using (var response = await client.SendAsync(request))
+            {
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(result);
+            }
+        }
+
         public async Task TriggerWorkflowAsync(NintexWorkflowCloud nwcModel)
         {
             nwcModel.url = NACBaseURL;

@@ -38,13 +38,33 @@ namespace JRN_IDP
             return Utility.ConvertDataTableToList<SPOFileModel>(dt);
         }
 
-        public string GenerateBase64Attachment(string fileUrl)
+        public string Attachment_GetRelativeURL(string url, string fileName)
         {
-            // SharePoint site URL and credentials
-            //string siteName = "p2pdocumentation";
-            //string fileRelativeUrl = fileUrl.ToLower().Replace("inv", "Supporting%20Doc");
-            string fileRelativeUrl = fileUrl.ToLower().Replace("%20-%20inv", "");
-            //Console.WriteLine($"File Relative url: {fileRelativeUrl}");            
+            string cond1 = "-inv.pdf";
+            string cond2 = " - inv.pdf";
+            string cond3 = " -inv.pdf";
+            string newFileName = "";
+            if (fileName.ToLower().Contains(cond1))
+            {
+                newFileName = fileName.ToLower().Replace(cond1, "").Trim();
+            }
+            else if (fileName.ToLower().Contains(cond2))
+            {
+                newFileName = fileName.ToLower().Replace(cond2, "").Trim();
+            }
+            else if (fileName.ToLower().Contains(cond3))
+            {
+                newFileName = fileName.ToLower().Replace(cond3, "").Trim();
+            }
+            url = url.Replace("%20", " ");
+            url = url.ToLower().Replace(fileName.ToLower(), newFileName);
+            url += ".pdf".Trim();
+            return url;
+        }
+
+        public string GenerateBase64Attachment(string fileUrl, string fileName)
+        {
+            string fileRelativeUrl = Attachment_GetRelativeURL(fileUrl, fileName);         
             DecryptionModel decryption = Decrypt("SPO");
             string username = decryption.username_;
             string password = decryption.password_;
@@ -59,7 +79,6 @@ namespace JRN_IDP
                 using (var context = new ClientContext(siteUrl))
                 {
                     context.Credentials = new SharePointOnlineCredentials(username, secure);
-                    // Retrieve the file from the document library
                     var web = context.Web;
                     var file = web.GetFileByServerRelativeUrl(fileRelativeUrl);
                     context.Load(file);
@@ -67,20 +86,14 @@ namespace JRN_IDP
 
                     if (file != null)
                     {
-                        // Download the file's content
                         ClientResult<Stream> streamResult = file.OpenBinaryStream();
                         context.ExecuteQuery();
 
                         using (var memoryStream = new MemoryStream())
                         {
                             streamResult.Value.CopyTo(memoryStream);
-
-                            // Convert the file content to Base64
                             byte[] fileBytes = memoryStream.ToArray();
                             string base64Content = Convert.ToBase64String(fileBytes);
-
-                            //Console.WriteLine("Base64 Content:");
-                            //Console.WriteLine(base64Content);
                             return base64Content;
                         }
                     }
@@ -100,21 +113,19 @@ namespace JRN_IDP
 
         public string ConvertToBase64(SPOFileModel fileModel)
         {
-            DecryptionModel decryption = Decrypt("SPO");
-            string username = decryption.username_;
-            string password = decryption.password_;
+            var decryption = Decrypt("SPO");
             string siteUrl = "https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
             string baseURL = "https://jresourcesid.sharepoint.com";
             try
             {
                 SecureString secure = new SecureString();
-                foreach (var c in password)
+                foreach (var c in decryption.password_)
                 {
                     secure.AppendChar(c);
                 }
                 using (var context = new ClientContext(siteUrl))
                 {
-                    context.Credentials = new SharePointOnlineCredentials(username, secure);
+                    context.Credentials = new SharePointOnlineCredentials(decryption.username_, secure);
                     // Retrieve the file from the document library
                     var web = context.Web;
                     var fileUrl = $"{fileModel.Document_Url.Replace(baseURL, "").Trim()}"; // Adjust if site structure differs
@@ -272,6 +283,34 @@ namespace JRN_IDP
             Console.WriteLine($"Password encrypt: {passwordEncrypted}");
         }
 
+        public void DecryptCreds()
+        {
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            Console.Write("Enter your encrypted username: ");
+            string usernameEncrypt = Console.ReadLine();
+            Console.Write("Enter your encrypted password: ");
+            string passwordEncrypt = Console.ReadLine();
+            string realUsername = Utility.Decrypt(Convert.FromBase64String(usernameEncrypt), key, iv);
+            string realPassword = Utility.Decrypt(Convert.FromBase64String(passwordEncrypt), key, iv);
+            Console.WriteLine($"Your username: {realUsername}");
+            Console.WriteLine($"Your password: {realPassword}");
+        }
+
+        public void EncryptCredentials(string username, string password)
+        {
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            byte[] usernameEncyrptBytes = Utility.Encrypt(username, key, iv);
+            string usernameEncrypted = Convert.ToBase64String(usernameEncyrptBytes);
+            byte[] passEncryptBytes = Utility.Encrypt(password, key, iv);
+            string passwordEncrypted = Convert.ToBase64String(passEncryptBytes);
+            Console.WriteLine($"Username encrypt: {usernameEncrypted}");
+            Console.WriteLine($"Password encrypt: {passwordEncrypted}");
+        }
+
         public DecryptionModel Decrypt(string type_)
         {
             DataTable dt = new DataTable();
@@ -298,6 +337,26 @@ namespace JRN_IDP
             decryption.username_ = username;
             decryption.password_ = password;
             return decryption;
+        }
+
+        public SPOFileModel SPOFile_GetByProSnapID(int ProSnapID)
+        {
+            DataTable dt = new DataTable();
+            using(SqlConnection conn = new SqlConnection(connString))
+            {
+                conn.Open();
+                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {ProSnapID}";
+                using(SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    using(SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                    }
+                }
+            }
+            var spoFile = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
+            return spoFile;
         }
     }
 }

@@ -20,9 +20,6 @@ namespace JRN_IDP
         SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoice_Endpoint"];
-        private readonly string getSupplierUrl = ConfigurationManager.AppSettings["GetSupplier_Endpoint"];
-        private readonly string username = ConfigurationManager.AppSettings["username"];
-        private readonly string password = ConfigurationManager.AppSettings["password"];
 
         public static string GenerateRandomString()
         {
@@ -30,6 +27,54 @@ namespace JRN_IDP
             Random random = new Random();
             return new string(Enumerable.Range(0, 4)
                 .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        }
+
+        public EncryptionModel GetEncryption()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("usp_Encryption", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<EncryptionModel>(dt)[0];
+                    }
+                }
+            }
+
+        }
+
+        public DecryptionModel Decrypt(string type_)
+        {
+            DataTable dt = new DataTable();
+            EncryptionModel encryption = GetEncryption();
+            byte[] key = Encoding.UTF8.GetBytes(encryption.key);
+            byte[] iv = Encoding.UTF8.GetBytes(encryption.iv);
+            using (SqlConnection con = new SqlConnection(connString))
+            {
+                con.Open();
+                using (SqlCommand cmd = new SqlCommand("usp_Creds_GetByType", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@type", type_);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                    }
+                }
+            }
+            var decryption = Utility.ConvertDataTableToList<DecryptionModel>(dt)[0];
+            string username = Utility.Decrypt(Convert.FromBase64String(decryption.username_), key, iv);
+            string password = Utility.Decrypt(Convert.FromBase64String(decryption.password_), key, iv);
+            decryption.username_ = username;
+            decryption.password_ = password;
+            return decryption;
         }
 
         public List<IDModel> GetVerifiedTransactionHeaderIDList()
@@ -69,113 +114,114 @@ namespace JRN_IDP
             Console.WriteLine("Success\n");
         }
 
-        public long GetSupplierID(string SupplierName)
-        {
-            if (string.IsNullOrEmpty(SupplierName) || string.IsNullOrWhiteSpace(SupplierName))
-            {
-                return -1;
-            }
-            using (var client = new HttpClient())
-            {
-                var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
-                string param = $"q=Supplier={SupplierName}";
-                string endpoint = $"{getSupplierUrl}?{param}";
-                HttpResponseMessage response = client.GetAsync(endpoint).Result;
+        #region Unused methods
+        //public long GetSupplierID(string SupplierName)
+        //{
+        //    if (string.IsNullOrEmpty(SupplierName) || string.IsNullOrWhiteSpace(SupplierName))
+        //    {
+        //        return -1;
+        //    }
+        //    using (var client = new HttpClient())
+        //    {
+        //        var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+        //        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+        //        string param = $"q=Supplier={SupplierName}";
+        //        string endpoint = $"{getSupplierUrl}?{param}";
+        //        HttpResponseMessage response = client.GetAsync(endpoint).Result;
 
-                try
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseBody = response.Content.ReadAsStringAsync().Result;
-                        // Parse the JSON response
-                        JsonDocument jsonDocument = JsonDocument.Parse(responseBody);
-                        JsonElement root = jsonDocument.RootElement;
+        //        try
+        //        {
+        //            if (response.IsSuccessStatusCode)
+        //            {
+        //                string responseBody = response.Content.ReadAsStringAsync().Result;
+        //                // Parse the JSON response
+        //                JsonDocument jsonDocument = JsonDocument.Parse(responseBody);
+        //                JsonElement root = jsonDocument.RootElement;
 
-                        // Access the SupplierId from the first item
-                        long supplierId = root.GetProperty("items")[0].GetProperty("SupplierId").GetInt64();
+        //                // Access the SupplierId from the first item
+        //                long supplierId = root.GetProperty("items")[0].GetProperty("SupplierId").GetInt64();
 
-                        //Console.WriteLine($"SupplierId: {supplierId}");
-                        return supplierId;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Error: {response.StatusCode}");
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        Console.WriteLine("Error details:");
-                        Console.WriteLine(errorContent);
-                        return -1;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    return -1;
-                }
-            }          
-        }
+        //                //Console.WriteLine($"SupplierId: {supplierId}");
+        //                return supplierId;
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine($"Error: {response.StatusCode}");
+        //                string errorContent = response.Content.ReadAsStringAsync().Result;
+        //                Console.WriteLine("Error details:");
+        //                Console.WriteLine(errorContent);
+        //                return -1;
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.ToString());
+        //            return -1;
+        //        }
+        //    }          
+        //}
 
-        public SupplierModel GetSupplierInfo(long supplierID)
-        {
-            if (supplierID == -1)
-            {
-                return new SupplierModel
-                {
-                    SupplierSite = "",
-                    SupplierBusinessUnit = ""
-                };
-            }
+        //public SupplierModel GetSupplierInfo(long supplierID)
+        //{
+        //    if (supplierID == -1)
+        //    {
+        //        return new SupplierModel
+        //        {
+        //            SupplierSite = "",
+        //            SupplierBusinessUnit = ""
+        //        };
+        //    }
 
-            using (var client = new HttpClient())
-            {
-                var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
-                string param = $"limit=1";
-                string endpoint = $"https://fa-exke-test-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/suppliers/{supplierID}/child/sites?{param}";
-                HttpResponseMessage response = client.GetAsync(endpoint).Result;
-                try
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string responseBody = response.Content.ReadAsStringAsync().Result;
-                        // Parse the JSON response
-                        JsonDocument jsonDocument = JsonDocument.Parse(responseBody);
-                        JsonElement root = jsonDocument.RootElement;
+        //    using (var client = new HttpClient())
+        //    {
+        //        var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+        //        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+        //        string param = $"limit=1";
+        //        string endpoint = $"https://fa-exke-test-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/suppliers/{supplierID}/child/sites?{param}";
+        //        HttpResponseMessage response = client.GetAsync(endpoint).Result;
+        //        try
+        //        {
+        //            if (response.IsSuccessStatusCode)
+        //            {
+        //                string responseBody = response.Content.ReadAsStringAsync().Result;
+        //                // Parse the JSON response
+        //                JsonDocument jsonDocument = JsonDocument.Parse(responseBody);
+        //                JsonElement root = jsonDocument.RootElement;
 
-                        // Access the SupplierId from the first item
-                        string SupplierSite = root.GetProperty("items")[0].GetProperty("SupplierSite").GetString();
-                        string SupplierBU = root.GetProperty("items")[0].GetProperty("ProcurementBU").GetString();
-                        return new SupplierModel
-                        {
-                            SupplierSite = string.IsNullOrEmpty(SupplierSite) ? "" : SupplierSite,
-                            SupplierBusinessUnit = string.IsNullOrEmpty(SupplierBU) ? "" : SupplierBU
-                        };
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Error: {response.StatusCode}");
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        Console.WriteLine("Error details:");
-                        Console.WriteLine(errorContent);
-                        return new SupplierModel
-                        {
-                            SupplierSite = "",
-                            SupplierBusinessUnit = ""
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    return new SupplierModel
-                    {
-                        SupplierSite = "",
-                        SupplierBusinessUnit = ""
-                    };
-                }
-            }
-        }
-
+        //                // Access the SupplierId from the first item
+        //                string SupplierSite = root.GetProperty("items")[0].GetProperty("SupplierSite").GetString();
+        //                string SupplierBU = root.GetProperty("items")[0].GetProperty("ProcurementBU").GetString();
+        //                return new SupplierModel
+        //                {
+        //                    SupplierSite = string.IsNullOrEmpty(SupplierSite) ? "" : SupplierSite,
+        //                    SupplierBusinessUnit = string.IsNullOrEmpty(SupplierBU) ? "" : SupplierBU
+        //                };
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine($"Error: {response.StatusCode}");
+        //                string errorContent = response.Content.ReadAsStringAsync().Result;
+        //                Console.WriteLine("Error details:");
+        //                Console.WriteLine(errorContent);
+        //                return new SupplierModel
+        //                {
+        //                    SupplierSite = "",
+        //                    SupplierBusinessUnit = ""
+        //                };
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.ToString());
+        //            return new SupplierModel
+        //            {
+        //                SupplierSite = "",
+        //                SupplierBusinessUnit = ""
+        //            };
+        //        }
+        //    }
+        //}
+        #endregion
 
         public InvoiceHeaderModel GetInvoiceHeader(int HeaderID)
         {
@@ -351,12 +397,10 @@ namespace JRN_IDP
                 }
             }
             var Document = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
-            //string siteName = "p2pdocumentation";
             string siteUrl = $"https://jresourcesid.sharepoint.com";
             string title = Document.Document_Name.ToUpper().Replace("- INV.PDF", "").Trim();
-            //string fileURL = $"/sites/{siteName}/{Document.List_Name}/{title}/{Document.Document_Name.ToUpper().Replace(" - INV", "").Trim()}";
             string fileRelativeURL = Document.Document_Url.Replace(siteUrl, "").Trim();
-            string base64Content = spo.GenerateBase64Attachment(fileRelativeURL);
+            string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name);
             return new AttachmentModel
             {
                 Type = "File",
@@ -400,7 +444,26 @@ namespace JRN_IDP
 
         public void NotifTeamIT(int HeaderID, string payload, string message)
         {
-            Console.WriteLine("Notif IT Team - Begin");
+            #region Get User - Commented
+            //DataTable dt = new DataTable();
+            //using (SqlConnection conn = new SqlConnection(connString))
+            //{
+            //    conn.Open();
+            //    string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        cmd.CommandType = CommandType.Text;
+            //        using (SqlDataReader reader = cmd.ExecuteReader())
+            //        {
+            //            dt.Load(reader);
+            //        }
+            //    }
+            //}
+            //var spoFile = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
+            //string UserEmail = spoFile.Created_By;
+            //string fileName = spoFile.Document_Name;
+            #endregion
+            var spoFile = spo.SPOFile_GetByProSnapID(HeaderID);
             try
             {
                 NintexWorkflowCloud nwc = new NintexWorkflowCloud
@@ -411,7 +474,9 @@ namespace JRN_IDP
                         {
                             se_headerid = HeaderID,
                             se_payload = payload,
-                            se_message = message
+                            se_message = message,
+                            se_useremail = spoFile.Created_By,
+                            se_filename = spoFile.Document_Name
                         }
                     }
                 };
@@ -429,25 +494,26 @@ namespace JRN_IDP
 
         public void SuccessCreateInvoice_NotifUser(string InvoiceID, string InvoiceNumber, int HeaderID)
         {
-            #region Get User
-            DataTable dt = new DataTable();
-            using (SqlConnection conn = new SqlConnection(connString))
-            {
-                conn.Open();
-                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        dt.Load(reader);
-                    }
-                }
-            }
-            var spoFile = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
-            string UserEmail = spoFile.Created_By;
-            string fileName = spoFile.Document_Name;
+            #region Get User - Commented
+            //DataTable dt = new DataTable();
+            //using (SqlConnection conn = new SqlConnection(connString))
+            //{
+            //    conn.Open();
+            //    string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        cmd.CommandType = CommandType.Text;
+            //        using (SqlDataReader reader = cmd.ExecuteReader())
+            //        {
+            //            dt.Load(reader);
+            //        }
+            //    }
+            //}
+            //var spoFile = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
+            //string UserEmail = spoFile.Created_By;
+            //string fileName = spoFile.Document_Name;
             #endregion
+            var spoFile = spo.SPOFile_GetByProSnapID(HeaderID);
             NintexWorkflowCloud nwc = new NintexWorkflowCloud
             {
                 param = new NWCParamModel
@@ -457,8 +523,8 @@ namespace JRN_IDP
                         se_type = "3",
                         se_invoiceid = InvoiceID,
                         se_invoicenumber = InvoiceNumber,
-                        se_filename = fileName,
-                        se_useremail = UserEmail
+                        se_filename = spoFile.Document_Name,
+                        se_useremail = spoFile.Created_By
                     }
                 }
             };
@@ -474,14 +540,18 @@ namespace JRN_IDP
             List<IDModel> HeaderIDs = GetVerifiedTransactionHeaderIDList();
             foreach (var data in HeaderIDs)
             {
-                // Sync Transaction to DataTable
                 int ID = data.ID;
-                Console.WriteLine($"HeaderID: {ID}");
-
-                // Get Invoice Header
+                #region Sync Transaction
+                try
+                {
+                    SyncTransactionToDataTable(ID);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Sync Trasaction to datatable error: {ex}");
+                }
+                #endregion
                 InvoiceHeaderModel header = GetInvoiceHeader(ID);
-                //// Alter BusinessUnit to make error request
-                //header.BusinessUnit = "Test";
                 header.invoiceLines = PopulateInvoiceLine(ID);
                 header.attachments = new List<AttachmentModel>();
                 header.attachments.Add(GetDefaultAttachment(ID));
@@ -497,18 +567,15 @@ namespace JRN_IDP
                 // API Request
                 using (var client = new HttpClient(handler))
                 {
-                    // Set up Basic Authentication
-                    var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+                    DecryptionModel decryption = Decrypt("Oracle");
+                    var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{decryption.username_}:{decryption.password_}"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
-                    // Serialize payload to JSON
                     var options = new JsonSerializerOptions
                     {
                         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                     };
-                    string jsonPayload = System.Text.Json.JsonSerializer.Serialize(header, options);
-                    //Console.WriteLine(jsonPayload);
-                    Console.WriteLine($"Payload ready for Header ID {ID}, begin process create invoice");
+                    string jsonPayload = JsonSerializer.Serialize(header, options);
                     var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
                     var PayloadToStore = header;
                     foreach(var p in PayloadToStore.attachments)
@@ -518,40 +585,49 @@ namespace JRN_IDP
                     string jsonPayloadToStore = JsonSerializer.Serialize(PayloadToStore, options);
                     try
                     {
-                        // Make the POST request
                         HttpResponseMessage response = await client.PostAsync(url, content);
-
-                        // Check if the request was successful
-                        if (response.IsSuccessStatusCode)
-                        {
-                            string responseContent = await response.Content.ReadAsStringAsync();
-                            Console.WriteLine("Success!");
-                            //Console.WriteLine(responseContent);
-                            JObject jsonObject = JObject.Parse(responseContent);
-                            string invoiceId = jsonObject["InvoiceId"].ToString();
-                            Console.WriteLine($"InvoiceId: {invoiceId}\nHeaderID: {ID}");
-                            PostCreateInvoice_InsertLog(invoiceId, ID, jsonPayloadToStore, "Success", "Created", responseContent);
-                            SuccessCreateInvoice_NotifUser(invoiceId, header.InvoiceNumber, ID);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Error: {response.StatusCode}");
-                            string errorContent = await response.Content.ReadAsStringAsync();
-                            Console.WriteLine("Error details:");
-                            Console.WriteLine(errorContent);
-                            PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", "Bad Request", errorContent);
-                            NotifTeamIT(ID, jsonPayloadToStore, errorContent);
-                        }
+                        CreateInvoice_ProcessResponse(response, ID, jsonPayloadToStore, header.InvoiceNumber);
+                        #region Old way to process HttpResponseMessage
+                        //if (response.IsSuccessStatusCode)
+                        //{
+                        //    string responseContent = await response.Content.ReadAsStringAsync();
+                        //    JObject jsonObject = JObject.Parse(responseContent);
+                        //    string invoiceId = jsonObject["InvoiceId"].ToString();
+                        //    PostCreateInvoice_InsertLog(invoiceId, ID, jsonPayloadToStore, "Success", "Created", responseContent);
+                        //    SuccessCreateInvoice_NotifUser(invoiceId, header.InvoiceNumber, ID);
+                        //}
+                        //else
+                        //{
+                        //    string errorContent = await response.Content.ReadAsStringAsync();
+                        //    PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", "Bad Request", errorContent);
+                        //    NotifTeamIT(ID, jsonPayloadToStore, errorContent);
+                        //}
+                        #endregion
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", ex.Message, "");
                     }
-                    //UpdateTransactionHeaders(ID);
                 }
-                
-                
+            }
+        }
+
+        public void CreateInvoice_ProcessResponse(HttpResponseMessage response, int HeaderID, string jsonPayload, string invoiceNumber)
+        {
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = response.Content.ReadAsStringAsync().Result;
+                JObject jsonObject = JObject.Parse(responseContent);
+                string invoiceId = jsonObject["InvoiceId"].ToString();
+                PostCreateInvoice_InsertLog(invoiceId, HeaderID, jsonPayload, "Success", "Created", responseContent);
+                SuccessCreateInvoice_NotifUser(invoiceId, invoiceNumber, HeaderID);
+            }
+            else
+            {
+                string errorContent = response.Content.ReadAsStringAsync().Result;
+                PostCreateInvoice_InsertLog("", HeaderID, jsonPayload, "Failed", "Bad Request", errorContent);
+                NotifTeamIT(HeaderID, jsonPayload, errorContent);
             }
         }
     }
