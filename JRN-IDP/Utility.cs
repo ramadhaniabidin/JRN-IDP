@@ -172,27 +172,6 @@ namespace JRN_IDP
             return table;
         }
 
-        public static string ToHtmlTable(DataTable dt)
-        {
-            string strHtml = "<table><tr>" + Environment.NewLine;
-            foreach (DataColumn col in dt.Columns)
-            {
-                strHtml += Environment.NewLine + "<th>" + col.ColumnName + "</th>";
-            }
-            strHtml += Environment.NewLine + "</tr>";
-            foreach (DataColumn dc in dt.Columns)
-            {
-                strHtml += Environment.NewLine + "<tr>";
-                foreach (DataRow row in dt.Rows)
-                {
-                    strHtml += Environment.NewLine + "<td>" + row[dc] + "</td>";
-                }
-                strHtml += Environment.NewLine + "</tr>";
-            }
-            strHtml += "</table>";
-            return strHtml;
-        }
-
         public static List<T> ConvertDataTableToList<T>(DataTable dt)
         {
             List<T> data = new List<T>();
