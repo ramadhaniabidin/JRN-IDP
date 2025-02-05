@@ -43,20 +43,20 @@ namespace JRN_IDP
             string cond2 = " - inv.pdf";
             string cond3 = " -inv.pdf";
             string newFileName = "";
-            if (fileName.ToLower().Contains(cond1))
+            if (fileName.ToLowerInvariant().Contains(cond1))
             {
-                newFileName = fileName.ToLower().Replace(cond1, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond1, "").Trim();
             }
-            else if (fileName.ToLower().Contains(cond2))
+            else if (fileName.ToLowerInvariant().Contains(cond2))
             {
-                newFileName = fileName.ToLower().Replace(cond2, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond2, "").Trim();
             }
-            else if (fileName.ToLower().Contains(cond3))
+            else if (fileName.ToLowerInvariant().Contains(cond3))
             {
-                newFileName = fileName.ToLower().Replace(cond3, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond3, "").Trim();
             }
             url = url.Replace("%20", " ");
-            url = url.ToLower().Replace(fileName.ToLower(), newFileName);
+            url = url.ToLowerInvariant().Replace(fileName.ToLowerInvariant(), newFileName);
             url += ".pdf".Trim();
             return url;
         }
