@@ -15,7 +15,7 @@ namespace JRN_IDP
 {
     public class SPOHandler
     {
-        ProsnapHandler prosnap = new ProsnapHandler();
+        readonly ProsnapHandler prosnap = new ProsnapHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
         public List<SPOFileModel> GetFileFromSPO()

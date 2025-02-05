@@ -20,7 +20,7 @@ namespace JRN_IDP
         private readonly string uploadURL = "/api/transaction/upload";
         private readonly string scanURL = "/api/transaction/Scan_V2?";
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
-        NACHandler NAC = new NACHandler();
+        readonly NACHandler NAC = new NACHandler();
 
         public void UpdateStatus_SPOFile(int Item_ID, int FileID)
         {
