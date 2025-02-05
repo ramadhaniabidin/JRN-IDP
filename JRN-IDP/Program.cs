@@ -25,7 +25,7 @@ namespace JRN_IDP
             {
                 spoHander.DecryptCreds();
             }
-            else if (code.ToUpper() == "TEST WORKFLOW NOTIFICATION PRODUCTION")
+            else if (code.ToUpperInvariant() == "TEST WORKFLOW NOTIFICATION PRODUCTION")
             {
                 NAC.CallNotificationWorkflow_Production("0");
             }
