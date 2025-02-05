@@ -345,10 +345,12 @@ namespace JRN_IDP
             using(SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
-                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {ProSnapID}";
+                string query = "SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = @ProSnapID";
+
                 using(SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@ProSnapID", ProSnapID);
                     using(SqlDataReader reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
