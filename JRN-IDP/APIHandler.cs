@@ -387,10 +387,11 @@ namespace JRN_IDP
             using(var con = new SqlConnection(connString))
             {
                 con.Open();
-                string query = $"SELECT List_Name, Document_Name, Document_Url FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
+                string query = $"SELECT List_Name, Document_Name, Document_Url FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
                 using(var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
                     using(var reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
