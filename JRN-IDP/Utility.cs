@@ -133,23 +133,6 @@ namespace JRN_IDP
             return System.Text.RegularExpressions.Regex.Replace(input, "<.*?>", String.Empty).Replace("&nbsp;", " ").Replace("&amp;", "&");
         }
 
-        public static string GetUntilOrEmpty(string text, string stopAt = "", string orStopAt = "")
-        {
-            if (!String.IsNullOrWhiteSpace(text))
-            {
-                int charLocation = text.IndexOf(stopAt, StringComparison.Ordinal);
-                int charLocation2 = text.IndexOf(orStopAt, StringComparison.Ordinal);
-
-
-                if (charLocation > 0)
-                {
-                    return text.Substring(0, charLocation);
-                }
-            }
-
-            return String.Empty;
-        }
-
         public static DataTable ToDataTable<T>(List<T> data)
         {
             PropertyDescriptorCollection props =
