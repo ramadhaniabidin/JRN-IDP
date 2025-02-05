@@ -322,10 +322,11 @@ namespace JRN_IDP
             using(var con = new SqlConnection(connString))
             {
                 con.Open();
-                string query = $"UPDATE TransactionHeaders SET Is_Trying_ToPost = 1 WHERE ID = {id}";
+                string query = "UPDATE TransactionHeaders SET Is_Trying_ToPost = 1 WHERE ID = @id";
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@id", id);
                     cmd.ExecuteNonQuery();
                 }
             }
