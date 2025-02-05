@@ -27,12 +27,13 @@ namespace JRN_IDP
             using (var con = new SqlConnection(connString))
             {
                 con.Open();
-                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = {FileID} WHERE Item_ID = @Item_ID";
+                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = @FileID WHERE Item_ID = @Item_ID";
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@Item_ID", Item_ID);
+                    cmd.Parameters.AddWithValue("@FileID", FileID);
                     cmd.ExecuteNonQuery();
                 }
             }
