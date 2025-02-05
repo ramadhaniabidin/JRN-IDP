@@ -23,10 +23,7 @@ namespace JRN_IDP
 
         public static string GenerateRandomString()
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            Random random = new Random();
-            return new string(Enumerable.Range(0, 4)
-                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+            return Guid.NewGuid().ToString();
         }
 
         public EncryptionModel GetEncryption()
