@@ -19,7 +19,7 @@ namespace JRN_IDP
         readonly NACHandler NAC = new NACHandler();
         readonly SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
-        private readonly string url = ConfigurationManager.AppSettings["CreateInvoice_Endpoint"];
+        private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
 
         public static string GenerateRandomString()
         {
