@@ -27,10 +27,12 @@ namespace JRN_IDP
             using (var con = new SqlConnection(connString))
             {
                 con.Open();
-                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = {FileID} WHERE Item_ID = {Item_ID}";
+                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = {FileID} WHERE Item_ID = @Item_ID";
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Item_ID", Item_ID);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -122,10 +124,12 @@ namespace JRN_IDP
             using(SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
-                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
+                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
                 using(SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
                     using(SqlDataReader reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
