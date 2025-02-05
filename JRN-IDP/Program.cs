@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace JRN_IDP
 {
-    public class Program
+    public static class Program
     {
         static void Main(string[] args)
         {
