@@ -16,7 +16,7 @@ namespace JRN_IDP
 {
     public class APIHandler
     {
-        NACHandler NAC = new NACHandler();
+        readonly NACHandler NAC = new NACHandler();
         SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoice_Endpoint"];
