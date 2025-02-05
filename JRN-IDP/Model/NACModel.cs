@@ -19,7 +19,6 @@ namespace JRN_IDP.Model
     public class NWCParamModel
     {
         public StartData startData { get; set; }
-        //public Options options { get; set; }
     }
     public class StartData
     {
