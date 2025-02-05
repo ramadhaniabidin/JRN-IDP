@@ -40,10 +40,7 @@ namespace JRN_IDP.Model
 
     public class InvoiceHeaderModel
     {
-        //public int HeaderID { get; set; }
-        //public string Invoice_ID { get; set; }
         public string BusinessUnit { get; set; }
-        //public string PurchaseOrderNumber { get; set; }
         public string InvoiceNumber { get; set; }
         public string InvoiceAmount { get; set; }
         public string InvoiceDate { get; set; }
@@ -63,13 +60,6 @@ namespace JRN_IDP.Model
         public string ConversionRate { get; set; }
         public List<InvoiceLineModel> invoiceLines { get; set; }
         public List<AttachmentModel> attachments { get; set; }
-        //public string Tax_Invoice_No { get; set; }
-        //public string Tax_Invoice_Date { get; set; }
-        //public string Subtotal { get; set; }
-        //public string Created_By { get; set; }
-        //public DateTime Created_Date { get; set; }
-        //public string Modified_By { get; set; }
-        //public DateTime Modified_Date { get; set; }
     }
 
     public class AttachmentModel
@@ -107,7 +97,7 @@ namespace JRN_IDP.Model
         public string Item { get; set; }
         public string LineAmount { get; set; }
         public string Quantity { get; set; }
-        //public List<InvoiceDistributionModel> invoiceDistributions { get; set; } = new List<InvoiceDistributionModel>();
+        
         public string LineType { get; set; }
         public string ReceiptNumber { get; set; }
         public int ReceiptLineNumber { get; set; }
@@ -115,7 +105,6 @@ namespace JRN_IDP.Model
         public int PurchaseOrderLineNumber { get; set; }
         public int PurchaseOrderScheduleLineNumber { get; set; }
         public string UnitPrice { get; set; }
-        //public string ItemDescription { get; set; }
         public string Description { get; set; }
     }
     public class InvoiceDistributionModel
@@ -124,8 +113,6 @@ namespace JRN_IDP.Model
         public string DistributionLineType { get; set; }
         public string DistributionCombination { get; set; }
         public string DistributionAmount { get; set; }
-        //public string UOMCode { get; set; }
-        //public string UOM {  get; set; }
     }
 
 }

@@ -15,10 +15,9 @@ namespace JRN_IDP
 {
     public class SPOHandler
     {
-        ProsnapHandler prosnap = new ProsnapHandler();
+        readonly ProsnapHandler prosnap = new ProsnapHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
-        //private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
         public List<SPOFileModel> GetFileFromSPO()
         {
             DataTable dt = new DataTable();
@@ -44,20 +43,20 @@ namespace JRN_IDP
             string cond2 = " - inv.pdf";
             string cond3 = " -inv.pdf";
             string newFileName = "";
-            if (fileName.ToLower().Contains(cond1))
+            if (fileName.ToLowerInvariant().Contains(cond1))
             {
-                newFileName = fileName.ToLower().Replace(cond1, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond1, "").Trim();
             }
-            else if (fileName.ToLower().Contains(cond2))
+            else if (fileName.ToLowerInvariant().Contains(cond2))
             {
-                newFileName = fileName.ToLower().Replace(cond2, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond2, "").Trim();
             }
-            else if (fileName.ToLower().Contains(cond3))
+            else if (fileName.ToLowerInvariant().Contains(cond3))
             {
-                newFileName = fileName.ToLower().Replace(cond3, "").Trim();
+                newFileName = fileName.ToLowerInvariant().Replace(cond3, "").Trim();
             }
             url = url.Replace("%20", " ");
-            url = url.ToLower().Replace(fileName.ToLower(), newFileName);
+            url = url.ToLowerInvariant().Replace(fileName.ToLowerInvariant(), newFileName);
             url += ".pdf".Trim();
             return url;
         }
@@ -345,10 +344,12 @@ namespace JRN_IDP
             using(SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
-                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {ProSnapID}";
+                string query = "SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = @ProSnapID";
+
                 using(SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@ProSnapID", ProSnapID);
                     using(SqlDataReader reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);

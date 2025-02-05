@@ -20,17 +20,20 @@ namespace JRN_IDP
         private readonly string uploadURL = "/api/transaction/upload";
         private readonly string scanURL = "/api/transaction/Scan_V2?";
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
-        NACHandler NAC = new NACHandler();
+        readonly NACHandler NAC = new NACHandler();
 
         public void UpdateStatus_SPOFile(int Item_ID, int FileID)
         {
             using (var con = new SqlConnection(connString))
             {
                 con.Open();
-                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = {FileID} WHERE Item_ID = {Item_ID}";
+                string query = $"UPDATE [dbo].[P2PDocuments] SET ProSnap_Status = 1, ProSnap_FileID = @FileID WHERE Item_ID = @Item_ID";
                 using (var cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Item_ID", Item_ID);
+                    cmd.Parameters.AddWithValue("@FileID", FileID);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -52,10 +55,8 @@ namespace JRN_IDP
                 if (response.IsSuccessStatusCode)
                 {
                     string responseContent = response.Content.ReadAsStringAsync().Result;
-                    //Console.WriteLine(responseContent);
                     JObject jsonObject = JObject.Parse(responseContent);
                     string token = jsonObject["access_token"].ToString();
-                    //Console.Write(token);
                     return token;
                 }
                 else
@@ -102,7 +103,6 @@ namespace JRN_IDP
                     Console.WriteLine($"ID: {ID}");
                     UpdateStatus_SPOFile(file.Item_ID, ID);
                     LoopScanDocument(ID);
-                    //JObject jsonObject = JObject.Parse(responseContent);
                 }
                 else
                 {
@@ -125,10 +125,12 @@ namespace JRN_IDP
             using(SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
-                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
+                string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
                 using(SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
                     using(SqlDataReader reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
@@ -187,7 +189,6 @@ namespace JRN_IDP
         public string ScanDocument(int DocumentID)
         {
             string endpoint = $"{baseURL}{scanURL}ID={DocumentID}&TenantID=2";
-            //string endpoint = $"{baseURL}{scanURL}ID={DocumentID}&DocumentID=85";
             using (var client = new HttpClient())
             {
                 var token = GetToken();

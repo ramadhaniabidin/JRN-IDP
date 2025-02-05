@@ -12,7 +12,7 @@ using System.Xml;
 
 namespace JRN_IDP
 {
-    public class Utility
+    public static class Utility
     {
         public static string DecryptString(string encrString)
         {
@@ -133,23 +133,6 @@ namespace JRN_IDP
             return System.Text.RegularExpressions.Regex.Replace(input, "<.*?>", String.Empty).Replace("&nbsp;", " ").Replace("&amp;", "&");
         }
 
-        public static string GetUntilOrEmpty(string text, string stopAt = "", string orStopAt = "")
-        {
-            if (!String.IsNullOrWhiteSpace(text))
-            {
-                int charLocation = text.IndexOf(stopAt, StringComparison.Ordinal);
-                int charLocation2 = text.IndexOf(orStopAt, StringComparison.Ordinal);
-
-
-                if (charLocation > 0)
-                {
-                    return text.Substring(0, charLocation);
-                }
-            }
-
-            return String.Empty;
-        }
-
         public static DataTable ToDataTable<T>(List<T> data)
         {
             PropertyDescriptorCollection props =
@@ -170,27 +153,6 @@ namespace JRN_IDP
                 table.Rows.Add(values);
             }
             return table;
-        }
-
-        public static string ToHtmlTable(DataTable dt)
-        {
-            string strHtml = "<table><tr>" + Environment.NewLine;
-            foreach (DataColumn col in dt.Columns)
-            {
-                strHtml += Environment.NewLine + "<th>" + col.ColumnName + "</th>";
-            }
-            strHtml += Environment.NewLine + "</tr>";
-            foreach (DataColumn dc in dt.Columns)
-            {
-                strHtml += Environment.NewLine + "<tr>";
-                foreach (DataRow row in dt.Rows)
-                {
-                    strHtml += Environment.NewLine + "<td>" + row[dc] + "</td>";
-                }
-                strHtml += Environment.NewLine + "</tr>";
-            }
-            strHtml += "</table>";
-            return strHtml;
         }
 
         public static List<T> ConvertDataTableToList<T>(DataTable dt)
@@ -215,9 +177,13 @@ namespace JRN_IDP
                 {
                     var value = dr[column.ColumnName] == DBNull.Value ? null : dr[column.ColumnName];
                     if (pro.Name == column.ColumnName)
+                    {
                         pro.SetValue(obj, value, null);
+                    }
                     else
+                    {
                         continue;
+                    }
                 }
             }
             return obj;

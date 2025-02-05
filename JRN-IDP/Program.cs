@@ -8,26 +8,26 @@ using System.Threading.Tasks;
 
 namespace JRN_IDP
 {
-    public class Program
+    public static class Program
     {
         static void Main(string[] args)
         {
             SPOHandler spoHander = new SPOHandler();
             ProsnapHandler prosnap = new ProsnapHandler();
             APIHandler api = new APIHandler();
-            //prosnap.TestParsingJSON();
-            string code = "1";
+            NACHandler NAC = new NACHandler();
+            string code = "TEST WORKFLOW NOTIFICATION PRODUCTION";
             if(code == "0")
             {
                 spoHander.UploadFileToProsnap();
             }
             else if(code == "1")
             {
-                //spoHander.TestEncryption();
-                //spoHander.UpdateCredentials();
-                //spoHander.TestConnection_JRNAzure();
-                //spoHander.EncryptCreds();
                 spoHander.DecryptCreds();
+            }
+            else if (code.ToUpperInvariant() == "TEST WORKFLOW NOTIFICATION PRODUCTION")
+            {
+                NAC.CallNotificationWorkflow_Production("0");
             }
             else
             {
