@@ -242,7 +242,6 @@ namespace JRN_IDP
                 }
                 GeneratePayload_InsertLog(HeaderID, "Success", "OK", "InvoiceHeader");
                 InvoiceHeaderModel invoiceHeader = Utility.ConvertDataTableToList<InvoiceHeaderModel>(dt)[0];
-                invoiceHeader.InvoiceNumber += $"-Test-{GenerateRandomString()}";
                 return invoiceHeader;
             }
             catch (Exception ex)
