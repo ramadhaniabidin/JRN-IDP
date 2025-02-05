@@ -52,10 +52,8 @@ namespace JRN_IDP
                 if (response.IsSuccessStatusCode)
                 {
                     string responseContent = response.Content.ReadAsStringAsync().Result;
-                    //Console.WriteLine(responseContent);
                     JObject jsonObject = JObject.Parse(responseContent);
                     string token = jsonObject["access_token"].ToString();
-                    //Console.Write(token);
                     return token;
                 }
                 else
@@ -102,7 +100,6 @@ namespace JRN_IDP
                     Console.WriteLine($"ID: {ID}");
                     UpdateStatus_SPOFile(file.Item_ID, ID);
                     LoopScanDocument(ID);
-                    //JObject jsonObject = JObject.Parse(responseContent);
                 }
                 else
                 {

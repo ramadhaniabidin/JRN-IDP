@@ -18,7 +18,6 @@ namespace JRN_IDP
         ProsnapHandler prosnap = new ProsnapHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
-        //private readonly string connString = "Server=OCR-DEV;Database=IDP_JRN;User ID=sa;Password=Pa55word;Encrypt=False";
         public List<SPOFileModel> GetFileFromSPO()
         {
             DataTable dt = new DataTable();
