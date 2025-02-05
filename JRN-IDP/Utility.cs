@@ -12,7 +12,7 @@ using System.Xml;
 
 namespace JRN_IDP
 {
-    public class Utility
+    public static class Utility
     {
         public static string DecryptString(string encrString)
         {
