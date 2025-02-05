@@ -492,25 +492,6 @@ namespace JRN_IDP
 
         public void SuccessCreateInvoice_NotifUser(string InvoiceID, string InvoiceNumber, int HeaderID)
         {
-            #region Get User - Commented
-            //DataTable dt = new DataTable();
-            //using (SqlConnection conn = new SqlConnection(connString))
-            //{
-            //    conn.Open();
-            //    string query = $"SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = {HeaderID}";
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        cmd.CommandType = CommandType.Text;
-            //        using (SqlDataReader reader = cmd.ExecuteReader())
-            //        {
-            //            dt.Load(reader);
-            //        }
-            //    }
-            //}
-            //var spoFile = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
-            //string UserEmail = spoFile.Created_By;
-            //string fileName = spoFile.Document_Name;
-            #endregion
             var spoFile = spo.SPOFile_GetByProSnapID(HeaderID);
             NintexWorkflowCloud nwc = new NintexWorkflowCloud
             {
