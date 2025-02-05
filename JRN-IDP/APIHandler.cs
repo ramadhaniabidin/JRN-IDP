@@ -587,22 +587,6 @@ namespace JRN_IDP
                     {
                         HttpResponseMessage response = await client.PostAsync(url, content);
                         CreateInvoice_ProcessResponse(response, ID, jsonPayloadToStore, header.InvoiceNumber);
-                        #region Old way to process HttpResponseMessage
-                        //if (response.IsSuccessStatusCode)
-                        //{
-                        //    string responseContent = await response.Content.ReadAsStringAsync();
-                        //    JObject jsonObject = JObject.Parse(responseContent);
-                        //    string invoiceId = jsonObject["InvoiceId"].ToString();
-                        //    PostCreateInvoice_InsertLog(invoiceId, ID, jsonPayloadToStore, "Success", "Created", responseContent);
-                        //    SuccessCreateInvoice_NotifUser(invoiceId, header.InvoiceNumber, ID);
-                        //}
-                        //else
-                        //{
-                        //    string errorContent = await response.Content.ReadAsStringAsync();
-                        //    PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", "Bad Request", errorContent);
-                        //    NotifTeamIT(ID, jsonPayloadToStore, errorContent);
-                        //}
-                        #endregion
                     }
                     catch (Exception ex)
                     {
