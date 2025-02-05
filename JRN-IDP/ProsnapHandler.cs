@@ -187,7 +187,6 @@ namespace JRN_IDP
         public string ScanDocument(int DocumentID)
         {
             string endpoint = $"{baseURL}{scanURL}ID={DocumentID}&TenantID=2";
-            //string endpoint = $"{baseURL}{scanURL}ID={DocumentID}&DocumentID=85";
             using (var client = new HttpClient())
             {
                 var token = GetToken();

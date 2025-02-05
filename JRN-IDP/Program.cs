@@ -15,19 +15,19 @@ namespace JRN_IDP
             SPOHandler spoHander = new SPOHandler();
             ProsnapHandler prosnap = new ProsnapHandler();
             APIHandler api = new APIHandler();
-            //prosnap.TestParsingJSON();
-            string code = "1";
+            NACHandler NAC = new NACHandler();
+            string code = "TEST WORKFLOW NOTIFICATION PRODUCTION";
             if(code == "0")
             {
                 spoHander.UploadFileToProsnap();
             }
             else if(code == "1")
             {
-                //spoHander.TestEncryption();
-                //spoHander.UpdateCredentials();
-                //spoHander.TestConnection_JRNAzure();
-                //spoHander.EncryptCreds();
                 spoHander.DecryptCreds();
+            }
+            else if (code.ToUpper() == "TEST WORKFLOW NOTIFICATION PRODUCTION")
+            {
+                NAC.CallNotificationWorkflow_Production("0");
             }
             else
             {

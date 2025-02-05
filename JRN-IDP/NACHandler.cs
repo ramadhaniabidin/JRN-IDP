@@ -39,8 +39,7 @@ namespace JRN_IDP
             {
                 JsonElement root = document.RootElement;
                 string access_token = root.GetProperty("access_token").GetString();
-                //Console.WriteLine($"Token: {access_token}");
-                return access_token == null ? "" : access_token;
+                return access_token ?? "";
             }
         }
 
