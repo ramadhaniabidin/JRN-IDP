@@ -177,9 +177,13 @@ namespace JRN_IDP
                 {
                     var value = dr[column.ColumnName] == DBNull.Value ? null : dr[column.ColumnName];
                     if (pro.Name == column.ColumnName)
+                    {
                         pro.SetValue(obj, value, null);
+                    }
                     else
+                    {
                         continue;
+                    }
                 }
             }
             return obj;
