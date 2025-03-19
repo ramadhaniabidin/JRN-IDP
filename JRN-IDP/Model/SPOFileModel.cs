@@ -16,5 +16,6 @@ namespace JRN_IDP.Model
         public string Created_By { get; set; }
         public string Created_DateTime { get; set; }
         public string Document_Url { get; set; }
+        public string Attachment_URL { get; set; }
     }
 }

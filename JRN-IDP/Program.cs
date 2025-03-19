@@ -16,7 +16,7 @@ namespace JRN_IDP
             ProsnapHandler prosnap = new ProsnapHandler();
             APIHandler api = new APIHandler();
             NACHandler NAC = new NACHandler();
-            string code = "TEST WORKFLOW NOTIFICATION PRODUCTION";
+            string code = "";
             if(code == "0")
             {
                 spoHander.UploadFileToProsnap();
@@ -28,6 +28,10 @@ namespace JRN_IDP
             else if (code.ToUpperInvariant() == "TEST WORKFLOW NOTIFICATION PRODUCTION")
             {
                 NAC.CallNotificationWorkflow_Production("0");
+            }
+            else if(code == "3")
+            {
+                spoHander.TestGetFile(4);
             }
             else
             {

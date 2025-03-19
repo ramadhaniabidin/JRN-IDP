@@ -37,11 +37,32 @@ namespace JRN_IDP
             return Utility.ConvertDataTableToList<SPOFileModel>(dt);
         }
 
+        public SPOFileModel GetP2PDocument(int HeaderID)
+        {
+            DataTable dt = new DataTable();
+            using (var con = new SqlConnection(connString))
+            {
+                con.Open();
+                string query = $"SELECT List_Name, Document_Name, Document_Url FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
+                    }
+                }
+            }
+        }
+
         public string Attachment_GetRelativeURL(string url, string fileName)
         {
             string cond1 = "-inv.pdf";
             string cond2 = " - inv.pdf";
             string cond3 = " -inv.pdf";
+            string cond4 = "inv.pdf";
             string newFileName = "";
             if (fileName.ToLowerInvariant().Contains(cond1))
             {
@@ -55,51 +76,129 @@ namespace JRN_IDP
             {
                 newFileName = fileName.ToLowerInvariant().Replace(cond3, "").Trim();
             }
+            else if (fileName.ToLowerInvariant().Contains(cond4))
+            {
+                newFileName = fileName.ToLowerInvariant().Replace(cond4, "").Trim();
+            }
             url = url.Replace("%20", " ");
             url = url.ToLowerInvariant().Replace(fileName.ToLowerInvariant(), newFileName);
             url += ".pdf".Trim();
             return url;
         }
 
-        public string GenerateBase64Attachment(string fileUrl, string fileName)
+        public void P2PDocuments_UpdateAttachmentURL(int HeaderID, string AttachmentURL)
         {
-            string fileRelativeUrl = Attachment_GetRelativeURL(fileUrl, fileName);         
+            using(var conn =  new SqlConnection(connString))
+            {
+                conn.Open();
+                string query = "UPDATE P2PDocuments SET Attachment_URL = @AttachmentURL WHERE ProSnap_FileID = @HeaderID";
+                using(var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@AttachmentURL", AttachmentURL);
+                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public string GetAttachmentFileName(string invoiceFileName)
+        {
+            string cond1 = "-inv.pdf";
+            string cond2 = " - inv.pdf";
+            string cond3 = " -inv.pdf";
+            string cond4 = "inv.pdf";
+            string attachmentFileName = "";
+            if (invoiceFileName.ToLowerInvariant().Contains(cond1))
+            {
+                attachmentFileName = invoiceFileName.ToLowerInvariant().Replace(cond1, "").Trim();
+            }
+            else if (invoiceFileName.ToLowerInvariant().Contains(cond2))
+            {
+                attachmentFileName = invoiceFileName.ToLowerInvariant().Replace(cond2, "").Trim();
+            }
+            else if (invoiceFileName.ToLowerInvariant().Contains(cond3))
+            {
+                attachmentFileName = invoiceFileName.ToLowerInvariant().Replace(cond3, "").Trim();
+            }
+            else if (invoiceFileName.ToLowerInvariant().Contains(cond4))
+            {
+                attachmentFileName = invoiceFileName.ToLowerInvariant().Replace(cond4, "").Trim();
+            }
+            return attachmentFileName.ToUpperInvariant().Trim();
+        }
+
+        public void TestGetFile(int HeaderID)
+        {
+            try
+            {
+                Console.WriteLine("ODIINV24120358INV.pdf");
+                string attachmentFileName = GetAttachmentFileName("ODIINV24120358INV.pdf");
+                Console.WriteLine(attachmentFileName);
+
+                //string siteUrl = "https://jresourcesid.sharepoint.com";
+                //var document = GetP2PDocument(HeaderID);
+                //string fileRelativeURL = document.Document_Url.Replace(siteUrl, "").Trim();
+                //fileRelativeURL = Attachment_GetRelativeURL(fileRelativeURL, document.Document_Name);
+                //var decryption = Decrypt("SPO");
+                //SecureString secure = new SecureString();
+                //foreach(var c in decryption.password_)
+                //{
+                //    secure.AppendChar(c);
+                //}
+                //using(var context = new ClientContext($"{siteUrl}/p2pdocumentation"))
+                //{
+                //    context.Credentials = new SharePointOnlineCredentials(decryption.username_, secure);
+                //    var web = context.Web;
+                //    var file = web.GetFileByServerRelativeUrl(fileRelativeURL);
+                //    context.Load(file, f => f.Name);
+                //    context.ExecuteQuery();
+                //    Console.WriteLine($"File Name: {file.Name}");
+                //}
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public string GenerateBase64Attachment(string fileUrl, string fileName, int HeaderID)
+        {
+            string fileRelativeUrl = Attachment_GetRelativeURL(fileUrl, fileName);  
             DecryptionModel decryption = Decrypt("SPO");
-            string username = decryption.username_;
-            string password = decryption.password_;
             string siteUrl = $"https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
+            P2PDocuments_UpdateAttachmentURL(HeaderID, ("https://jresourcesid.sharepoint.com" + fileRelativeUrl));
             try
             {
                 SecureString secure = new SecureString();
-                foreach (var c in password)
+                foreach (var c in decryption.password_)
                 {
                     secure.AppendChar(c);
                 }
                 using (var context = new ClientContext(siteUrl))
                 {
-                    context.Credentials = new SharePointOnlineCredentials(username, secure);
+                    context.Credentials = new SharePointOnlineCredentials(decryption.username_, secure);
                     var web = context.Web;
                     var file = web.GetFileByServerRelativeUrl(fileRelativeUrl);
                     context.Load(file);
                     context.ExecuteQuery();
 
-                    if (file != null)
-                    {
-                        ClientResult<Stream> streamResult = file.OpenBinaryStream();
-                        context.ExecuteQuery();
-
-                        using (var memoryStream = new MemoryStream())
-                        {
-                            streamResult.Value.CopyTo(memoryStream);
-                            byte[] fileBytes = memoryStream.ToArray();
-                            string base64Content = Convert.ToBase64String(fileBytes);
-                            return base64Content;
-                        }
-                    }
-                    else
+                    if(file == null)
                     {
                         Console.WriteLine("File not found!");
                         return "";
+                    }
+
+                    ClientResult<Stream> streamResult = file.OpenBinaryStream();
+                    context.ExecuteQuery();
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        streamResult.Value.CopyTo(memoryStream);
+                        byte[] fileBytes = memoryStream.ToArray();
+                        string base64Content = Convert.ToBase64String(fileBytes);
+                        return base64Content;
                     }
                 }
             }
@@ -344,7 +443,7 @@ namespace JRN_IDP
             using(SqlConnection conn = new SqlConnection(connString))
             {
                 conn.Open();
-                string query = "SELECT TOP 1 Created_By, Document_Name FROM P2PDocuments WHERE ProSnap_FileID = @ProSnapID";
+                string query = "SELECT TOP 1 Created_By, Document_Name, Attachment_URL FROM P2PDocuments WHERE ProSnap_FileID = @ProSnapID";
 
                 using(SqlCommand cmd = new SqlCommand(query, conn))
                 {

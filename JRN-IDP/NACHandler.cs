@@ -141,6 +141,7 @@ namespace JRN_IDP
 
         public async Task TriggerWorkflowAsync(NintexWorkflowCloud nwcModel)
         {
+            Console.WriteLine("Begin trigger notification workflow");
             nwcModel.url = NACBaseURL;
             string token = GetToken();
             string requestBody = System.Text.Json.JsonSerializer.Serialize(nwcModel.param);

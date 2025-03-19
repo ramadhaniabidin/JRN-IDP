@@ -270,31 +270,17 @@ namespace JRN_IDP
 
         public AttachmentModel GetDefaultAttachment(int HeaderID)
         {
-            DataTable dt = new DataTable();
-            using(var con = new SqlConnection(connString))
-            {
-                con.Open();
-                string query = $"SELECT List_Name, Document_Name, Document_Url FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
-                using(var cmd = new SqlCommand(query, con))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
-                    using(var reader = cmd.ExecuteReader())
-                    {
-                        dt.Load(reader);
-                    }
-                }
-            }
-            var Document = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
+            var Document = spo.GetP2PDocument(HeaderID);
             string siteUrl = $"https://jresourcesid.sharepoint.com";
             string title = Document.Document_Name.ToUpper().Replace("- INV.PDF", "").Trim();
             string fileRelativeURL = Document.Document_Url.Replace(siteUrl, "").Trim();
-            string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name);
+            string attachmentFileName = spo.GetAttachmentFileName(Document.Document_Name);
+            string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name, HeaderID);
             return new AttachmentModel
             {
                 Type = "File",
-                FileName = Document.Document_Name,
-                Title = title,
+                FileName = attachmentFileName + ".pdf",
+                Title = attachmentFileName + ".pdf",
                 Description = "Purchase Order",
                 FileContents = base64Content
             };
@@ -346,7 +332,8 @@ namespace JRN_IDP
                             se_payload = payload,
                             se_message = message,
                             se_useremail = spoFile.Created_By,
-                            se_filename = spoFile.Document_Name
+                            se_filename = spoFile.Document_Name,
+                            se_attachmenturl = spoFile.Attachment_URL
                         }
                     }
                 };
@@ -392,18 +379,13 @@ namespace JRN_IDP
             foreach (var data in HeaderIDs)
             {
                 int ID = data.ID;
-                #region Sync Transaction
-                try
-                {
-                    SyncTransactionToDataTable(ID);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Sync Trasaction to datatable error: {ex}");
-                }
-                #endregion
                 InvoiceHeaderModel header = GetInvoiceHeader(ID);
+                //header.InvoiceNumber += "-R01";
                 header.invoiceLines = PopulateInvoiceLine(ID);
+                if(header.invoiceLines.Count == 0)
+                {
+                    continue;
+                }
                 header.attachments = new List<AttachmentModel>();
                 header.attachments.Add(GetDefaultAttachment(ID));
                 if (header.InvoiceAmount.Contains(",00"))
