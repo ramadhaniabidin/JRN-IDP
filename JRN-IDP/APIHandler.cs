@@ -17,11 +17,12 @@ namespace JRN_IDP
 {
     public class APIHandler
     {
-        readonly NACHandler NAC = new NACHandler();
-        readonly SPOHandler spo = new SPOHandler();
+        private readonly NACHandler NAC = new NACHandler();
+        private readonly SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
         private readonly string successStatus = "Success";
+        private readonly string idParam = "@HeaderID";
 
         public static string GenerateRandomString()
         {
@@ -106,7 +107,7 @@ namespace JRN_IDP
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    cmd.Parameters.AddWithValue(idParam, HeaderID);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -126,7 +127,7 @@ namespace JRN_IDP
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                        cmd.Parameters.AddWithValue(idParam, HeaderID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             dt.Load(reader);
@@ -156,7 +157,7 @@ namespace JRN_IDP
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    cmd.Parameters.AddWithValue(idParam, HeaderID);
                     cmd.Parameters.AddWithValue("@InvoiceID", InvoiceID);
                     cmd.Parameters.AddWithValue("@Payload", Payload);
                     cmd.Parameters.AddWithValue("@Status", Status);
@@ -176,7 +177,7 @@ namespace JRN_IDP
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    cmd.Parameters.AddWithValue(idParam, HeaderID);
                     cmd.Parameters.AddWithValue("@InvoiceID", InvoiceID);
                     cmd.Parameters.AddWithValue("@Payload", Payload);
                     cmd.Parameters.AddWithValue("@Status", Status);
@@ -197,7 +198,7 @@ namespace JRN_IDP
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                    cmd.Parameters.AddWithValue(idParam, HeaderID);
                     cmd.Parameters.AddWithValue("@Type", Type);
                     cmd.Parameters.AddWithValue("@Message", Message);
                     cmd.Parameters.AddWithValue("@Status", Status);
@@ -252,7 +253,7 @@ namespace JRN_IDP
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                        cmd.Parameters.AddWithValue(idParam, HeaderID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             dt.Load(reader);
@@ -309,7 +310,7 @@ namespace JRN_IDP
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
+                        cmd.Parameters.AddWithValue(idParam, HeaderID);
                         cmd.Parameters.AddWithValue("@RowNumber", LineNumber);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
