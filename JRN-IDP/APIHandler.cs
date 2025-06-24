@@ -21,6 +21,7 @@ namespace JRN_IDP
         readonly SPOHandler spo = new SPOHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
+        private readonly string successStatus = "Success";
 
         public static string GenerateRandomString()
         {
@@ -132,7 +133,7 @@ namespace JRN_IDP
                         }
                     }
                 }
-                GeneratePayload_InsertLog(HeaderID, "Success", "OK", "InvoiceHeader");
+                GeneratePayload_InsertLog(HeaderID, successStatus, "OK", "InvoiceHeader");
                 InvoiceHeaderModel invoiceHeader = Utility.ConvertDataTableToList<InvoiceHeaderModel>(dt)[0];
                 return invoiceHeader;
             }
@@ -258,7 +259,7 @@ namespace JRN_IDP
                         }
                     }
                 }
-                GeneratePayload_InsertLog(HeaderID, "Success", "OK", "InvoiceLine");
+                GeneratePayload_InsertLog(HeaderID, successStatus, "OK", "InvoiceLine");
                 return Utility.ConvertDataTableToList<InvoiceLineModel>(dt);
             }
             catch (Exception ex)
@@ -316,7 +317,7 @@ namespace JRN_IDP
                         }
                     }
                 }
-                GeneratePayload_InsertLog(HeaderID, "Success", "OK", "InvoiceDistribution");
+                GeneratePayload_InsertLog(HeaderID, successStatus, "OK", "InvoiceDistribution");
                 return Utility.ConvertDataTableToList<InvoiceDistributionModel>(dt);
             }
             catch (Exception ex)
@@ -453,7 +454,7 @@ namespace JRN_IDP
                 string responseContent = response.Content.ReadAsStringAsync().Result;
                 JObject jsonObject = JObject.Parse(responseContent);
                 string invoiceId = jsonObject["InvoiceId"].ToString();
-                PostCreateInvoice_InsertLog(invoiceId, HeaderID, jsonPayload, "Success", "Created", responseContent);
+                PostCreateInvoice_InsertLog(invoiceId, HeaderID, jsonPayload, successStatus, "Created", responseContent);
                 SuccessCreateInvoice_NotifUser(invoiceId, invoiceNumber, HeaderID);
             }
             else
