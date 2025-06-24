@@ -23,6 +23,10 @@ namespace JRN_IDP
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
         private readonly string successStatus = "Success";
         private readonly string idParam = "@HeaderID";
+        private readonly HttpClientHandler httpHandler = new HttpClientHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+        };
 
         public static string GenerateRandomString()
         {
@@ -408,13 +412,8 @@ namespace JRN_IDP
                 {
                     header.InvoiceAmount = header.InvoiceAmount.Replace(",00", "");
                 }
-                var handler = new HttpClientHandler
-                {
-                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-                };
-
                 // API Request
-                using (var client = new HttpClient(handler))
+                using (var client = new HttpClient(httpHandler))
                 {
                     DecryptionModel decryption = Decrypt("Oracle");
                     var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{decryption.username_}:{decryption.password_}"));
