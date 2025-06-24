@@ -11,6 +11,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace JRN_IDP
 {
@@ -270,34 +271,29 @@ namespace JRN_IDP
 
         public AttachmentModel GetDefaultAttachment(int HeaderID)
         {
-            DataTable dt = new DataTable();
-            using(var con = new SqlConnection(connString))
+            try
             {
-                con.Open();
-                string query = $"SELECT List_Name, Document_Name, Document_Url FROM P2PDocuments WHERE ProSnap_FileID = @HeaderID";
-                using(var cmd = new SqlCommand(query, con))
+                var Document = spo.GetP2PDocument(HeaderID);
+                string siteUrl = $"https://jresourcesid.sharepoint.com";
+                string title = Document.Document_Name.ToUpper().Replace("- INV.PDF", "").Trim();
+                string fileRelativeURL = Document.Document_Url.Replace(siteUrl, "").Trim();
+                string attachmentFileName = spo.GetAttachmentFileName(Document.Document_Name);
+                string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name, HeaderID);
+                return new AttachmentModel
                 {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.AddWithValue("@HeaderID", HeaderID);
-                    using(var reader = cmd.ExecuteReader())
-                    {
-                        dt.Load(reader);
-                    }
-                }
+                    Type = "File",
+                    FileName = attachmentFileName + ".pdf",
+                    Title = attachmentFileName + ".pdf",
+                    Description = "Purchase Order",
+                    FileContents = base64Content
+                };
             }
-            var Document = Utility.ConvertDataTableToList<SPOFileModel>(dt)[0];
-            string siteUrl = $"https://jresourcesid.sharepoint.com";
-            string title = Document.Document_Name.ToUpper().Replace("- INV.PDF", "").Trim();
-            string fileRelativeURL = Document.Document_Url.Replace(siteUrl, "").Trim();
-            string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name);
-            return new AttachmentModel
+            catch(Exception ex)
             {
-                Type = "File",
-                FileName = Document.Document_Name,
-                Title = title,
-                Description = "Purchase Order",
-                FileContents = base64Content
-            };
+                Console.WriteLine(ex);
+                return null;
+            }
+
         }
 
         public List<InvoiceDistributionModel> PopulateInvoiceDistributions(int HeaderID, int LineNumber)
@@ -346,7 +342,8 @@ namespace JRN_IDP
                             se_payload = payload,
                             se_message = message,
                             se_useremail = spoFile.Created_By,
-                            se_filename = spoFile.Document_Name
+                            se_filename = spoFile.Document_Name,
+                            se_attachmenturl = spoFile.Attachment_URL
                         }
                     }
                 };
@@ -392,19 +389,20 @@ namespace JRN_IDP
             foreach (var data in HeaderIDs)
             {
                 int ID = data.ID;
-                #region Sync Transaction
-                try
-                {
-                    SyncTransactionToDataTable(ID);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Sync Trasaction to datatable error: {ex}");
-                }
-                #endregion
+                SyncTransactionToDataTable(ID);
                 InvoiceHeaderModel header = GetInvoiceHeader(ID);
+                //header.InvoiceNumber += "-R01";
                 header.invoiceLines = PopulateInvoiceLine(ID);
+                if(header.invoiceLines.Count == 0)
+                {
+                    continue;
+                }
                 header.attachments = new List<AttachmentModel>();
+                var attachment = GetDefaultAttachment(ID);
+                if(attachment == null)
+                {
+                    continue;
+                }
                 header.attachments.Add(GetDefaultAttachment(ID));
                 if (header.InvoiceAmount.Contains(",00"))
                 {
@@ -463,6 +461,76 @@ namespace JRN_IDP
                 string errorContent = response.Content.ReadAsStringAsync().Result;
                 PostCreateInvoice_InsertLog("", HeaderID, jsonPayload, "Failed", "Bad Request", errorContent);
                 NotifTeamIT(HeaderID, jsonPayload, errorContent);
+            }
+        }
+
+        public void InsertOracleSupplier(string SupplierName, string SupplierNumber)
+        {
+            try
+            {
+                using(var conn = new SqlConnection(connString))
+                {
+                    conn.Open();
+                    using(var cmd  = new SqlCommand("usp_InsertMasterSuppplier_Oracle", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.AddWithValue("@SupplierName", SupplierName);
+                        cmd.Parameters.AddWithValue("@SupplierNumber", SupplierNumber);
+                        cmd.ExecuteNonQuery();
+                    }
+                    conn.Close();
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task GetOracleMasterSuppliers()
+        {
+            try
+            {
+                int offset = 100;
+                int page = 1;
+                while(offset <= 1400)
+                {
+                    string endpoint = $"https://fa-exke-saasfaprod1.fa.ocs.oraclecloud.com/fscmRestApi/resources/11.13.18.05/suppliers?limit=100&offset={offset}";
+                    string username = "fin.impl";
+                    string pass = "FIN@prod12";
+                    var credentials = Encoding.ASCII.GetBytes($"{username}:{pass}");
+                    var base64Creds = Convert.ToBase64String(credentials);
+                    Console.WriteLine($"Page Number: {page}");
+                    using (HttpClient client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Creds);
+                        HttpResponseMessage response = await client.GetAsync(endpoint);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string result = await response.Content.ReadAsStringAsync();
+                            var root = Newtonsoft.Json.JsonConvert.DeserializeObject<Root>(result);
+                            foreach (var sup in root.Items)
+                            {
+                                Console.WriteLine($"Supplier: {sup.Supplier}");
+                                Console.WriteLine($"Supplier Number: {sup.SupplierNumber}\n");
+                                InsertOracleSupplier(sup.Supplier, sup.SupplierNumber);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Error: {response.StatusCode}");
+                            string error = await response.Content.ReadAsStringAsync();
+                            Console.WriteLine(error);
+                        }
+                    }
+                    offset += 100;
+                    page++;
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
     }

@@ -32,5 +32,6 @@ namespace JRN_IDP.Model
         public string se_filename { get; set; }
         public string se_invoiceid { get; set; }
         public string se_invoicenumber { get; set; }
+        public string se_attachmenturl { get; set; }
     }
 }
