@@ -11,11 +11,15 @@ namespace JRN_IDP.Model
         public int ID { get; set; }
     }
 
+    public class Root
+    {
+        public List<SupplierModel> Items { get; set; }
+    }
 
     public class SupplierModel
     {
-        public string SupplierSite { get; set; }
-        public string SupplierBusinessUnit { get; set; }
+        public string Supplier { get; set; }
+        public string SupplierNumber { get; set; }
     }
 
     public class PayloadModel
@@ -95,7 +99,7 @@ namespace JRN_IDP.Model
     {
         public string LineNumber { get; set; }
         public string Item { get; set; }
-        public string LineAmount { get; set; }
+        public double LineAmount { get; set; }
         public string Quantity { get; set; }
         
         public string LineType { get; set; }
