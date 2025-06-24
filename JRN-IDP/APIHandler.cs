@@ -390,22 +390,20 @@ namespace JRN_IDP
             List<IDModel> HeaderIDs = GetVerifiedTransactionHeaderIDList();
             foreach (var data in HeaderIDs)
             {
-                int ID = data.ID;
-                SyncTransactionToDataTable(ID);
-                InvoiceHeaderModel header = GetInvoiceHeader(ID);
-                //header.InvoiceNumber += "-R01";
-                header.invoiceLines = PopulateInvoiceLine(ID);
+                SyncTransactionToDataTable(data.ID);
+                InvoiceHeaderModel header = GetInvoiceHeader(data.ID);
+                header.invoiceLines = PopulateInvoiceLine(data.ID);
                 if(header.invoiceLines.Count == 0)
                 {
                     continue;
                 }
                 header.attachments = new List<AttachmentModel>();
-                var attachment = GetDefaultAttachment(ID);
+                var attachment = GetDefaultAttachment(data.ID);
                 if(attachment == null)
                 {
                     continue;
                 }
-                header.attachments.Add(GetDefaultAttachment(ID));
+                header.attachments.Add(GetDefaultAttachment(data.ID));
                 if (header.InvoiceAmount.Contains(",00"))
                 {
                     header.InvoiceAmount = header.InvoiceAmount.Replace(",00", "");
@@ -437,12 +435,12 @@ namespace JRN_IDP
                     try
                     {
                         HttpResponseMessage response = await client.PostAsync(url, content);
-                        CreateInvoice_ProcessResponse(response, ID, jsonPayloadToStore, header.InvoiceNumber);
+                        CreateInvoice_ProcessResponse(response, data.ID, jsonPayloadToStore, header.InvoiceNumber);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                        PostCreateInvoice_InsertLog("", ID, jsonPayloadToStore, "Failed", ex.Message, "");
+                        PostCreateInvoice_InsertLog("", data.ID, jsonPayloadToStore, "Failed", ex.Message, "");
                     }
                 }
             }
