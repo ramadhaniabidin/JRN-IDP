@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 
 namespace JRN_IDP.Model
 {
-    public class NACModel
-    {
-    }
-
     public class NintexWorkflowCloud
     {
         public string url { get; set; }
