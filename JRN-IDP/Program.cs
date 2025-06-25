@@ -13,7 +13,6 @@ namespace JRN_IDP
         static void Main(string[] args)
         {
             SPOHandler spoHander = new SPOHandler();
-            ProsnapHandler prosnap = new ProsnapHandler();
             APIHandler api = new APIHandler();
             NACHandler NAC = new NACHandler();
             string code = "4";
