@@ -15,7 +15,7 @@ namespace JRN_IDP
 {
     public class ProsnapHandler
     {
-        private readonly string baseURL = "http://8.215.35.106:3030";
+        private readonly string baseURL = ConfigurationManager.AppSettings["PROSNAP_BASEURL"];
         private readonly string getTokenURL = "/token";
         private readonly string uploadURL = "/api/transaction/upload";
         private readonly string scanURL = "/api/transaction/Scan_V2?";
