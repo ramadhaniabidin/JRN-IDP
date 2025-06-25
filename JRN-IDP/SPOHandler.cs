@@ -129,7 +129,7 @@ namespace JRN_IDP
             return attachmentFileName.ToUpperInvariant().Trim();
         }
 
-        public void TestGetFile(int HeaderID)
+        public static void TestGetFile()
         {
             try
             {
