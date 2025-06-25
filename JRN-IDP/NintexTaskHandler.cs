@@ -34,9 +34,9 @@ namespace JRN_IDP
                 string accessToken = responseObject["access_token"];
                 return accessToken;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
