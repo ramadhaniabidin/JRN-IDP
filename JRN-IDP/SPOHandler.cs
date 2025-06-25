@@ -18,6 +18,7 @@ namespace JRN_IDP
         readonly ProsnapHandler prosnap = new ProsnapHandler();
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string connString_JRNAzure = ConfigurationManager.AppSettings["connString_JRNAzure"];
+        private readonly string SPO_BASEURL = ConfigurationManager.AppSettings["SPO_BASEURL"];
         public List<SPOFileModel> GetFileFromSPO()
         {
             DataTable dt = new DataTable();
@@ -147,8 +148,8 @@ namespace JRN_IDP
         {
             string fileRelativeUrl = Attachment_GetRelativeURL(fileUrl, fileName);  
             DecryptionModel decryption = Decrypt("SPO");
-            string siteUrl = $"https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
-            P2PDocuments_UpdateAttachmentURL(HeaderID, ("https://jresourcesid.sharepoint.com" + fileRelativeUrl));
+            string siteUrl = $"{SPO_BASEURL}/sites/p2pdocumentation";
+            P2PDocuments_UpdateAttachmentURL(HeaderID, (SPO_BASEURL + fileRelativeUrl));
             try
             {
                 SecureString secure = new SecureString();
@@ -192,8 +193,7 @@ namespace JRN_IDP
         public string ConvertToBase64(SPOFileModel fileModel)
         {
             var decryption = Decrypt("SPO");
-            string siteUrl = "https://jresourcesid.sharepoint.com/sites/p2pdocumentation";
-            string baseURL = "https://jresourcesid.sharepoint.com";
+            string siteUrl = $"{SPO_BASEURL}/sites/p2pdocumentation";
             try
             {
                 SecureString secure = new SecureString();
@@ -206,7 +206,7 @@ namespace JRN_IDP
                     context.Credentials = new SharePointOnlineCredentials(decryption.username_, secure);
                     // Retrieve the file from the document library
                     var web = context.Web;
-                    var fileUrl = $"{fileModel.Document_Url.Replace(baseURL, "").Trim()}"; // Adjust if site structure differs
+                    var fileUrl = $"{fileModel.Document_Url.Replace(SPO_BASEURL, "").Trim()}"; // Adjust if site structure differs
                     var file = web.GetFileByServerRelativeUrl(fileUrl);
                     context.Load(file);
                     context.ExecuteQuery();

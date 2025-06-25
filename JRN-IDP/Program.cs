@@ -56,7 +56,7 @@ namespace JRN_IDP
             }
             else if(code == "3")
             {
-                spoHander.TestGetFile(4);
+                SPOHandler.TestGetFile();
             }
             else if(code == "4")
             {
