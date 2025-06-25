@@ -57,7 +57,7 @@ namespace JRN_IDP
             }
         }
 
-        public string Attachment_GetRelativeURL(string url, string fileName)
+        public static string Attachment_GetRelativeURL(string url, string fileName)
         {
             string cond1 = "-inv.pdf";
             string cond2 = " - inv.pdf";
@@ -103,7 +103,7 @@ namespace JRN_IDP
             }
         }
 
-        public string GetAttachmentFileName(string invoiceFileName)
+        public static string GetAttachmentFileName(string invoiceFileName)
         {
             string cond1 = "-inv.pdf";
             string cond2 = " - inv.pdf";
