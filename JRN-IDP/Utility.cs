@@ -117,7 +117,7 @@ namespace JRN_IDP
 
         public static DateTime GetDateValue(DataRow value, string key)
         {
-            DateTime date = DateTime.SpecifyKind(new DateTime(), DateTimeKind.Utc);
+            DateTime date = new DateTime(1, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             try
             {
                 return DateTime.Parse(value[key].ToString());
