@@ -51,7 +51,7 @@ namespace JRN_IDP
                     HttpResponseMessage response = await client.GetAsync(url);
                     if (!response.IsSuccessStatusCode)
                     {
-                        throw new Exception($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                        throw new HttpRequestException($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
                     }
                     string responseJson = await response.Content.ReadAsStringAsync();
                     var TaskResponse = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue, RecursionLimit=100}.
@@ -59,9 +59,9 @@ namespace JRN_IDP
                     return TaskResponse;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
     }
