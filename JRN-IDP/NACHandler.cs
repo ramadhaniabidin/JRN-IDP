@@ -74,7 +74,7 @@ namespace JRN_IDP
                         se_type = "0",
                         se_filename = "Invoice 1 - inv.pdf",
                         se_useremail = "elistec@jresources.com",
-                        se_message = "	You must provide a valid value for the Purchase Order Line Number attribute. (AP-810667)",
+                        se_message = "You must provide a valid value for the Purchase Order Line Number attribute. (AP-810667)",
                         se_payload = ""
                     }
                 }
