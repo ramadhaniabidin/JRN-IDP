@@ -280,7 +280,6 @@ namespace JRN_IDP
             {
                 var Document = spo.GetP2PDocument(HeaderID);
                 string siteUrl = $"https://jresourcesid.sharepoint.com";
-                string title = Document.Document_Name.ToUpper().Replace("- INV.PDF", "").Trim();
                 string fileRelativeURL = Document.Document_Url.Replace(siteUrl, "").Trim();
                 string attachmentFileName = spo.GetAttachmentFileName(Document.Document_Name);
                 string base64Content = spo.GenerateBase64Attachment(fileRelativeURL, Document.Document_Name, HeaderID);
