@@ -22,6 +22,7 @@ namespace JRN_IDP
         private readonly string connString = ConfigurationManager.AppSettings["connString"];
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
         private readonly string successStatus = "Success";
+        private readonly string failedStatus = "Failed";
         private readonly string idParam = "@HeaderID";
         private readonly HttpClientHandler httpHandler = new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate };
         private readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
@@ -143,7 +144,7 @@ namespace JRN_IDP
             catch (Exception ex)
             {
                 Console.WriteLine($"Get Invoice Header Message: {ex.Message}");
-                GeneratePayload_InsertLog(HeaderID, "Failed", ex.Message, "InvoiceHeader");
+                GeneratePayload_InsertLog(HeaderID, failedStatus, ex.Message, "InvoiceHeader");
                 return new InvoiceHeaderModel();
             }
         }
@@ -268,7 +269,7 @@ namespace JRN_IDP
             catch (Exception ex)
             {
                 Console.WriteLine($"Get Invoice Line Message: {ex.Message}");
-                GeneratePayload_InsertLog(HeaderID, "Failed", ex.Message, "InvoiceLine");
+                GeneratePayload_InsertLog(HeaderID, failedStatus, ex.Message, "InvoiceLine");
                 return new List<InvoiceLineModel>();
             }
         }
@@ -326,7 +327,7 @@ namespace JRN_IDP
             catch (Exception ex)
             {
                 Console.WriteLine($"Get Invoice Distribution Message: {ex.Message}");
-                GeneratePayload_InsertLog(HeaderID, "Failed", ex.Message, "InvoiceDistribution");
+                GeneratePayload_InsertLog(HeaderID, failedStatus, ex.Message, "InvoiceDistribution");
                 return new List<InvoiceDistributionModel>();
             }
         }
@@ -449,7 +450,7 @@ namespace JRN_IDP
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
-                        PostCreateInvoice_InsertLog("", data.ID, jsonPayloadToStore, "Failed", ex.Message, "");
+                        PostCreateInvoice_InsertLog("", data.ID, jsonPayloadToStore, failedStatus, ex.Message, "");
                     }
                 }
             }
@@ -468,7 +469,7 @@ namespace JRN_IDP
             else
             {
                 string errorContent = response.Content.ReadAsStringAsync().Result;
-                PostCreateInvoice_InsertLog("", HeaderID, jsonPayload, "Failed", "Bad Request", errorContent);
+                PostCreateInvoice_InsertLog("", HeaderID, jsonPayload, failedStatus, "Bad Request", errorContent);
                 NotifTeamIT(HeaderID, jsonPayload, errorContent);
             }
         }
