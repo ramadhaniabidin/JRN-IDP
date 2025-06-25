@@ -454,25 +454,18 @@ namespace JRN_IDP
 
         public void InsertOracleSupplier(string SupplierName, string SupplierNumber)
         {
-            try
+            using (var conn = new SqlConnection(connString))
             {
-                using(var conn = new SqlConnection(connString))
+                conn.Open();
+                using (var cmd = new SqlCommand("usp_InsertMasterSuppplier_Oracle", conn))
                 {
-                    conn.Open();
-                    using(var cmd  = new SqlCommand("usp_InsertMasterSuppplier_Oracle", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@SupplierName", SupplierName);
-                        cmd.Parameters.AddWithValue("@SupplierNumber", SupplierNumber);
-                        cmd.ExecuteNonQuery();
-                    }
-                    conn.Close();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@SupplierName", SupplierName);
+                    cmd.Parameters.AddWithValue("@SupplierNumber", SupplierNumber);
+                    cmd.ExecuteNonQuery();
                 }
-            }
-            catch(Exception)
-            {
-                throw;
+                conn.Close();
             }
         }
 
