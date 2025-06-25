@@ -16,8 +16,8 @@ namespace JRN_IDP
     {
         private readonly string client_id = ConfigurationManager.AppSettings["client_id"];
         private readonly string client_secret = ConfigurationManager.AppSettings["client_secret"];
-        private readonly string get_token_url = "https://au.nintex.io/authentication/v1/token";
-        private readonly string NACBaseURL = "https://au.nintex.io";
+        private readonly string get_token_url = ConfigurationManager.AppSettings["TOKEN_ENDPOINT"];
+        private readonly string NACBaseURL = ConfigurationManager.AppSettings["NAC_BASE_URL"];
         private readonly string workflowURL = ConfigurationManager.AppSettings["NotificationWorkflow_Url_Production"];
 
         public string GetToken()
