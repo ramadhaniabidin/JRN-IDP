@@ -23,10 +23,8 @@ namespace JRN_IDP
         private readonly string url = ConfigurationManager.AppSettings["CreateInvoiceEndpoint_Production"];
         private readonly string successStatus = "Success";
         private readonly string idParam = "@HeaderID";
-        private readonly HttpClientHandler httpHandler = new HttpClientHandler
-        {
-            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-        };
+        private readonly HttpClientHandler httpHandler = new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate };
+        private readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
 
         public static string GenerateRandomString()
         {
@@ -297,7 +295,7 @@ namespace JRN_IDP
             catch(Exception ex)
             {
                 Console.WriteLine(ex);
-                return null;
+                return new AttachmentModel();
             }
 
         }
@@ -388,6 +386,17 @@ namespace JRN_IDP
             }).Wait();
         }
     
+        public InvoiceHeaderModel GenerateInvoicePayload(int ID)
+        {
+            var header = GetInvoiceHeader(ID);
+            header.invoiceLines = PopulateInvoiceLine(ID);
+            header.attachments = new List<AttachmentModel> { GetDefaultAttachment(ID) };
+            if (header.InvoiceAmount.Contains(",00"))
+            {
+                header.InvoiceAmount = header.InvoiceAmount.Replace(",00", string.Empty);
+            }
+            return header;
+        }
 
         public async Task CreateInvoiceBulkAsync_New()
         {
@@ -395,23 +404,28 @@ namespace JRN_IDP
             foreach (var data in HeaderIDs)
             {
                 SyncTransactionToDataTable(data.ID);
-                InvoiceHeaderModel header = GetInvoiceHeader(data.ID);
-                header.invoiceLines = PopulateInvoiceLine(data.ID);
-                if(header.invoiceLines.Count == 0)
-                {
-                    continue;
-                }
-                header.attachments = new List<AttachmentModel>();
-                var attachment = GetDefaultAttachment(data.ID);
-                if(attachment == null)
-                {
-                    continue;
-                }
-                header.attachments.Add(GetDefaultAttachment(data.ID));
-                if (header.InvoiceAmount.Contains(",00"))
-                {
-                    header.InvoiceAmount = header.InvoiceAmount.Replace(",00", "");
-                }
+                #region commented-out code
+                //InvoiceHeaderModel header = GetInvoiceHeader(data.ID);
+                //header.invoiceLines = PopulateInvoiceLine(data.ID);
+                //if(header.invoiceLines.Count == 0)
+                //{
+                //    continue;
+                //}
+                //header.attachments = new List<AttachmentModel>();
+                //var attachment = GetDefaultAttachment(data.ID);
+                //if(attachment == null)
+                //{
+                //    continue;
+                //}
+                //header.attachments.Add(GetDefaultAttachment(data.ID));
+                //if (header.InvoiceAmount.Contains(",00"))
+                //{
+                //    header.InvoiceAmount = header.InvoiceAmount.Replace(",00", "");
+                //}
+                #endregion
+
+                var header = GenerateInvoicePayload(data.ID);
+                if (header.invoiceLines.Count == 0 || header.attachments[0].Type == null) continue;
                 // API Request
                 using (var client = new HttpClient(httpHandler))
                 {
@@ -419,18 +433,14 @@ namespace JRN_IDP
                     var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{decryption.username_}:{decryption.password_}"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
                     client.DefaultRequestHeaders.Add("Accept", "application/json");
-                    var options = new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                    };
-                    string jsonPayload = JsonSerializer.Serialize(header, options);
+                    string jsonPayload = JsonSerializer.Serialize(header, serializerOptions);
                     var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
                     var PayloadToStore = header;
                     foreach(var p in PayloadToStore.attachments)
                     {
                         p.FileContents = "";
                     }
-                    string jsonPayloadToStore = JsonSerializer.Serialize(PayloadToStore, options);
+                    string jsonPayloadToStore = JsonSerializer.Serialize(PayloadToStore, serializerOptions);
                     try
                     {
                         HttpResponseMessage response = await client.PostAsync(url, content);
