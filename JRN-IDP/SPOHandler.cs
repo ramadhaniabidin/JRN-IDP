@@ -136,26 +136,6 @@ namespace JRN_IDP
                 Console.WriteLine("ODIINV24120358INV.pdf");
                 string attachmentFileName = GetAttachmentFileName("ODIINV24120358INV.pdf");
                 Console.WriteLine(attachmentFileName);
-
-                //string siteUrl = "https://jresourcesid.sharepoint.com";
-                //var document = GetP2PDocument(HeaderID);
-                //string fileRelativeURL = document.Document_Url.Replace(siteUrl, "").Trim();
-                //fileRelativeURL = Attachment_GetRelativeURL(fileRelativeURL, document.Document_Name);
-                //var decryption = Decrypt("SPO");
-                //SecureString secure = new SecureString();
-                //foreach(var c in decryption.password_)
-                //{
-                //    secure.AppendChar(c);
-                //}
-                //using(var context = new ClientContext($"{siteUrl}/p2pdocumentation"))
-                //{
-                //    context.Credentials = new SharePointOnlineCredentials(decryption.username_, secure);
-                //    var web = context.Web;
-                //    var file = web.GetFileByServerRelativeUrl(fileRelativeURL);
-                //    context.Load(file, f => f.Name);
-                //    context.ExecuteQuery();
-                //    Console.WriteLine($"File Name: {file.Name}");
-                //}
             }
             catch(Exception ex)
             {
