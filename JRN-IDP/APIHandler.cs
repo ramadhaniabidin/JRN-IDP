@@ -404,29 +404,8 @@ namespace JRN_IDP
             foreach (var data in HeaderIDs)
             {
                 SyncTransactionToDataTable(data.ID);
-                #region commented-out code
-                //InvoiceHeaderModel header = GetInvoiceHeader(data.ID);
-                //header.invoiceLines = PopulateInvoiceLine(data.ID);
-                //if(header.invoiceLines.Count == 0)
-                //{
-                //    continue;
-                //}
-                //header.attachments = new List<AttachmentModel>();
-                //var attachment = GetDefaultAttachment(data.ID);
-                //if(attachment == null)
-                //{
-                //    continue;
-                //}
-                //header.attachments.Add(GetDefaultAttachment(data.ID));
-                //if (header.InvoiceAmount.Contains(",00"))
-                //{
-                //    header.InvoiceAmount = header.InvoiceAmount.Replace(",00", "");
-                //}
-                #endregion
-
                 var header = GenerateInvoicePayload(data.ID);
                 if (header.invoiceLines.Count == 0 || header.attachments[0].Type == null) continue;
-                // API Request
                 using (var client = new HttpClient(httpHandler))
                 {
                     DecryptionModel decryption = Decrypt("Oracle");
