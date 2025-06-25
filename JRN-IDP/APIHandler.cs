@@ -470,9 +470,9 @@ namespace JRN_IDP
                     conn.Close();
                 }
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
