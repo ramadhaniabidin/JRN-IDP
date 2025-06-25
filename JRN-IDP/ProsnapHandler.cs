@@ -224,7 +224,7 @@ namespace JRN_IDP
             }
         }
 
-        public void TestParsingJSON()
+        public static void TestParsingJSON()
         {
             string json = "{ \"ProcessSuccess\":true,\"InfoMessage\":\"OK\",\"Item\":{ \"ID\":173,\"Url\":\"http://8.215.35.106:3030/Archives/597cf135-bcfe-4af4-93dd-8bdded8f095d.pdf\"}";
             JsonDocument jsonDocument = JsonDocument.Parse(json);
