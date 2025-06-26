@@ -73,7 +73,7 @@ namespace JRN_IDP
 
         public static string GetParentUriString(Uri uri)
         {
-            return uri.AbsoluteUri.Remove(uri.AbsoluteUri.Length - uri.Segments.Last().Length);
+            return uri.AbsoluteUri.Remove(uri.AbsoluteUri.Length - uri.Segments[uri.Segments.Length - 1].Length);
         }
 
         public static string GetStringValue(DataRow value, string key)
