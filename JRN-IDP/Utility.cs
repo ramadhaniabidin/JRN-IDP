@@ -175,15 +175,9 @@ namespace JRN_IDP
             {
                 foreach (PropertyInfo pro in temp.GetProperties())
                 {
+                    if (pro.Name != column.ColumnName) continue;
                     var value = dr[column.ColumnName] == DBNull.Value ? null : dr[column.ColumnName];
-                    if (pro.Name == column.ColumnName)
-                    {
-                        pro.SetValue(obj, value, null);
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    pro.SetValue(obj, value, null);
                 }
             }
             return obj;
