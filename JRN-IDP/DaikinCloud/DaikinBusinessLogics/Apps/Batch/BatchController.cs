@@ -243,22 +243,18 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             if (string.IsNullOrEmpty(basePath))
                 basePath = new Utility().GetConfigValue("NetworkPath");
-            //basePath = ConfigurationManager.AppSettings["NetworkPath"].ToString();
             try
             {
 
                 var list = GetBatchFileContentsSC(moduleCode, headerID, No);
                 if (list.Count > 0)
                 {
-                    //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                     var credentials = new Utility().GetNetworkCredential();
                     using (new ConnectToSharedFolder(basePath, credentials))
                     {
                         var formNo = list[0].BatchFile.Split('\t', ';')[0].Substring(0, 10);
-                        //var targetPath = System.IO.Path.Combine(basePath, filePath);
                         string targetPath = basePath + filePath;
                         var targetFile = System.IO.Path.Combine(targetPath, fileName + ".txt");
-
                         new BatchController().SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
 
                         #region Create Batch File
@@ -440,7 +436,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContents(SP_Name, moduleCode, headerID, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
@@ -504,15 +499,12 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContents(moduleCode, headerID, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
                             var formNo = list[0].BatchFile.Split('\t', ';')[0];
                             var targetPath = PathLocation;
                             var targetFile = Path.Combine(targetPath, fileName + ".txt");
-
-                            //SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
                             SaveBatchFileHistory_V2(moduleCode, headerID, formNo, targetFile);
 
                             #region Create Batch File
