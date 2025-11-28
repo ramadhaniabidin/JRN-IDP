@@ -136,16 +136,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public async Task CreateReportFromBase64Async(string Report_Name, string Report_ID, string Extension)
         {
-            try
-            {
-                string Report_Path = ut.GetConfigValue("SF_ReportPath");
-                string base64 = await GetReportBase64Async(Report_ID, Extension);
-                UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
-            }
-            catch(Exception)
-            {
-                throw;
-            }
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = await GetReportBase64Async(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
         }
 
         public List<ReportModel> GetReportAttribute()
