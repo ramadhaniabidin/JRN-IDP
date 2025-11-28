@@ -80,24 +80,17 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
         {
-            try
+            var credential = new Utility().GetNetworkCredential();
+            using (new ConnectToSharedFolder(FolderPath, credential))
             {
-                var credential = new Utility().GetNetworkCredential();
-                using (new ConnectToSharedFolder(FolderPath, credential))
+                if (!Directory.Exists(FolderPath))
                 {
-                    if (!Directory.Exists(FolderPath))
-                    {
-                        Directory.CreateDirectory(FolderPath);
-                    }
-
-                    byte[] fileBytes = Convert.FromBase64String(Base64);
-                    string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
-                    File.WriteAllBytes(filePath, fileBytes);
+                    Directory.CreateDirectory(FolderPath);
                 }
-            }
-            catch(Exception)
-            {
-                throw;
+
+                byte[] fileBytes = Convert.FromBase64String(Base64);
+                string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
+                File.WriteAllBytes(filePath, fileBytes);
             }
         }
 
@@ -122,16 +115,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void CreateReportFromBase64(string Report_Name, string Report_ID, string Extension)
         {
-            try
-            {
-                string Report_Path = ut.GetConfigValue("SF_ReportPath");
-                string base64 = GetReportBase64(Report_ID, Extension);
-                UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
-            }
-            catch(Exception)
-            {
-                throw;
-            }
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = GetReportBase64(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
         }
 
         public async Task CreateReportFromBase64Async(string Report_Name, string Report_ID, string Extension)
@@ -143,28 +129,21 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public List<ReportModel> GetReportAttribute()
         {
-            try
+            using (var con = new SqlConnection(Utility.GetSQLConnDev()))
             {
-                using (var con = new SqlConnection(Utility.GetSQLConnDev()))
+                con.Open();
+                string query = "SELECT * FROM [Report_Configuration] WHERE [Active] = @active";
+                using (var cmd = new SqlCommand(query, con))
                 {
-                    con.Open();
-                    string query = "SELECT * FROM [Report_Configuration] WHERE [Active] = @active";
-                    using (var cmd = new SqlCommand(query, con))
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
+                    using (var _reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
-                        using (var _reader = cmd.ExecuteReader())
-                        {
-                            dt = new DataTable();
-                            dt.Load(_reader);
-                            return Utility.ConvertDataTableToList<ReportModel>(dt);
-                        }
+                        dt = new DataTable();
+                        dt.Load(_reader);
+                        return Utility.ConvertDataTableToList<ReportModel>(dt);
                     }
                 }
-            }
-            catch(Exception)
-            {
-                throw;
             }
         }
 
