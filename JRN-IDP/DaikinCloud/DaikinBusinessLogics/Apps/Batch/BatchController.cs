@@ -20,7 +20,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
     {
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        SqlDataReader reader = null;
         DataTable dt = new DataTable();
         private readonly SalesForceController sfc = new SalesForceController();
         private readonly Utility ut = new Utility();
