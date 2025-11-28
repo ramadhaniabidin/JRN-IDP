@@ -238,17 +238,17 @@ app.controller('ctrl', function ($scope, svc) {
 
             if ($scope.Module.Code == 'M025') {
                 $scope.ddlPostingStatus = [
-                     //{ Code: "", Name: "Please Select" },
-                     { Code: '', Name: 'All' },
-                     { Code: '8', Name: 'Draft' },
-                     { Code: '1', Name: 'Submitted' },
-                     { Code: '5', Name: 'Revised' },
-                     { Code: '6', Name: 'Rejected' },
-                     { Code: '7', Name: 'Approved' },
-                     { Code: '4', Name: 'Waiting for Approval' },
-                     { Code: '14', Name: 'Waiting for MIRO' },
-                     { Code: '17', Name: 'Waiting for PEN' },
-                     { Code: '18', Name: 'Completed' }
+                    //{ Code: "", Name: "Please Select" },
+                    { Code: '', Name: 'All' },
+                    { Code: '8', Name: 'Draft' },
+                    { Code: '1', Name: 'Submitted' },
+                    { Code: '5', Name: 'Revised' },
+                    { Code: '6', Name: 'Rejected' },
+                    { Code: '7', Name: 'Approved' },
+                    { Code: '4', Name: 'Waiting for Approval' },
+                    { Code: '14', Name: 'Waiting for MIRO' },
+                    { Code: '17', Name: 'Waiting for PEN' },
+                    { Code: '18', Name: 'Completed' }
 
                 ];
 
@@ -262,8 +262,8 @@ app.controller('ctrl', function ($scope, svc) {
                 $scope.SearchBy = $scope.ddlSearchBy[0];
 
                 $scope.ddlFilterBy = [
-                //{ Code: "", Name: "Please Select" },
-                { Code: 'Created_Time', Name: 'Created Date' },
+                    //{ Code: "", Name: "Please Select" },
+                    { Code: 'Created_Time', Name: 'Created Date' },
                 ];
                 $scope.FilterBy = $scope.ddlFilterBy[0];
 
@@ -387,24 +387,10 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.PendingApproverRole = $scope.ddlPendingApprover[0];
                     $scope.dllPlants = data.listPlant;
                     $scope.plant = data.listPlant[0];
-                    if ((module_code == 'M019') || (module_code == 'M026'))
-                        $scope.ddlBranch = data.listBranchSubcon;
-                    else
-                        $scope.ddlBranch = data.listBranch;
-                    if (data.Branch == '') {
-                        $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
-                    } else {
-                        if ((module_code == 'M019') || (module_code == 'M026')) {
-                            $scope.Branch = data.listBranchSubcon[$scope.FindIndexAll(data.listBranchSubcon)];
-                        } else {
-                            $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
-                        }
-                    }
-                    if ((module_code == 'M019') || (module_code == 'M026')) {
-                        $scope.Module = $scope.ddlModule[0];
-                    } else {
-                        $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
-                    }
+                    const isSubcon = module_code === "M019" || module_code === "M026";
+                    $scope.ddlBranch = isSubcon ? data.listBranchSubcon : data.listBranch;
+                    $scope.Branch = $scope.ddlBranch[$scope.FindIndexAll($scope.ddlBranch)];
+                    $scope.Module = isSubcon ? $scope.Module[0] : $scope.ddlModule.find(m => m.Code === module_code);
                 }
                 else {
                     console.log(`GetModuleOptions : ${data}`);
