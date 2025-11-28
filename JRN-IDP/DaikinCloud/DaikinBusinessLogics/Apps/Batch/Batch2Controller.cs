@@ -1,0 +1,111 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data.SqlClient;
+using System.Data;
+using Daikin.BusinessLogics.Apps.Batch.Model;
+using System.IO;
+using System.Net;
+using Daikin.BusinessLogics.Common;
+
+namespace Daikin.BusinessLogics.Apps.Batch.Controller {
+
+    public class Batch2Controller {
+        DatabaseManager db = new DatabaseManager();
+        SqlConnection conn = new SqlConnection();
+        SqlDataReader reader = null;
+        DataTable dt = new DataTable();
+
+        //public void CreateBatchFile(string transactionNo,
+        //    string basePath, string filePath, string fileName, string currentUser) {
+        //    if (string.IsNullOrEmpty(basePath))
+        //        basePath = new Utility().GetConfigValue("NetworkPath");
+
+        //    var isTrans = true;
+        //    try {
+        //        db.OpenConnection(ref conn, isTrans);
+
+        //        var list = GetBatchFileContents(transactionNo, true);
+        //        if (list.Count > 0) {
+        //            //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
+        //            var credentials = new Utility().GetNetworkCredential();
+        //            using (new ConnectToSharedFolder(basePath, credentials)) {
+        //                var formNo = list[0].BatchFile.Split('\t', ';')[0];
+        //                var targetPath = Path.Combine(basePath, filePath);
+        //                var targetFile = Path.Combine(targetPath, fileName + ".txt");
+
+        //                SaveBatchFileHistory(transactionNo, currentUser, true);
+
+        //                #region Create Batch File
+        //                Directory.CreateDirectory(targetPath);
+        //                using (TextWriter tw = new StreamWriter(targetFile))
+        //                    foreach (var row in list)
+        //                        tw.WriteLine(row.BatchFile);
+        //                #endregion
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex) {
+        //        isTrans = false;
+        //        throw ex;
+        //    }
+        //    finally {
+        //        db.CloseConnection(ref conn, isTrans);
+        //    }
+
+        //}
+
+        public List<BatchModel> GetBatchFileContents(string transactionNo, bool isOpen = false) {
+            dt = new DataTable();
+            try {
+                if (!isOpen)
+                    db.OpenConnection(ref conn);
+
+                db.cmd.CommandText = "usp_Utility_CreateBatchFile2";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, "Transaction_No", transactionNo);
+
+                reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+
+                return Utility.ConvertDataTableToList<BatchModel>(dt);
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+            finally {
+                if (!isOpen)
+                    db.CloseConnection(ref conn);
+            }
+        }
+
+        public void SaveBatchFileHistory(string transctionNo, string currentUser, bool isOpen = false) {
+            var isTrans = true;
+            try {
+                if (!isOpen)
+                    db.OpenConnection(ref conn, isTrans);
+                db.cmd.CommandText = "usp_BatchFile2History_Save";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, "Transaction_No", transctionNo);
+                db.AddInParameter(db.cmd, "Modified_By", currentUser);
+
+                db.cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex) {
+                isTrans = false;
+                throw ex;
+            }
+            finally {
+                if (!isOpen)
+                    db.CloseConnection(ref conn, isTrans);
+            }
+        }
+    }
+}
