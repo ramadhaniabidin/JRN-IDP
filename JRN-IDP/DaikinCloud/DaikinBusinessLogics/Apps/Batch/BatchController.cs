@@ -22,6 +22,8 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         SqlConnection conn = new SqlConnection();
         private readonly SalesForceController sfc = new SalesForceController();
         private readonly Utility ut = new Utility();
+        private readonly string PATH_LOCATION_KEY = "Path_Location";
+        private readonly string MODULE_CODE_KEY = "Module_Code";
 
         public string GetReportBase64(string Report_ID, string Extension)
         {
@@ -103,7 +105,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 dt = GetFolderLocation(Folder_ID);
                 foreach(DataRow row in dt.Rows)
                 {
-                    string folderPath = Utility.GetStringValue(row, "Path_Location");
+                    string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
                     List<ReportModel> reports = GetReportAttribute();
                     foreach(var report in reports)
                     {
@@ -283,8 +285,8 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             dt = new BatchController().GetFolderLocation(SAPFolderID);
             foreach (DataRow row in dt.Rows)
             {
-                string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                string folder = Utility.GetStringValue(row, "Path_Location");
+                string moduleCode = Utility.GetStringValue(row, MODULE_CODE_KEY);
+                string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
 
                 string filepath = folder + @"\" + FileName + ".txt";
                 if (!File.Exists(filepath))
@@ -360,8 +362,8 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
-                    string PathLocation = Utility.GetStringValue(r, "Path_Location");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
                     //For List Non Commercials Only
@@ -423,7 +425,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
                     string PathLocation = Utility.GetStringValue(r, "Path_Location");
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
@@ -487,8 +489,8 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
-                    string PathLocation = Utility.GetStringValue(r, "Path_Location");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
                     //For List Non Commercials Only
