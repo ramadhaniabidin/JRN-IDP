@@ -397,7 +397,6 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.PendingApproverRole = $scope.ddlPendingApprover[0];
                     $scope.dllPlants = data.listPlant;
                     $scope.plant = data.listPlant[0];
-                    arrBranch = data.listBranch;
                     if ((module_code == 'M019') || (module_code == 'M026'))
                         $scope.ddlBranch = data.listBranchSubcon;
                     else
@@ -496,9 +495,9 @@ app.controller('ctrl', function ($scope, svc) {
                         $scope.GrandTotal = data.GrandTotal;
                         $scope.Total = 0;
                         $scope.Items = data.Items;
-                        for (x in $scope.Items) {
+                        for (let x in $scope.Items) {
                             $scope.Total += $scope.Items[x].Grand_Total;
-                            for (y in $scope.Items[x]) {
+                            for (let y in $scope.Items[x]) {
                                 if (y.endsWith('Date')) {
                                     $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
                                 }
@@ -576,7 +575,7 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.Search = function () {
         $scope.ListData(1);
-    }
+    };
 
 
     $("body").on("click", ".Pager .page", function () {
