@@ -122,10 +122,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception)
-            {
-                throw;
-            }
         }
 
         public void CreateReportFromBase64(string Report_Name, string Report_ID, string Extension)
@@ -230,10 +226,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception)
-            {
-                throw;
-            }
         }
 
         public void CreateBatchFileSC(int No, string moduleCode, int headerID,
@@ -263,10 +255,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         #endregion
                     }
                 }
-            }
-            catch (Exception)
-            {
-                throw;
             }
             finally
             {
@@ -324,33 +312,24 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
         {
-            dt = new DataTable();
-            try
+            dt = new BatchController().GetFolderLocation(SAPFolderID);
+            foreach (DataRow row in dt.Rows)
             {
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-                foreach (DataRow row in dt.Rows)
-                {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
+                string moduleCode = Utility.GetStringValue(row, "Module_Code");
+                string folder = Utility.GetStringValue(row, "Path_Location");
 
-                    string filepath = folder + @"\" + FileName + ".txt";
-                    if (!File.Exists(filepath))
+                string filepath = folder + @"\" + FileName + ".txt";
+                if (!File.Exists(filepath))
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(folder, credentials))
                     {
-                        var credentials = new Utility().GetNetworkCredential();
-                        using (new ConnectToSharedFolder(folder, credentials))
+                        using (StreamWriter sw = File.CreateText(filepath))
                         {
-                            using (StreamWriter sw = File.CreateText(filepath))
-                            {
-                                sw.WriteLine(Message);
-                            }
+                            sw.WriteLine(Message);
                         }
                     }
                 }
-            }
-            catch (Exception)
-            {
-                db.CloseConnection(ref conn);
-                throw;
             }
         }
 
