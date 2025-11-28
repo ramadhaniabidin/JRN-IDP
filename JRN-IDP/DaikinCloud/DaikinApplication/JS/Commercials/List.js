@@ -54,7 +54,7 @@ app.filter("FormatDate", function () {
     const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
         const m = x.match(re);
-        if (m) return new Date(parseInt(m[1]));
+        if (m) return new Date(Number.parseInt(m[1]));
         else return null;
     };
 });
