@@ -162,6 +162,56 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.showModal = 'none';
     $scope.colspan = 7;
 
+    const PostingStatus_M025 = [
+        { Code: '', Name: 'All' },
+        { Code: '8', Name: 'Draft' },
+        { Code: '1', Name: 'Submitted' },
+        { Code: '5', Name: 'Revised' },
+        { Code: '6', Name: 'Rejected' },
+        { Code: '7', Name: 'Approved' },
+        { Code: '4', Name: 'Waiting for Approval' },
+        { Code: '14', Name: 'Waiting for MIRO' },
+        { Code: '17', Name: 'Waiting for PEN' },
+        { Code: '18', Name: 'Completed' }
+    ];
+
+    const SearchBy_M025 = [
+        { Code: 'Form_No', Name: 'Nintex No' },
+        { Code: 'Requester_Name', Name: 'Requester' },
+        { Code: 'PIB_Number', Name: 'PIB Number' },
+        { Code: 'PEN_Number', Name: 'PEN Number' },
+        { Code: 'Remarks', Name: 'Remarks' }
+    ];
+
+    const FilterBy_M025 = [
+        { Code: 'Created_Time', Name: 'Created Date' },
+    ];
+
+    const PostingStatus_Default = [
+        { Code: '', Name: 'All' },
+        { Code: '1', Name: 'Posted' },
+        { Code: '0', Name: 'Pending SAP Post' },
+        { Code: '5', Name: 'Revised' },
+        { Code: '6', Name: 'Rejected' },
+        { Code: '7', Name: 'Approved' },
+        { Code: '8', Name: 'Draft' }
+    ];
+
+    const PostingStatus_M019 = [
+        { Code: '', Name: 'All' },
+        { Code: '3', Name: 'Generated' },
+        { Code: '4', Name: 'Pending for Approval' },
+        { Code: '11', Name: 'Pending for Submit Document' },
+        { Code: '12', Name: 'Waiting for Feedback Release' },
+        { Code: '13', Name: 'Waiting for Feedback MIGO' },
+        { Code: '14', Name: 'Waiting for Feedback MIRO' },
+        { Code: '5', Name: 'Revised' },
+        { Code: '6', Name: 'Rejected' },
+        { Code: '7', Name: 'Approved' },
+        { Code: '15', Name: 'Pending for Closing' }
+    ];
+
+
     const modal = document.getElementById("appModal");
     window.onclick = function (event) {
         if (event.target == modal) {
@@ -228,72 +278,19 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.onChangeDDLModule = function () {
         $scope.ddlPendingApprover = [];
         $scope.PendingApproverRole = {};
-
+        const code = $scope.Module.Code;
         try {
-            if ($scope.Module.Code == 'M010') { //FOB
-                $scope.colspan = 7;
-            } else {
-                $scope.colspan = 5;
-            }
-
-            if ($scope.Module.Code == 'M025') {
-                $scope.ddlPostingStatus = [
-                    //{ Code: "", Name: "Please Select" },
-                    { Code: '', Name: 'All' },
-                    { Code: '8', Name: 'Draft' },
-                    { Code: '1', Name: 'Submitted' },
-                    { Code: '5', Name: 'Revised' },
-                    { Code: '6', Name: 'Rejected' },
-                    { Code: '7', Name: 'Approved' },
-                    { Code: '4', Name: 'Waiting for Approval' },
-                    { Code: '14', Name: 'Waiting for MIRO' },
-                    { Code: '17', Name: 'Waiting for PEN' },
-                    { Code: '18', Name: 'Completed' }
-
-                ];
-
-                $scope.ddlSearchBy = [
-                    { Code: 'Form_No', Name: 'Nintex No' },
-                    { Code: 'Requester_Name', Name: 'Requester' },
-                    { Code: 'PIB_Number', Name: 'PIB Number' },
-                    { Code: 'PEN_Number', Name: 'PEN Number' },
-                    { Code: 'Remarks', Name: 'Remarks' },
-                ];
+            $scope.colspan = code === "M010" ? 7 : 5;
+            if (code === "M025") {
+                $scope.ddlPostingStatus = PostingStatus_M025;
+                $scope.ddlSearchBy = SearchBy_M025;
                 $scope.SearchBy = $scope.ddlSearchBy[0];
-
-                $scope.ddlFilterBy = [
-                    //{ Code: "", Name: "Please Select" },
-                    { Code: 'Created_Time', Name: 'Created Date' },
-                ];
+                $scope.ddlFilterBy = FilterBy_M025;
                 $scope.FilterBy = $scope.ddlFilterBy[0];
-
-            }
-            else if ($scope.Module.Code !== 'M019') {
-                $scope.ddlPostingStatus = [
-                    //{ Code: "", Name: "Please Select" },
-                    { Code: '', Name: 'All' },
-                    { Code: '1', Name: 'Posted' },
-                    { Code: '0', Name: 'Pending SAP Post' },
-                    { Code: '5', Name: 'Revised' },
-                    { Code: '6', Name: 'Rejected' },
-                    { Code: '7', Name: 'Approved' },
-                    { Code: '8', Name: 'Draft' },
-                ];
+            } else if (code === "M019") {
+                $scope.ddlPostingStatus = PostingStatus_M019;
             } else {
-                $scope.ddlPostingStatus = [
-                    { Code: '', Name: 'All' },
-                    { Code: '3', Name: 'Generated' },
-                    { Code: '4', Name: 'Pending for Approval' },
-                    { Code: '11', Name: 'Pending for Submit Document' },
-                    { Code: '12', Name: 'Waiting for Feedback Release' },
-                    { Code: '13', Name: 'Waiting for Feedback MIGO' },
-                    { Code: '14', Name: 'Waiting for Feedback MIRO' },
-                    { Code: '5', Name: 'Revised' },
-                    { Code: '6', Name: 'Rejected' },
-                    { Code: '7', Name: 'Approved' },
-                    { Code: '15', Name: 'Pending for Closing' },
-                ];
-
+                $scope.ddlPostingStatus = PostingStatus_Default;
             }
             $scope.PostingStatus = $scope.ddlPostingStatus[0];
             if (!init) $scope.GetModuleOptions($scope.Module.Code);
@@ -310,7 +307,7 @@ app.controller('ctrl', function ($scope, svc) {
         const checkbox = $event.target;
         const action = (checkbox.checked ? 'add' : 'remove');
         for (let entity of $scope.Items) {
-            if(entity.Current_Index_Approver === 2){
+            if (entity.Current_Index_Approver === 2) {
                 updateSelected(action, entity.Item_ID);
             }
         }
