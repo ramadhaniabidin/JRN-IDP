@@ -357,8 +357,8 @@ app.controller('ctrl', function ($scope, svc) {
             } else {
                 alert(data.InfoMessage);
             }
-        }, function (data, status) {
-            console.log(data.statusText + ' - ' + data.data.Message);
+        }, function (error, status) {
+            console.log(error.statusText + ' - ' + error.data.Message);
         });
 
     }
@@ -414,8 +414,8 @@ app.controller('ctrl', function ($scope, svc) {
                 console.log(`GetPlantOptions : ${data}`);
                 alert(data.InfoMessage);
             }
-        }, function (data) {
-            console.error(data.statusText + ' - ' + data.data.Message);
+        }, function (error) {
+            console.error(error.statusText + ' - ' + error.data.Message);
         });
     }
 
@@ -487,9 +487,9 @@ app.controller('ctrl', function ($scope, svc) {
                         console.log(`ListData : ${data}`);
                         alert(data.InfoMessage);
                     }
-                }, function (data, status) {
-                    console.log(data);
-                    alert(data.statusText + ' - ' + data.data.Message);
+                }, function (error, status) {
+                    console.log(error);
+                    alert(error.statusText + ' - ' + error.data.Message);
                 });
 
             }
@@ -512,9 +512,9 @@ app.controller('ctrl', function ($scope, svc) {
                         RecordCount: data.RecordCount
                     });
                 }
-            }, function (data, status) {
-                console.log(data);
-                alert(data.statusText + ' - ' + data.data.Message);
+            }, function (error, status) {
+                console.log(error);
+                alert(error.statusText + ' - ' + error.data.Message);
             });
         }
         else {
@@ -536,9 +536,9 @@ app.controller('ctrl', function ($scope, svc) {
                         RecordCount: data.RecordCount
                     });
                 }
-            }, function (data, status) {
-                console.log(data);
-                alert(data.statusText + ' - ' + data.data.Message);
+            }, function (error, status) {
+                console.log(error);
+                alert(error.statusText + ' - ' + error.data.Message);
             });
 
         }
