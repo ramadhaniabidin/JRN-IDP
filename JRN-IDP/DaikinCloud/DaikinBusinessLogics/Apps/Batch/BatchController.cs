@@ -210,10 +210,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             DataTable dtBatch = new DataTable();
             try
             {
-                using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
+                using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
                 {
-                    conn.Open();
-                    using (SqlCommand command = conn.CreateCommand())
+                    _conn.Open();
+                    using (SqlCommand command = _conn.CreateCommand())
                     {
                         command.CommandText = "usp_Utility_CreateBatchFile";
                         command.CommandType = CommandType.StoredProcedure;
@@ -697,10 +697,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             try
             {
                 string connString = Utility.GetSqlConnection();
-                using(SqlConnection conn = new SqlConnection(connString))
+                using(SqlConnection _conn = new SqlConnection(connString))
                 {
-                    conn.Open();
-                    using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", conn))
+                    _conn.Open();
+                    using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Clear();
