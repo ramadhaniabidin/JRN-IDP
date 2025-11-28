@@ -213,8 +213,8 @@ app.controller('ctrl', function ($scope, svc) {
 
 
     const modal = document.getElementById("appModal");
-    globalThis.addEventListener("click", function(event){
-        if(event.target === modal){
+    globalThis.addEventListener("click", function (event) {
+        if (event.target === modal) {
             $scope.closeModal();
         }
     });
@@ -313,7 +313,7 @@ app.controller('ctrl', function ($scope, svc) {
         }
     };
     $scope.isSelected = function (id) {
-        return $scope.selected.indexOf(id) >= 0;
+        return $scope.selected.includes(id);
     };
 
     $scope.isSelectedAll = function () {
@@ -321,10 +321,10 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     const updateSelected = function (action, id) {
-        if (action === 'add' && $scope.selected.indexOf(id) === -1) {
+        if (action === 'add' && !$scope.selected.includes(id)) {
             $scope.selected.push(id);
         }
-        if (action === 'remove' && $scope.selected.indexOf(id) !== -1) {
+        if (action === 'remove' && $scope.selected.includes(id)) {
             $scope.selected.splice($scope.selected.indexOf(id), 1);
         }
     };
