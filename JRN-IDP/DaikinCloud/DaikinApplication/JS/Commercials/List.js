@@ -430,7 +430,7 @@ app.controller('ctrl', function ($scope, svc) {
         const re = /\/Date\(([0-9]*)\)\//;
         const m = x.match(re);
         if (m)
-            return new Date(parseInt(m[1]));
+            return new Date(Number.parseInt(m[1]));
         else
             return null;
     }
@@ -555,7 +555,7 @@ app.controller('ctrl', function ($scope, svc) {
 
 
     $("body").on("click", ".Pager .page", function () {
-        $scope.ListData(parseInt($(this).attr('page')));
+        $scope.ListData(Number.parseInt($(this).attr('page')));
     });
 
     $scope.SearchHelper = function (keyEvent) {
