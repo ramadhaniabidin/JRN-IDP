@@ -309,9 +309,8 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.selectAll = function ($event) {
         const checkbox = $event.target;
         const action = (checkbox.checked ? 'add' : 'remove');
-        for (let i = 0; i < $scope.Items.length; i++) {
-            const entity = $scope.Items[i];
-            if (entity.Current_Index_Approver == 2) {
+        for (let entity of $scope.Items) {
+            if(entity.Current_Index_Approver === 2){
                 updateSelected(action, entity.Item_ID);
             }
         }
