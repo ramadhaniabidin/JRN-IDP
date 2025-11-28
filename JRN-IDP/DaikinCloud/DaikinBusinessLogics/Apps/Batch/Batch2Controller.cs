@@ -13,7 +13,7 @@ using Daikin.BusinessLogics.Common;
 namespace Daikin.BusinessLogics.Apps.Batch.Controller {
 
     public class Batch2Controller {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
