@@ -134,7 +134,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             try
             {
-                //string Report_Path = ConfigurationManager.AppSettings["SF_ReportPath"];
                 string Report_Path = ut.GetConfigValue("SF_ReportPath");
                 string base64 = GetReportBase64(Report_ID, Extension);
                 UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
@@ -149,7 +148,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             try
             {
-                //string Report_Path = ConfigurationManager.AppSettings["SF_ReportPath"];
                 string Report_Path = ut.GetConfigValue("SF_ReportPath");
                 string base64 = await GetReportBase64Async(Report_ID, Extension);
                 UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
@@ -289,7 +287,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             if (string.IsNullOrEmpty(basePath))
                 basePath = new Utility().GetConfigValue("NetworkPath");
-            //basePath = ConfigurationManager.AppSettings["NetworkPath"].ToString();
 
             var isTrans = true;
             var targetFile = "";
@@ -300,15 +297,11 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 var list = GetBatchFileContents(moduleCode, headerID, true);
                 if (list.Count > 0)
                 {
-                    //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                     var credentials = new Utility().GetNetworkCredential();
                     using (new ConnectToSharedFolder(basePath, credentials))
                     {
                         var formNo = list[0].BatchFile.Split('\t', ';')[0];
-                        //var targetPath = Path.Combine(basePath, filePath);
                         var targetPath = basePath + filePath;
-                        //var targetPath = @"\\dbs1\NintexQAS\LC\Nintex";
-                        //targetFile = Path.Combine(targetPath, fileName + ".txt");
                         targetFile = $"{targetPath}\\{fileName}.txt";
 
                         SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
@@ -578,7 +571,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContentsWithNo(moduleCode, headerID, no, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
@@ -650,7 +642,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 if (!isOpen)
                     db.OpenConnection(ref conn);
 
-                //db.cmd.CommandText = "usp_Utility_CreateBatchFile";
                 db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
@@ -684,7 +675,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 if (!isOpen)
                     db.OpenConnection(ref conn);
 
-                //db.cmd.CommandText = "usp_Utility_CreateBatchFile";
                 db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
