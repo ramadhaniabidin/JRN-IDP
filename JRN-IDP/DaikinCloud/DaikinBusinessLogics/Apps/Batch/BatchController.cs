@@ -74,11 +74,11 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception($"HTTP request error: {ex.Message}", ex);
+                    throw new HttpRequestException($"HTTP request error: {ex.Message}", ex);
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"Unexpected error while downloading report: {ex.Message}", ex);
+                    throw;
                 }
             }
         }
