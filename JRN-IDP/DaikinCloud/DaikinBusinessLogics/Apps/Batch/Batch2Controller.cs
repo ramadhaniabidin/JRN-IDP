@@ -18,45 +18,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller {
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
 
-        //public void CreateBatchFile(string transactionNo,
-        //    string basePath, string filePath, string fileName, string currentUser) {
-        //    if (string.IsNullOrEmpty(basePath))
-        //        basePath = new Utility().GetConfigValue("NetworkPath");
-
-        //    var isTrans = true;
-        //    try {
-        //        db.OpenConnection(ref conn, isTrans);
-
-        //        var list = GetBatchFileContents(transactionNo, true);
-        //        if (list.Count > 0) {
-        //            //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
-        //            var credentials = new Utility().GetNetworkCredential();
-        //            using (new ConnectToSharedFolder(basePath, credentials)) {
-        //                var formNo = list[0].BatchFile.Split('\t', ';')[0];
-        //                var targetPath = Path.Combine(basePath, filePath);
-        //                var targetFile = Path.Combine(targetPath, fileName + ".txt");
-
-        //                SaveBatchFileHistory(transactionNo, currentUser, true);
-
-        //                #region Create Batch File
-        //                Directory.CreateDirectory(targetPath);
-        //                using (TextWriter tw = new StreamWriter(targetFile))
-        //                    foreach (var row in list)
-        //                        tw.WriteLine(row.BatchFile);
-        //                #endregion
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex) {
-        //        isTrans = false;
-        //        throw ex;
-        //    }
-        //    finally {
-        //        db.CloseConnection(ref conn, isTrans);
-        //    }
-
-        //}
-
         public List<BatchModel> GetBatchFileContents(string transactionNo, bool isOpen = false) {
             dt = new DataTable();
             try {
