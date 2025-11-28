@@ -183,7 +183,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         command.CommandType = CommandType.StoredProcedure;
 
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("Module_Code", moduleCode);
+                        command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
                         command.Parameters.AddWithValue("Header_ID", headerID);
                         command.Parameters.AddWithValue("No", No);
 
@@ -551,7 +551,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, "Header_ID", headerID);
 
                 reader = db.cmd.ExecuteReader();
@@ -583,7 +583,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, "Header_ID", headerID);
 
                 reader = db.cmd.ExecuteReader();
@@ -616,7 +616,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, "Header_ID", headerID);
                 db.AddInParameter(db.cmd, "No", no);
 
@@ -674,7 +674,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, "Header_ID", headerID);
                 db.AddInParameter(db.cmd, "Form_No", formNo);
                 db.AddInParameter(db.cmd, "Generated_File_Path", targetFile);
