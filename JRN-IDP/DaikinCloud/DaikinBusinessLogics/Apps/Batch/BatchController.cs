@@ -170,10 +170,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     {
                         cmd.CommandType = CommandType.Text;
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
-                        using (var reader = cmd.ExecuteReader())
+                        using (var _reader = cmd.ExecuteReader())
                         {
                             dt = new DataTable();
-                            dt.Load(reader);
+                            dt.Load(_reader);
                             return Utility.ConvertDataTableToList<ReportModel>(dt);
                         }
                     }
