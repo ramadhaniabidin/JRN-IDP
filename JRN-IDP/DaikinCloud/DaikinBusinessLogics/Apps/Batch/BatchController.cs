@@ -74,10 +74,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 {
                     throw new HttpRequestException($"HTTP request error: {ex.Message}", ex);
                 }
-                catch (Exception)
-                {
-                    throw;
-                }
             }
         }
 
