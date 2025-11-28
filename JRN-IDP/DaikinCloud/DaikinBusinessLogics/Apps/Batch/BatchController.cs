@@ -76,7 +76,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 {
                     throw new HttpRequestException($"HTTP request error: {ex.Message}", ex);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     throw;
                 }
@@ -198,10 +198,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -232,9 +232,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -266,9 +266,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -312,10 +312,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 }
                 return targetFile;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -349,10 +349,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -373,10 +373,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.CloseConnection(ref conn);
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -397,10 +397,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.CloseConnection(ref conn);
                 return dtx;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -455,10 +455,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -518,10 +518,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     db.CloseConnection(ref conn);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -582,10 +582,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -615,9 +615,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -647,9 +647,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -681,9 +681,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -712,9 +712,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -736,10 +736,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 db.cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
