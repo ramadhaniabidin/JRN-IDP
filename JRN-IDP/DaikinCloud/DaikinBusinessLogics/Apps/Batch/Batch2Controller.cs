@@ -30,7 +30,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller {
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "Transaction_No", transactionNo);
 
-                reader = db.cmd.ExecuteReader();
+                SqlDataReader reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
