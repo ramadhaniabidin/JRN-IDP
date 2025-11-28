@@ -285,9 +285,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             dt = new BatchController().GetFolderLocation(SAPFolderID);
             foreach (DataRow row in dt.Rows)
             {
-                string moduleCode = Utility.GetStringValue(row, MODULE_CODE_KEY);
                 string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
-
                 string filepath = folder + @"\" + FileName + ".txt";
                 if (!File.Exists(filepath))
                 {
