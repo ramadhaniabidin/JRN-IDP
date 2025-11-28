@@ -213,11 +213,11 @@ app.controller('ctrl', function ($scope, svc) {
 
 
     const modal = document.getElementById("appModal");
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            $scope.showModal = 'none';
+    globalThis.addEventListener("click", function(event){
+        if(event.target === modal){
+            $scope.closeModal();
         }
-    }
+    });
 
     $scope.GetModuleURL = function (Module_Code) {
         if (Module_Code == 'M011')
