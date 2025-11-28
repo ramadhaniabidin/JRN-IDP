@@ -18,7 +18,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 {
     public class BatchController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
