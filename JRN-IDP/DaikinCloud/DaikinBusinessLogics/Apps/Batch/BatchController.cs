@@ -210,7 +210,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         var formNo = list[0].BatchFile.Split('\t', ';')[0].Substring(0, 10);
                         string targetPath = basePath + filePath;
                         var targetFile = System.IO.Path.Combine(targetPath, fileName + ".txt");
-                        new BatchController().SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
 
                         #region Create Batch File
                         System.IO.Directory.CreateDirectory(targetPath);
@@ -230,7 +230,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
         {
-            dt = new BatchController().GetFolderLocation(SAPFolderID);
+            dt = GetFolderLocation(SAPFolderID);
             foreach (DataRow row in dt.Rows)
             {
                 string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
@@ -295,6 +295,48 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.CloseConnection(ref conn);
                 throw;
             }
+        }
+
+        public (string BranchCode, string ProcDept) GetProcBranch_V2(string SAPFolderID, int HeaderID)
+        {
+            string BranchCode = "";
+            string ProcDept = "";
+            using(var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using(var cmd = new SqlCommand("usp_Utility_GetProcBranch", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SAPFolderID", Value = SAPFolderID, SqlDbType = SqlDbType.Varchar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    using(var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            BranchCode = reader.GetString(reader.GetOrdinal(BRANCH_CODE_KEY));
+                            ProcDept = reader.GetString(reader.GetOrdinal("ProcDept"));
+                        }
+                    }
+                }
+            }
+            return (BranchCode, ProcDept);
+        }
+
+        public bool IsModuleNonCommercials(string ModuleCode)
+        {
+            List<string> NonCommercialsCode = new List<string>{"M014", "M015", "M016", "M017", "M018", "M020"};
+            return NonCommercialsCode.Contains(ModuleCode);
+        }
+
+        public string UpdateNonCommercialsPath(string PathLocation, string SAPFolderID, int HeadeID)
+        {
+            string branchCode = "";
+            string procDept = "";
+            DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
+            DataRow row = dtInfo.Rows[0];
+            branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+            procDept = Utility.GetStringValue(row, "ProcDept");
+            return Path.Combine(PathLocation, branchCode, procDept);
         }
 
         public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
