@@ -24,6 +24,8 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         private readonly Utility ut = new Utility();
         private readonly string PATH_LOCATION_KEY = "Path_Location";
         private readonly string MODULE_CODE_KEY = "Module_Code";
+        private readonly string HEADER_ID_KEY = "Header_ID";
+        private readonly string BRANCH_CODE_KEY = "BranchCode";
 
         public string GetReportBase64(string Report_ID, string Extension)
         {
@@ -157,7 +159,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandText = "usp_UpdatePOReleaseDetail_AfterReadSAP";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Header_ID", HeaderID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, HeaderID);
 
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
@@ -184,7 +186,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                         command.Parameters.Clear();
                         command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
-                        command.Parameters.AddWithValue("Header_ID", headerID);
+                        command.Parameters.AddWithValue(HEADER_ID_KEY, headerID);
                         command.Parameters.AddWithValue("No", No);
 
                         using (SqlDataReader dr = command.ExecuteReader())
@@ -335,7 +337,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "SAPFolderID", SAPFolderID);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 reader = db.cmd.ExecuteReader();
                 dtx.Load(reader);
                 db.CloseDataReader(reader);
@@ -367,9 +369,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
                         }
                     }
                     //---------------------------------------
@@ -430,9 +432,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
                         }
                     }
                     //---------------------------------------
@@ -494,9 +496,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
                         }
                     }
                     //---------------------------------------
@@ -552,7 +554,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
                 reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
@@ -584,7 +586,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
                 reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
@@ -617,7 +619,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 db.AddInParameter(db.cmd, "No", no);
 
                 reader = db.cmd.ExecuteReader();
@@ -675,7 +677,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 db.AddInParameter(db.cmd, "Form_No", formNo);
                 db.AddInParameter(db.cmd, "Generated_File_Path", targetFile);
 
