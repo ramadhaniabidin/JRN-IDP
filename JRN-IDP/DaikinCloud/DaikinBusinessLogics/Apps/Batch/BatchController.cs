@@ -641,7 +641,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
         }
 
-        public void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
+        public static void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
         {
             string connString = Utility.GetSqlConnection();
             using(SqlConnection _conn = new SqlConnection(connString))
