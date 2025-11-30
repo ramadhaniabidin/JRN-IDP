@@ -101,18 +101,15 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void CreateReportFile(string Folder_ID)
         {
-            try
+            dt = new DataTable();
+            dt = GetFolderLocation(Folder_ID);
+            foreach(DataRow row in dt.Rows)
             {
-                dt = new DataTable();
-                dt = GetFolderLocation(Folder_ID);
-                foreach(DataRow row in dt.Rows)
+                string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
+                List<ReportModel> reports = GetReportAttribute();
+                foreach(var report in reports)
                 {
-                    string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
-                    List<ReportModel> reports = GetReportAttribute();
-                    foreach(var report in reports)
-                    {
-                        UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
-                    }
+                    UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
                 }
             }
         }
@@ -174,28 +171,24 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         public List<BatchModel> GetBatchFileContentsSC(string moduleCode, int headerID, int No)
         {
             DataTable dtBatch = new DataTable();
-            try
+            using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
+                _conn.Open();
+                using (SqlCommand command = _conn.CreateCommand())
                 {
-                    _conn.Open();
-                    using (SqlCommand command = _conn.CreateCommand())
+                    command.CommandText = "usp_Utility_CreateBatchFile";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
+                    command.Parameters.AddWithValue(HEADER_ID_KEY, headerID);
+                    command.Parameters.AddWithValue("No", No);
+
+                    using (SqlDataReader dr = command.ExecuteReader())
                     {
-                        command.CommandText = "usp_Utility_CreateBatchFile";
-                        command.CommandType = CommandType.StoredProcedure;
-
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
-                        command.Parameters.AddWithValue(HEADER_ID_KEY, headerID);
-                        command.Parameters.AddWithValue("No", No);
-
-                        using (SqlDataReader dr = command.ExecuteReader())
-                        {
-                            dtBatch.Load(dr);
-                        }
-                        return Utility.ConvertDataTableToList<BatchModel>(dtBatch);
-
+                        dtBatch.Load(dr);
                     }
+                    return Utility.ConvertDataTableToList<BatchModel>(dtBatch);
                 }
             }
         }
