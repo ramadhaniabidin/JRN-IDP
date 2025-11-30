@@ -364,7 +364,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     {
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
@@ -427,7 +429,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     {
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
@@ -491,7 +495,9 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     {
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, BRANCH_CODE_KEY) + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
