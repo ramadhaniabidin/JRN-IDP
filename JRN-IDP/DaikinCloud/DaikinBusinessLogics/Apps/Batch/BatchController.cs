@@ -228,53 +228,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         }
 
-
-
-        public string CreateBatchFile(string moduleCode, int headerID, string basePath, string filePath, string fileName)
-        {
-            if (string.IsNullOrEmpty(basePath))
-                basePath = new Utility().GetConfigValue("NetworkPath");
-
-            var isTrans = true;
-            var targetFile = "";
-            try
-            {
-                db.OpenConnection(ref conn, isTrans);
-
-                var list = GetBatchFileContents(moduleCode, headerID, true);
-                if (list.Count > 0)
-                {
-                    var credentials = new Utility().GetNetworkCredential();
-                    using (new ConnectToSharedFolder(basePath, credentials))
-                    {
-                        var formNo = list[0].BatchFile.Split('\t', ';')[0];
-                        var targetPath = basePath + filePath;
-                        targetFile = $"{targetPath}\\{fileName}.txt";
-
-                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
-
-                        #region Create Batch File
-                        Directory.CreateDirectory(targetPath);
-                        using (TextWriter tw = new StreamWriter(targetFile))
-                            foreach (var row in list)
-                                tw.WriteLine(row.BatchFile);
-                        #endregion
-                    }
-                }
-                return targetFile;
-            }
-            catch (Exception)
-            {
-                isTrans = false;
-                throw;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn, isTrans);
-            }
-
-        }
-
         public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
         {
             dt = new BatchController().GetFolderLocation(SAPFolderID);
@@ -406,6 +359,51 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             {
                 db.CloseConnection(ref conn, isTrans);
             }
+        }
+
+        public string CreateBatchFile(string moduleCode, int headerID, string basePath, string filePath, string fileName)
+        {
+            if (string.IsNullOrEmpty(basePath))
+                basePath = new Utility().GetConfigValue("NetworkPath");
+
+            var isTrans = true;
+            var targetFile = "";
+            try
+            {
+                db.OpenConnection(ref conn, isTrans);
+
+                var list = GetBatchFileContents(moduleCode, headerID, true);
+                if (list.Count > 0)
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(basePath, credentials))
+                    {
+                        var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                        var targetPath = basePath + filePath;
+                        targetFile = $"{targetPath}\\{fileName}.txt";
+
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
+
+                        #region Create Batch File
+                        Directory.CreateDirectory(targetPath);
+                        using (TextWriter tw = new StreamWriter(targetFile))
+                            foreach (var row in list)
+                                tw.WriteLine(row.BatchFile);
+                        #endregion
+                    }
+                }
+                return targetFile;
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+
         }
 
         //Create Batch File New
