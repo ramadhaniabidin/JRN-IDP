@@ -82,7 +82,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         }
 
 
-        public void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
+        public static void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
         {
             var credential = new Utility().GetNetworkCredential();
             using (new ConnectToSharedFolder(FolderPath, credential))
