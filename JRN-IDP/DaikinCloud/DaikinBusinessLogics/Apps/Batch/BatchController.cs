@@ -563,6 +563,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
             finally
@@ -595,6 +596,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
             finally
@@ -629,6 +631,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
             finally
@@ -640,27 +643,20 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
         {
-            try
+            string connString = Utility.GetSqlConnection();
+            using(SqlConnection _conn = new SqlConnection(connString))
             {
-                string connString = Utility.GetSqlConnection();
-                using(SqlConnection _conn = new SqlConnection(connString))
+                _conn.Open();
+                using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
                 {
-                    _conn.Open();
-                    using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
-                        cmd.Parameters.AddWithValue("@Header_ID", headerID);
-                        cmd.Parameters.AddWithValue("@Form_No", formNo);
-                        cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
-                        cmd.ExecuteNonQuery();
-                    }
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
+                    cmd.Parameters.AddWithValue("@Header_ID", headerID);
+                    cmd.Parameters.AddWithValue("@Form_No", formNo);
+                    cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
+                    cmd.ExecuteNonQuery();
                 }
-            }
-            catch(Exception)
-            {
-                throw;
             }
         }
 
