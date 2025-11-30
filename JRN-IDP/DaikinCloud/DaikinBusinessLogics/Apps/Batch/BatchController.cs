@@ -273,6 +273,30 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
         }
 
+        public (string ModuleCode, string PathLocation) GetFolderLocation_V2(string ID)
+        {
+            string ModuleCode = "";
+            string PathLocation = "";
+            using(var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using(var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.Varchar, Direction = ParameterDirection.Input });
+                    using(var reader = cmd.ExecuteReader())
+                    {
+                        while(reader.Read())
+                        {
+                            ModuleCode = reader.GetString(reader.GetOrdinal(MODULE_CODE_KEY));
+                            PathLocation = reader.GetString(reader.GetOrdinal(PATH_LOCATION_KEY));
+                        }
+                    }
+                }
+            }
+            return (ModuleCode, PathLocation);
+        }
+
         public DataTable GetProcBranch(string SAPFolderID, int headerID)
         {
             DataTable dtx = new DataTable();
@@ -328,15 +352,24 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             return NonCommercialsCode.Contains(ModuleCode);
         }
 
-        public string UpdateNonCommercialsPath(string PathLocation, string SAPFolderID, int HeadeID)
+        public string UpdateNonCommercialsPath(string PathLocation, string SAPFolderID, int HeaderID)
         {
             string branchCode = "";
             string procDept = "";
-            DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
+            var ProcBranch = GetProcBranch_V2(SAPFolderID, HeaderID);
+            DataTable dtInfo = GetProcBranch(SAPFolderID, HeaderID);
             DataRow row = dtInfo.Rows[0];
-            branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
-            procDept = Utility.GetStringValue(row, "ProcDept");
+            branchCode = ProcBranch.BranchCode;
+            procDept = ProcBranch.ProcDept;
             return Path.Combine(PathLocation, branchCode, procDept);
+        }
+
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int headerID, string fileName)
+        {
+            var FolderLocation = GetFolderLocation_V2(SAPFolderID);
+            string moduleCode = FolderLocation.ModuleCode;
+            string PathLocation = FolderLocation.PathLocation;
+            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID);
         }
 
         public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
