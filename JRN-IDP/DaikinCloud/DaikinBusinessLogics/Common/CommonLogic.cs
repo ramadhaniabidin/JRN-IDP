@@ -472,11 +472,8 @@ namespace Daikin.BusinessLogics.Common
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "usp_Approval_CheckApprovalbyListName";
                 db.cmd.CommandType = CommandType.StoredProcedure;
-
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "ListName", ListName);
-                //db.AddInParameter(db.cmd, "TransactionId", TransactionID);
-
                 SqlDataReader reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
