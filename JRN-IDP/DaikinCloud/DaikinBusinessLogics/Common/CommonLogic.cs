@@ -770,23 +770,28 @@ namespace Daikin.BusinessLogics.Common
 
         public static string QueryUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID)
         {
-            string query = string.Empty;
+            var sb = new StringBuilder();
+            var tableName = Utility.GetStringValue(Attributes.Rows[0], "Table_Header");
+            sb.Append($"UPDATE {tableName} SET ");
             for(int i = 0; i < Attributes.Rows.Count; i++)
             {
                 var row = Attributes.Rows[i];
-                int SPColumnType = Utility.GetIntValue(row, "Sharepoint_Column_Type");
-                if(i == 0)
+                int spType = Utility.GetIntValue(row, "Sharepoint_Column_Type");
+                string colName = Utility.GetStringValue(row, "Database_Column_Name");
+                string colValue = Utility.getColumnValue(spType, row, Item);
+                if(i > 0)
                 {
-                    query = "UPDATE " + Utility.GetStringValue(row, "Table_Header") + " SET " + Utility.GetStringValue(row, "Database_Column_Name") + " = " + Utility.getColumnValue(SPColumnType, row, Item);
+                    sb.Append(", ");
                 }
-                else
-                {
-                    query += ", " + Utility.GetStringValue(row, "Database_Column_Name") + "=" + Utility.getColumnValue(SPColumnType, row, Item);
-                }
+                sb.Append($"{colName} = {colValue}");
             }
-            bool cond = (ListName.ToUpperInvariant().Contains("QCF") || ListName.ToUpperInvariant().Contains("PURCHASE REQUEST"));
-            query += cond ? $" OUTPUT INSERTED.ID WHERE Item_ID = {Item_ID} AND ID = {TransID} AND Is_New = 1" : $" OUTPUT INSERTED.ID WHERE Item_ID = {Item_ID} AND Is_New = 1";
-            return query;
+            bool requireTransID = ListName.ToUpperInvariant().Contains("QCF") || ListName.ToUpperInvariant().Contains("PURCHASE REQUEST");
+            sb.Append($" OUTPUT INSERTED.ID WHERE Item_ID = {Item_ID} AND Is_New = 1");
+            if(requireTransID)
+            {
+                sb.Append($" AND ID = {TransID}");
+            }
+            return sb.ToString();
         }
 
         public int SaveUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID, string FormStatus, string ApprovalStatus)
