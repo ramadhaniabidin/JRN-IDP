@@ -101,13 +101,13 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void CreateReportFile(string Folder_ID)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             dt = GetFolderLocation(Folder_ID);
-            foreach(DataRow row in dt.Rows)
+            foreach (DataRow row in dt.Rows)
             {
                 string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
                 List<ReportModel> reports = GetReportAttribute();
-                foreach(var report in reports)
+                foreach (var report in reports)
                 {
                     UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
                 }
@@ -140,7 +140,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
                     using (var _reader = cmd.ExecuteReader())
                     {
-                        dt = new DataTable();
+                        DataTable dt = new DataTable();
                         dt.Load(_reader);
                         return Utility.ConvertDataTableToList<ReportModel>(dt);
                     }
@@ -161,7 +161,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
                 throw;
@@ -230,7 +230,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
         {
-            dt = GetFolderLocation(SAPFolderID);
+            DataTable dt = GetFolderLocation(SAPFolderID);
             foreach (DataRow row in dt.Rows)
             {
                 string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
@@ -254,13 +254,13 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             try
             {
-                dt = new DataTable();
+                DataTable dt = new DataTable();
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "usp_mastersapfolderlocation_getbyid";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "id", ID);
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -273,20 +273,20 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
         }
 
-        public (string ModuleCode, string PathLocation) GetFolderLocation_V2(string ID)
+        public FolderLocationModel GetFolderLocation_V2(string ID)
         {
             string ModuleCode = "";
             string PathLocation = "";
-            using(var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
             {
                 _conn.Open();
-                using(var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", _conn))
+                using (var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.Varchar, Direction = ParameterDirection.Input });
-                    using(var reader = cmd.ExecuteReader())
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        while(reader.Read())
+                        while (reader.Read())
                         {
                             ModuleCode = reader.GetString(reader.GetOrdinal(MODULE_CODE_KEY));
                             PathLocation = reader.GetString(reader.GetOrdinal(PATH_LOCATION_KEY));
@@ -294,7 +294,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            return (ModuleCode, PathLocation);
+            return new FolderLocationModel { ModuleCode = ModuleCode, PathLocation = PathLocation };
         }
 
         public DataTable GetProcBranch(string SAPFolderID, int headerID)
@@ -308,7 +308,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "SAPFolderID", SAPFolderID);
                 db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dtx.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -321,19 +321,19 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
         }
 
-        public (string BranchCode, string ProcDept) GetProcBranch_V2(string SAPFolderID, int HeaderID)
+        public ProcBranchModel GetProcBranch_V2(string SAPFolderID, int HeaderID)
         {
             string BranchCode = "";
             string ProcDept = "";
-            using(var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
             {
                 _conn.Open();
-                using(var cmd = new SqlCommand("usp_Utility_GetProcBranch", _conn))
+                using (var cmd = new SqlCommand("usp_Utility_GetProcBranch", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SAPFolderID", Value = SAPFolderID, SqlDbType = SqlDbType.Varchar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SAPFolderID", Value = SAPFolderID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                     cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                    using(var reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
@@ -343,12 +343,12 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            return (BranchCode, ProcDept);
+            return new ProcBranchModel { BranchCode = BranchCode, ProcDept = ProcDept };
         }
 
         public bool IsModuleNonCommercials(string ModuleCode)
         {
-            List<string> NonCommercialsCode = new List<string>{"M014", "M015", "M016", "M017", "M018", "M020"};
+            List<string> NonCommercialsCode = new List<string> { "M014", "M015", "M016", "M017", "M018", "M020" };
             return NonCommercialsCode.Contains(ModuleCode);
         }
 
@@ -364,12 +364,12 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             return Path.Combine(PathLocation, branchCode, procDept);
         }
 
-        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int headerID, string fileName)
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string fileName)
         {
             var FolderLocation = GetFolderLocation_V2(SAPFolderID);
             string moduleCode = FolderLocation.ModuleCode;
             string PathLocation = FolderLocation.PathLocation;
-            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID);
+            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID) : PathLocation;
         }
 
         public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
@@ -378,7 +378,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
             try
             {
-                dt = new DataTable();
+                DataTable dt = new DataTable();
                 dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
@@ -488,7 +488,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                dt = new DataTable();
+                DataTable dt = new DataTable();
                 dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
@@ -554,7 +554,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                dt = new DataTable();
+                DataTable dt = new DataTable();
                 dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
@@ -613,9 +613,29 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         }
 
+        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID, bool IsOpen = true)
+        {
+            DataTable dt = new DataTable();
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand(SP_Name, _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = ModuleCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<BatchModel>(dt);
+                    }
+                }
+            }
+        }
+
         public List<BatchModel> GetBatchFileContents(string SP_Name, string moduleCode, int headerID, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
@@ -628,7 +648,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
@@ -648,7 +668,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public List<BatchModel> GetBatchFileContents(string moduleCode, int headerID, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
@@ -661,7 +681,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
                 db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
@@ -682,7 +702,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public List<BatchModel> GetBatchFileContentsWithNo(string moduleCode, int headerID, int no, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
@@ -696,7 +716,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 db.AddInParameter(db.cmd, "No", no);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
@@ -717,10 +737,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         public static void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
         {
             string connString = Utility.GetSqlConnection();
-            using(SqlConnection _conn = new SqlConnection(connString))
+            using (SqlConnection _conn = new SqlConnection(connString))
             {
                 _conn.Open();
-                using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
+                using (SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Clear();
