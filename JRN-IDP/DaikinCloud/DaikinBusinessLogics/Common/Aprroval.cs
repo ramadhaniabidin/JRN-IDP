@@ -71,19 +71,13 @@ namespace Daikin.BusinessLogics.Common
 
         public static IEnumerable<dynamic> GetTasks(string token, string NAC_Guid)
         {
-            string url = "https://au.nintex.io/workflows/v2/tasks?status=active" + "&workflowInstanceId=" + NAC_Guid;
-
+            string url = $"{ConfigurationManager.AppSettings["NAC_TASKS_URL"]}&workflowInstanceId={NAC_Guid}";
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
             var response = client.GetAsync(url);
-
             var responseJson = response.Result.Content.ReadAsStringAsync().Result;
-
             dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-
             var tasks = responseObject["tasks"];
-
             return tasks;
         }
 
