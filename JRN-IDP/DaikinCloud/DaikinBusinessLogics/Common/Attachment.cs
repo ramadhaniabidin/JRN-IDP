@@ -16,10 +16,8 @@ namespace Daikin.BusinessLogics.Common
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
-        //static SqlDataReader reader = null;
-        static DataTable dt = new DataTable();
 
-        public List<AttachmentBRModel> GetAttachmentSelfie(int Item_ID)
+        public static List<AttachmentBRModel> GetAttachmentSelfie(int Item_ID)
         {
             var dt = new DataTable();
             try
@@ -38,9 +36,10 @@ namespace Daikin.BusinessLogics.Common
                 var dataAttachment = Utility.ConvertDataTableToList<AttachmentBRModel>(dt);
                 return dataAttachment;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
