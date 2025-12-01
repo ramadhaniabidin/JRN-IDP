@@ -178,10 +178,10 @@ namespace Daikin.BusinessLogics.Common
             string connString = Utility.GetSqlConnection();
             try
             {
-                using(SqlConnection conn = new SqlConnection(connString))
+                using(SqlConnection _conn = new SqlConnection(connString))
                 {
-                    conn.Open();
-                    using(SqlCommand cmd = new SqlCommand("usp_NWC_GetDataByHeaderID", conn))
+                    _conn.Open();
+                    using(SqlCommand cmd = new SqlCommand("usp_NWC_GetDataByHeaderID", _conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Clear();
