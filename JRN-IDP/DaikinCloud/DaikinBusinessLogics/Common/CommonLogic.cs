@@ -737,21 +737,22 @@ namespace Daikin.BusinessLogics.Common
 
         public static string QueryInsertHeader(SPListItem Item, DataTable Attributes)
         {
-            string query = "";
+            var sb = new StringBuilder();
+            var tableName = Utility.GetStringValue(Attributes.Rows[0], "Table_Header");
+            sb.Append("INSERT INTO ");
+            sb.Append(tableName);
+            sb.Append("(");
             for(int i = 0; i < Attributes.Rows.Count; i++)
             {
-                var row = Attributes.Rows[i];
-                if(i == 0)
+                var columnName = Utility.GetStringValue(Attributes.Rows[i], "Database_Column_Name");
+                if(i > 0)
                 {
-                    query = "INSERT INTO " + Utility.GetStringValue(row, "Table_Header") + "(" + Utility.GetStringValue(row, "Database_Column_Name");
+                    sb.Append(",");
                 }
-                else
-                {
-                    query += "," + Utility.GetStringValue(row, "Database_Column_Name");
-                }
+                sb.Append(columnName);
             }
-            query += ", Approval_Status, PIC_Team)";
-            return query;
+            sb.Append(", Approval_Status, PIC_Team)");
+            return sb.ToString();
         }
 
         public static string QueryInsertValues(SPListItem Item, DataTable Attributes, string FormStatus)
