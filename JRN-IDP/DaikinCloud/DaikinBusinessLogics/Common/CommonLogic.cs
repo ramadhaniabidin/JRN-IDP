@@ -562,7 +562,6 @@ namespace Daikin.BusinessLogics.Common
                 db.AddInParameter(db.cmd, "Transaction_ID", Transaction_ID);
 
                 SqlDataReader reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
