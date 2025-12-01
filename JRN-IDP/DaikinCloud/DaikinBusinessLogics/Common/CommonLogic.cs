@@ -20,7 +20,7 @@ namespace Daikin.BusinessLogics.Common
 {
     public class CommonLogic
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
 
         #region Daikin Used
@@ -43,10 +43,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -72,10 +72,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
             }
 
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -97,10 +97,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -122,10 +122,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -163,10 +163,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseDataReader(reader);
                 return property_value;
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
 
         }
@@ -192,10 +192,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return dt.Rows.Count > 0 ? true : false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -209,10 +209,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn, true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -234,10 +234,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return id;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -261,10 +261,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -310,10 +310,10 @@ namespace Daikin.BusinessLogics.Common
 
             }
 
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -335,10 +335,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -355,10 +355,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -382,10 +382,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -410,10 +410,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
                 return Utility.ConvertDataTableToList<OptionModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -436,10 +436,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -458,10 +458,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
         
@@ -484,10 +484,10 @@ namespace Daikin.BusinessLogics.Common
 
                 return Module_Code;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -519,9 +519,9 @@ namespace Daikin.BusinessLogics.Common
                 var approvalCheck = Utility.ConvertDataTableToList<CheckApproval>(dt);
                 return approvalCheck;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -564,9 +564,9 @@ namespace Daikin.BusinessLogics.Common
                 var approvalData = Utility.ConvertDataTableToList<GetApprovalData>(dt);
                 return approvalData;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -601,9 +601,9 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -632,10 +632,10 @@ namespace Daikin.BusinessLogics.Common
 
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -681,10 +681,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                Console.WriteLine($"Error saving log: {ex.Message}");
+                throw;
             }
         }
 
