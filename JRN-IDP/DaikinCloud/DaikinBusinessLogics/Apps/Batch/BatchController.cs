@@ -364,12 +364,36 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             return Path.Combine(PathLocation, branchCode, procDept);
         }
 
-        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string fileName)
+        public void WriteBatchFile(string SP_Name, string ModuleCode, int HeaderID, string FileName, string PathLocation)
+        {
+            var list = GetBatchFileContents_V2(SP_Name, ModuleCode, HeaderID);
+            if (list.Count > 0)
+            {
+                var credential = new Utility().GetNetworkCredential();
+                using (new ConnectToSharedFolder(PathLocation, credential))
+                {
+                    string formNo = list[0].BatchFile.Split('\t', ';')[0];
+                    string targetFile = Path.Combine(PathLocation, FileName + ".txt");
+                    SaveBatchFileHistory_V2(ModuleCode, HeaderID, formNo, targetFile);
+                    Directory.CreateDirectory(PathLocation);
+                    using (TextWriter tw = new StreamWriter(targetFile))
+                    {
+                        foreach (var row in list)
+                        {
+                            tw.WriteLine(row.BatchFile);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string FileName)
         {
             var FolderLocation = GetFolderLocation_V2(SAPFolderID);
             string moduleCode = FolderLocation.ModuleCode;
             string PathLocation = FolderLocation.PathLocation;
             PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID) : PathLocation;
+            WriteBatchFile(SP_Name, moduleCode, HeaderID, FileName, PathLocation);
         }
 
         public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
@@ -613,7 +637,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         }
 
-        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID, bool IsOpen = true)
+        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID)
         {
             DataTable dt = new DataTable();
             using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
