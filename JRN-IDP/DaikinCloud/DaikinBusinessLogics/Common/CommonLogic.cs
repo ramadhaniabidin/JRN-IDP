@@ -21,6 +21,8 @@ namespace Daikin.BusinessLogics.Common
     public class CommonLogic
     {
         private readonly DatabaseManager db = new DatabaseManager();
+        private static readonly string HEADER_ID_KEY = "Header_ID";
+        private static readonly string NOT_EXISTS_KEY = "NOT EXISTS";
         SqlConnection conn = new SqlConnection();
 
         #region Daikin Used
@@ -827,8 +829,8 @@ namespace Daikin.BusinessLogics.Common
             XElement root = XElement.Parse(XML_string);
             foreach(var item in root.Descendants("Item"))
             {
-                if (XMLManager.GetValue(item, "ID") == "NOT EXISTS") XMLManager.AddAttribute(item, "ID", "");
-                if (XMLManager.GetValue(item, "Header_ID") == "NOT EXISTS") XMLManager.AddAttribute(item, "Header_ID", Header_ID.ToString());
+                if (XMLManager.GetValue(item, "ID") == NOT_EXISTS_KEY) XMLManager.AddAttribute(item, "ID", "");
+                if (XMLManager.GetValue(item, HEADER_ID_KEY) == NOT_EXISTS_KEY) XMLManager.AddAttribute(item, HEADER_ID_KEY, Header_ID.ToString());
                 if (string.IsNullOrEmpty(XMLManager.GetValue(item, "ID"))) item.Element("ID").Value = Guid.NewGuid().ToString();
             }
             return new DefaultAttrModel
@@ -874,9 +876,9 @@ namespace Daikin.BusinessLogics.Common
             {
                 dtFilter.Rows.Add("", "ID", "ID");
             }
-            if (!dtAttrDetails.AsEnumerable().Any(r => r["Database_Column"].ToString() == "Header_ID"))
+            if (!dtAttrDetails.AsEnumerable().Any(r => r["Database_Column"].ToString() == HEADER_ID_KEY))
             {
-                dtFilter.Rows.Add("", "Header_ID", "Header_ID");
+                dtFilter.Rows.Add("", HEADER_ID_KEY, HEADER_ID_KEY);
             }
             foreach (DataRow row in dtAttrDetails.Rows)
             {
@@ -890,13 +892,13 @@ namespace Daikin.BusinessLogics.Common
             XElement root = XElement.Parse(xmlString);
             foreach (var item in root.Descendants("Item"))
             {
-                if (XMLManager.GetValue(item, "ID") == "NOT EXISTS")
+                if (XMLManager.GetValue(item, "ID") == NOT_EXISTS_KEY)
                 {
                     XMLManager.AddAttribute(item, "ID", "");
                 }
-                if (XMLManager.GetValue(item, "Header_ID") == "NOT EXISTS")
+                if (XMLManager.GetValue(item, HEADER_ID_KEY) == NOT_EXISTS_KEY)
                 {
-                    XMLManager.AddAttribute(item, "Header_ID", headerId.ToString());
+                    XMLManager.AddAttribute(item, HEADER_ID_KEY, headerId.ToString());
                 }
                 if (string.IsNullOrEmpty(XMLManager.GetValue(item, "ID")))
                 {
