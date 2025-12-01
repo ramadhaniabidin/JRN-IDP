@@ -491,6 +491,7 @@ namespace Daikin.BusinessLogics.Common
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
             finally
@@ -536,6 +537,7 @@ namespace Daikin.BusinessLogics.Common
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
             finally
@@ -573,6 +575,7 @@ namespace Daikin.BusinessLogics.Common
             }
             catch (Exception)
             {
+                db.CloseConnection(ref conn);
                 throw;
             }
         }
@@ -670,31 +673,24 @@ namespace Daikin.BusinessLogics.Common
 
         public void SendEmail(string Receiver, string Base64pdf, string PO_Number, string Requester_Name)
         {
-            try
+            byte[] pdfBytes = Convert.FromBase64String(Base64pdf);
+            MemoryStream pdfStream = new MemoryStream(pdfBytes);
+            System.Net.Mail.Attachment attachment = new System.Net.Mail.Attachment(pdfStream, $"{PO_Number}.pdf", "application/pdf");
+            MailMessage message = new MailMessage
             {
-                byte[] pdfBytes = Convert.FromBase64String(Base64pdf);
-                MemoryStream pdfStream = new MemoryStream(pdfBytes);
-                System.Net.Mail.Attachment attachment = new System.Net.Mail.Attachment(pdfStream, $"{PO_Number}.pdf", "application/pdf");
-                MailMessage message = new MailMessage
-                {
-                    From = new MailAddress("no-reply@daikin.co.id"),
-                    Subject = $"{PO_Number} - Ready For MIGO",
-                    Body = CreateEmailBody(PO_Number, Requester_Name),
-                    IsBodyHtml = true
-                };
-                message.To.Add(new MailAddress(Receiver));
-                message.Attachments.Add(attachment);
-                using (var smtpClient = new SmtpClient("mail3.daikin.co.id"))
-                {
-                    smtpClient.Port = 25;
-                    smtpClient.EnableSsl = true;
-                    smtpClient.Send(message);
-                    pdfStream.Dispose();
-                }
-            }
-            catch (Exception)
+                From = new MailAddress("no-reply@daikin.co.id"),
+                Subject = $"{PO_Number} - Ready For MIGO",
+                Body = CreateEmailBody(PO_Number, Requester_Name),
+                IsBodyHtml = true
+            };
+            message.To.Add(new MailAddress(Receiver));
+            message.Attachments.Add(attachment);
+            using (var smtpClient = new SmtpClient("mail3.daikin.co.id"))
             {
-                throw;
+                smtpClient.Port = 25;
+                smtpClient.EnableSsl = true;
+                smtpClient.Send(message);
+                pdfStream.Dispose();
             }
         }
 
@@ -985,23 +981,16 @@ namespace Daikin.BusinessLogics.Common
 
         public List<string> GenerateQueryDetails(DataTable AttributeDetails, SPListItem ListItem, ListItemModel ItemProperties, string ListName, int ItemID, int HeaderID, bool DeleteExisting, string SPListDetailColumn)
         {
-            try
+            DataTable distinctValues = GetDistinctMappings(AttributeDetails);
+            DefaultAttrModel attr = BuildDefaultAttrModel_V2(ListItem, distinctValues, SPListDetailColumn);
+            DataTable dtAttrDetailsFilter = BuildFilteredMappingTable(AttributeDetails);
+            attr.XMLString = EnsureXmlHasIds(attr.XMLString, HeaderID);
+            List<string> listQueryDetails = XMLManager.ConvertDataTableToSQL(dtAttrDetailsFilter, attr, ItemProperties.vendorName);
+            if (DeleteExisting)
             {
-                DataTable distinctValues = GetDistinctMappings(AttributeDetails);
-                DefaultAttrModel attr = BuildDefaultAttrModel_V2(ListItem, distinctValues, SPListDetailColumn);
-                DataTable dtAttrDetailsFilter = BuildFilteredMappingTable(AttributeDetails);
-                attr.XMLString = EnsureXmlHasIds(attr.XMLString, HeaderID);
-                List<string> listQueryDetails = XMLManager.ConvertDataTableToSQL(dtAttrDetailsFilter, attr, ItemProperties.vendorName);
-                if(DeleteExisting)
-                {
-                    DeleteExistingDetailRecords(attr.TableName, HeaderID);
-                }
-                return listQueryDetails;
+                DeleteExistingDetailRecords(attr.TableName, HeaderID);
             }
-            catch(Exception)
-            {
-                throw;
-            }
+            return listQueryDetails;
         }
 
         public void FirstSubmitAction(string ListName, int ItemID, int HeaderID, SPListItem ListItem, string CurrentLogin, string CurrentLoginName)
