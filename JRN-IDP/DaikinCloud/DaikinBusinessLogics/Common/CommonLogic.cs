@@ -612,7 +612,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public List<string> GetXMLAttributesValue(string listName, int itemID, string attributeName)
+        public static List<string> GetXMLAttributesValue(string listName, int itemID, string attributeName)
         {
             List<string> listValue = new List<string>();
             SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
@@ -661,7 +661,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public string CreateEmailBody(string PO_Number, string Requester_Name)
+        public static string CreateEmailBody(string PO_Number, string Requester_Name)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat($"Dear {Requester_Name}, <br><br>" 
@@ -694,7 +694,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public bool ShowButtonExcel(string CurrLogin)
+        public static bool ShowButtonExcel(string CurrLogin)
         {
             bool show = false;
             using (var con = new SqlConnection(Utility.GetSQLConnDev()))
@@ -719,7 +719,7 @@ namespace Daikin.BusinessLogics.Common
             return show;
         }
 
-        public ListItemModel GetListItemProperties(string ListName, int ItemID)
+        public static ListItemModel GetListItemProperties(string ListName, int ItemID)
         {
             SPWeb web = SPContext.Current.Web;
             SPList list = web.Lists[ListName];
@@ -741,7 +741,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public ListItemModel GetTaskResponder(string ListName, int ItemID)
+        public static ListItemModel GetTaskResponder(string ListName, int ItemID)
         {
             string responderEmailKey = "";
             string responderNameKey = "";
@@ -761,7 +761,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public ListItemModel GetItemSubmitter(string ListName, int ItemID)
+        public static ListItemModel GetItemSubmitter(string ListName, int ItemID)
         {
             SPWeb web = SPContext.Current.Web;
             SPListItem listItem = web.Lists[ListName].GetItemById(ItemID);
@@ -773,7 +773,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public string QueryInsertHeader(SPListItem Item, DataTable Attributes)
+        public static string QueryInsertHeader(SPListItem Item, DataTable Attributes)
         {
             string query = "";
             for(int i = 0; i < Attributes.Rows.Count; i++)
@@ -792,7 +792,7 @@ namespace Daikin.BusinessLogics.Common
             return query;
         }
 
-        public string QueryInsertValues(SPListItem Item, DataTable Attributes, string FormStatus)
+        public static string QueryInsertValues(SPListItem Item, DataTable Attributes, string FormStatus)
         {
             List<string> values = new List<string>();
             foreach(DataRow row in Attributes.Rows)
@@ -805,7 +805,7 @@ namespace Daikin.BusinessLogics.Common
             return "(" + string.Join(",", values) + ")";
         }
 
-        public string QueryUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID)
+        public static string QueryUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID)
         {
             string query = string.Empty;
             for(int i = 0; i < Attributes.Rows.Count; i++)
@@ -854,7 +854,7 @@ namespace Daikin.BusinessLogics.Common
             return query;
         }
 
-        public DefaultAttrModel GenerateAttribute(int Header_ID, string Code, int Item_ID, string Table_Name, string SPColumnName, string XML_string)
+        public static DefaultAttrModel GenerateAttribute(int Header_ID, string Code, int Item_ID, string Table_Name, string SPColumnName, string XML_string)
         {
             XElement root = XElement.Parse(XML_string);
             foreach(var item in root.Descendants("Item"))
@@ -869,13 +869,13 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public DataTable GetDistinctMappings(DataTable dtAttrDetails)
+        public static DataTable GetDistinctMappings(DataTable dtAttrDetails)
         {
             DataView view = new DataView(dtAttrDetails);
             return view.ToTable(true, "Sharepoint_Column", "Database_Column", "Table_Detail");
         }
 
-        public DefaultAttrModel BuildDefaultAttrModel(SPListItem listItem, DataTable distinctValues)
+        public static DefaultAttrModel BuildDefaultAttrModel(SPListItem listItem, DataTable distinctValues)
         {
             return new DefaultAttrModel
             {
@@ -887,7 +887,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public DefaultAttrModel BuildDefaultAttrModel_V2(SPListItem listItem, DataTable distinctValues, string detailsColumn)
+        public static DefaultAttrModel BuildDefaultAttrModel_V2(SPListItem listItem, DataTable distinctValues, string detailsColumn)
         {
             return new DefaultAttrModel
             {
@@ -899,7 +899,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public DataTable BuildFilteredMappingTable(DataTable dtAttrDetails)
+        public static DataTable BuildFilteredMappingTable(DataTable dtAttrDetails)
         {
             DataTable dtFilter = dtAttrDetails.Clone();
             if (!dtAttrDetails.AsEnumerable().Any(r => r["Database_Column"].ToString() == "ID"))
@@ -917,7 +917,7 @@ namespace Daikin.BusinessLogics.Common
             return dtFilter;
         }
 
-        public string EnsureXmlHasIds(string xmlString, object headerId)
+        public static string EnsureXmlHasIds(string xmlString, object headerId)
         {
             XElement root = XElement.Parse(xmlString);
             foreach (var item in root.Descendants("Item"))
