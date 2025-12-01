@@ -346,7 +346,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             return new ProcBranchModel { BranchCode = BranchCode, ProcDept = ProcDept };
         }
 
-        public bool IsModuleNonCommercials(string ModuleCode)
+        public static bool IsModuleNonCommercials(string ModuleCode)
         {
             List<string> NonCommercialsCode = new List<string> { "M014", "M015", "M016", "M017", "M018", "M020" };
             return NonCommercialsCode.Contains(ModuleCode);
