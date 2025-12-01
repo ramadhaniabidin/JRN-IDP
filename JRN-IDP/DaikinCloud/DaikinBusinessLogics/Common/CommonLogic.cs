@@ -190,7 +190,7 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                return dt.Rows.Count > 0 ? true : false;
+                return dt.Rows.Count > 0;
             }
             catch (Exception)
             {
