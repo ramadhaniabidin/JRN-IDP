@@ -1,6 +1,7 @@
 ﻿using Daikin.BusinessLogics.Common.Model;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Daikin.BusinessLogics.Common
         static SqlConnection conn = new SqlConnection();
         public static string GetToken()
         {
-            string url = "https://us.nintex.io/authentication/v1/token";
+            string url = ConfigurationManager.AppSettings["NAC_TOKEN_URL"];
 
             HttpClient client = new HttpClient();
             var requestBody = new
