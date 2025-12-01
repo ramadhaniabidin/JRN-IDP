@@ -26,6 +26,7 @@ namespace Daikin.BusinessLogics.Common
         private readonly string GetAttachmentWorkflowURL = "/workflows/v1/designs/91ad22e2-f7bc-4853-864f-0720a2b7eb19/instances";
         private readonly string PAL_WORKFLOW_DEV = "34450d42-417e-4e68-987b-6649f25ed62d";
         private readonly string CONTENT_TYPE = "application/json";
+        private readonly string HEADERS_AUTHORIZATION = "authorization";
 
         public string GetNACWorfklowID(string Module_Code)
         {
@@ -130,7 +131,7 @@ namespace Daikin.BusinessLogics.Common
                 ServicePointManager.Expect100Continue = true;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
                 var response = client.GetAsync(url).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
                 dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
@@ -248,7 +249,7 @@ namespace Daikin.BusinessLogics.Common
                 string token = GetToken_DaikinNAC();
                 string url = "https://au.nintex.io/workflows/v2/tasks?status=active" + "&workflowInstanceId=" + NAC_Guid;
                 HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
                 var response = client.GetAsync(url);
                 var responseJson = response.Result.Content.ReadAsStringAsync().Result;
                 dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
@@ -281,7 +282,7 @@ namespace Daikin.BusinessLogics.Common
                 string url = $"https://au.nintex.io/workflows/v2/tasks?from=2025-02-01&workflowInstanceId={Instance_ID}";
                 using (HttpClient client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {GetToken_DaikinNAC()}");
+                    client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {GetToken_DaikinNAC()}");
                     HttpResponseMessage response = await client.GetAsync(url);
                     if (!response.IsSuccessStatusCode)
                     {
@@ -390,7 +391,7 @@ namespace Daikin.BusinessLogics.Common
             {
                 //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/problem+json"));
-                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
 
                 var response = client.GetAsync(url).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
@@ -927,7 +928,7 @@ namespace Daikin.BusinessLogics.Common
             string token = GetToken_DaikinNAC();
             string url = "https://au.nintex.io/workflows/v2/tasks?status=active" + "&workflowInstanceId=" + NAC_Guid;
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+            client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
             var response = client.GetAsync(url);
             var responseJson = response.Result.Content.ReadAsStringAsync().Result;
             dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
