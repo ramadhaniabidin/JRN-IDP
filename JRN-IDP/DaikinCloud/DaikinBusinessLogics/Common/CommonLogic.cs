@@ -906,10 +906,19 @@ namespace Daikin.BusinessLogics.Common
             return root.ToString();
         }
 
-        public void DeleteExistingDetailRecords(string tableName, int headerId)
+        public static void DeleteExistingDetailRecords(string tableName, int headerId)
         {
-            string deleteQuery = $"DELETE {tableName} WHERE Header_ID = {headerId}";
-            ExecQuery(deleteQuery);
+            string deleteQuery = $"DELETE {tableName} WHERE Header_ID = @ID";
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand(deleteQuery, _conn))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "ID", Value = headerId, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.ExecuteNonQuery();
+                }
+            }                
         }
 
         public void ExecuteDetailQueries(List<string> queries)
@@ -947,7 +956,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public List<string> GenerateQueryDetails(DataTable AttributeDetails, SPListItem ListItem, ListItemModel ItemProperties, string ListName, int ItemID, int HeaderID, bool DeleteExisting, string SPListDetailColumn)
+        public static List<string> GenerateQueryDetails(DataTable AttributeDetails, SPListItem ListItem, ListItemModel ItemProperties, string ListName, int ItemID, int HeaderID, bool DeleteExisting, string SPListDetailColumn)
         {
             DataTable distinctValues = GetDistinctMappings(AttributeDetails);
             DefaultAttrModel attr = BuildDefaultAttrModel_V2(ListItem, distinctValues, SPListDetailColumn);
