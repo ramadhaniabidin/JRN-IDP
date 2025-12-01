@@ -241,33 +241,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void InsertAutoCodeBatch(string TableName, string DetailName, int TransID, string LastName, int ItemID, string ColumnName, string Format, int LenghtOfString)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_AutoCodeBatch_Save";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "TableName", TableName);
-                db.AddInParameter(db.cmd, "DetailName", DetailName);
-                db.AddInParameter(db.cmd, "TransID", TransID);
-                db.AddInParameter(db.cmd, "LastName", LastName);
-                db.AddInParameter(db.cmd, "ItemID", ItemID);
-                db.AddInParameter(db.cmd, "ColumnName", ColumnName);
-                db.AddInParameter(db.cmd, "Format", Format);
-                db.AddInParameter(db.cmd, "LenghtOfString", LenghtOfString);
-
-                db.cmd.ExecuteNonQuery();
-                db.CloseConnection(ref conn);
-            }
-            catch(Exception)
-            {
-                db.CloseConnection(ref conn);
-                throw;
-            }
-        }
-
         public void InsertApprovalLog(string listName, int listItemID, int action, string CurrentLogin, string CurrentLoginName, string currentLayer, string comments)
         {
             try
