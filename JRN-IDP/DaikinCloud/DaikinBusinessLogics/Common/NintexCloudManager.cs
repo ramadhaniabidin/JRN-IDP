@@ -56,36 +56,22 @@ namespace Daikin.BusinessLogics.Common
         {
             try
             {
-                //string url = System.Configuration.ConfigurationManager.AppSettings["NAC:token_url"].ToString();
                 string url = "https://us.nintex.io/authentication/v1/token";
                 ServicePointManager.Expect100Continue = true;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 HttpClient client = new HttpClient();
-
-
                 var requestBody = new
                 {
                     client_id = "dcc05cd6-10d7-4af1-8b68-0f0ac7dd77f5",
                     client_secret = "sLQKQtRSsNtRUsLROI2HtTsQLtTsO2GsPOJK2HsRRtWsQtPsMLItTRsNRtVsFRtTsNtUsFMOtUsOFtRsQRJFtTUsPtUsItRsOtSVsO2N",
                     grant_type = "client_credentials"
                 };
-
-
-                //var requestBody = new
-                //{
-                //    client_id = System.Configuration.ConfigurationManager.AppSettings["NAC:client_id"].ToString(),
-                //    client_secret = System.Configuration.ConfigurationManager.AppSettings["NAC:client_secret"].ToString(),
-                //    grant_type = System.Configuration.ConfigurationManager.AppSettings["NAC:grant_type"].ToString()
-                //};
-
                 var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
                 var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
                 var response = client.PostAsync(url, HttpContent).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
                 var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
                 string accessToken = responseObject["access_token"];
-
-
                 return accessToken;
             }
             catch (Exception ex)
@@ -390,15 +376,10 @@ namespace Daikin.BusinessLogics.Common
             string url = $"https://au.nintex.io/workflows/v2/designs/{workflow_id}/instances?status=Failed&order=ASC";
             using (HttpClient client = new HttpClient())
             {
-                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/problem+json"));
                 client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
-
                 var response = client.GetAsync(url).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
                 dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-                //var test = responseObject[0];
-                //Console.WriteLine(test);
                 return responseObject;
             }
         }
@@ -678,18 +659,6 @@ namespace Daikin.BusinessLogics.Common
             #endregion
         }
 
-        //public async Task ClaimReimbursement_StartNACWorkflow(int ItemID, string ModuleCode)
-        //{
-        //    try
-        //    {
-
-        //    }
-        //    catch(Exception ex)
-        //    {
-
-        //    }
-        //}
-
         public async Task NonComm_StartNACWorkflow(int Header_ID, int Item_ID, string Module_Code, string List_Name)
         {
             try
@@ -861,7 +830,6 @@ namespace Daikin.BusinessLogics.Common
                         string errorContent = response.Content.ReadAsStringAsync().Result;
                         StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", errorContent, -1);
                     }
-                    //return result; //instance guid
                 }
             }
             catch (HttpRequestException httpEx)
@@ -895,7 +863,6 @@ namespace Daikin.BusinessLogics.Common
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Trigger workflow success");
-                //return result; //instance guid
             }
         }
 
