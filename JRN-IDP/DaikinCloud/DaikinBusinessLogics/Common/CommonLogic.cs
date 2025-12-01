@@ -50,7 +50,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void POSubconInsertApprovalLog(string listName, int listItemID, int action, string CurrentLogin, string CurrentLoginName, string currentLayer, string comments, string approverRole)
+        public void POSubconInsertApprovalLog(int listItemID, int action, string CurrentLogin, string CurrentLoginName, string currentLayer, string comments, string approverRole)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
 
-                db.AddInParameter(db.cmd, "ListName", listName);
+                db.AddInParameter(db.cmd, "ListName", "PO Subcon");
                 db.AddInParameter(db.cmd, "ListItemID", listItemID);
                 db.AddInParameter(db.cmd, "ApprovalCode", action);
                 db.AddInParameter(db.cmd, "CurrLogin", CurrentLogin);
