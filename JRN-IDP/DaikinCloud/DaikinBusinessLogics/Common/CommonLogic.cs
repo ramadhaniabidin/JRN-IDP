@@ -840,7 +840,7 @@ namespace Daikin.BusinessLogics.Common
             return ExecQueryWithReturnID(query);
         }
 
-        public string QuerySaveUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID, string FormStatus, string ApprovalStatus)
+        public static string QuerySaveUpdateHeader(SPListItem Item, DataTable Attributes, string TransID, string ListName, int Item_ID, string FormStatus, string ApprovalStatus)
         {
             string query = "";
             if ((FormStatus == "Start" || FormStatus == "Draft") && string.IsNullOrEmpty(ApprovalStatus))
