@@ -356,7 +356,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             string branchCode = "";
             string procDept = "";
             var ProcBranch = GetProcBranch_V2(SAPFolderID, HeaderID);
-            DataTable dtInfo = GetProcBranch(SAPFolderID, HeaderID);
             branchCode = ProcBranch.BranchCode;
             procDept = ProcBranch.ProcDept;
             return Path.Combine(PathLocation, branchCode, procDept);
