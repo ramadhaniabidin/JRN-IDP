@@ -546,40 +546,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void ApprovalLog(string ModuleCode, int HeaderID, string FormNo, string PICName, string PICUsername, DateTime ActionDate, string PICRole, string ApproverGroup)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-
-                db.cmd.CommandText = "usp_Approval_Log";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "ModuleCode", ModuleCode);
-                db.AddInParameter(db.cmd, "TransactionHeaderID", HeaderID);
-                db.AddInParameter(db.cmd, "FormNo", FormNo);
-                db.AddInParameter(db.cmd, "ApprovalListItemID", 0);
-                db.AddInParameter(db.cmd, "PICName", PICName);
-                db.AddInParameter(db.cmd, "PICUsername", PICUsername);
-                db.AddInParameter(db.cmd, "ActionID", 0);
-                db.AddInParameter(db.cmd, "ActionName", "Submit Revise");
-                db.AddInParameter(db.cmd, "ActionDate", ActionDate);
-                db.AddInParameter(db.cmd, "Comments", "");
-                db.AddInParameter(db.cmd, "CurrentLayer", 0);
-                db.AddInParameter(db.cmd, "PICRole", PICRole);
-                db.AddInParameter(db.cmd, "ApproverGroup", ApproverGroup);
-
-                db.cmd.ExecuteNonQuery();
-                db.CloseConnection(ref conn);
-            }
-            catch (Exception)
-            {
-                db.CloseConnection(ref conn);
-                throw;
-            }
-        }
-
         public List<GeneralHistoryLogModel> GetHistoryLog(string Form_No, string ModuleCode, int Transaction_ID)
         {
 
