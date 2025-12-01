@@ -26,6 +26,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         private readonly string MODULE_CODE_KEY = "Module_Code";
         private readonly string HEADER_ID_KEY = "Header_ID";
         private readonly string BRANCH_CODE_KEY = "BranchCode";
+        private readonly string PROCDEPT_KEY = "ProcDept";
 
         public string GetReportBase64(string Report_ID, string Extension)
         {
@@ -337,7 +338,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         while (reader.Read())
                         {
                             BranchCode = reader.GetString(reader.GetOrdinal(BRANCH_CODE_KEY));
-                            ProcDept = reader.GetString(reader.GetOrdinal("ProcDept"));
+                            ProcDept = reader.GetString(reader.GetOrdinal(PROCDEPT_KEY));
                         }
                     }
                 }
@@ -413,7 +414,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
                             string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
-                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
                             PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
@@ -522,7 +523,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
                             string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
-                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
                             PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
@@ -587,7 +588,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                         if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
                             string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
-                            string procDept = Utility.GetStringValue(row, "ProcDept");
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
                             PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
