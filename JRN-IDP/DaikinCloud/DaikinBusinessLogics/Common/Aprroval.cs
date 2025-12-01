@@ -16,7 +16,6 @@ namespace Daikin.BusinessLogics.Common
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
-        static SqlDataReader reader = null;
         static DataTable dt = new DataTable();
         public static string GetToken()
         {
@@ -53,7 +52,7 @@ namespace Daikin.BusinessLogics.Common
                 db.AddInParameter(db.cmd, "ListName", ListName);
                 db.AddInParameter(db.cmd, "ItemID", ItemID);
                 db.AddInParameter(db.cmd, "CurrenLoginName", currentLoginName);
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
@@ -127,7 +126,7 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "ListName", ListName);
                 db.AddInParameter(db.cmd, "HeaderID", ID);
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
