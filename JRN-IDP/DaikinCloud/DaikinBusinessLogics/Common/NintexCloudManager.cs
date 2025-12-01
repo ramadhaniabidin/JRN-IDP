@@ -27,6 +27,7 @@ namespace Daikin.BusinessLogics.Common
         private readonly string PAL_WORKFLOW_DEV = "34450d42-417e-4e68-987b-6649f25ed62d";
         private readonly string CONTENT_TYPE = "application/json";
         private readonly string HEADERS_AUTHORIZATION = "authorization";
+        private readonly string TOKEN_TYPE = "Bearer";
 
         public string GetNACWorfklowID(string Module_Code)
         {
@@ -185,7 +186,7 @@ namespace Daikin.BusinessLogics.Common
                 var stringContent = GenerateApprovalPayload(approval_value);
                 string url = $"https://au.nintex.io/workflows/v2/tasks/{task_id}/assignments/{assignment_id}";
                 HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
                 var request = new HttpRequestMessage(new HttpMethod("PATCH"), url);
                 request.Content = stringContent;
                 var response = client.SendAsync(request).Result;
@@ -471,7 +472,7 @@ namespace Daikin.BusinessLogics.Common
                 {
                     BaseAddress = new Uri(nwc.url)
                 };
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint)
@@ -551,7 +552,7 @@ namespace Daikin.BusinessLogics.Common
                 };
                 string endpoint = "/workflows/v1/designs/" + WorkflowId + "/instances";      
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -696,7 +697,7 @@ namespace Daikin.BusinessLogics.Common
                 string endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(Module_Code)}/instances";
                 var param = NonCommercial_GenerateNACPayload(Item_ID, Header_ID, Module_Code, List_Name);
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(param.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -746,7 +747,7 @@ namespace Daikin.BusinessLogics.Common
                     url = NACBaseURL
                 };
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, $"/workflows/v1/designs/{PAL_WORKFLOW_DEV}/instances");
@@ -799,7 +800,7 @@ namespace Daikin.BusinessLogics.Common
                 Console.WriteLine(token);
                 string requestBody = new JavaScriptSerializer().Serialize(nwc.param);
                 HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
                 client.BaseAddress = new Uri(nwc.url);
 
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
@@ -844,7 +845,7 @@ namespace Daikin.BusinessLogics.Common
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.endpoint);
                 request.Content = new StringContent(sBody, Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
@@ -884,7 +885,7 @@ namespace Daikin.BusinessLogics.Common
             string token = GetToken_DaikinNAC();
             string requestBody = serializer.Serialize(nwcModel.param);
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
             client.BaseAddress = new Uri(nwcModel.url);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, GetAttachmentWorkflowURL);
