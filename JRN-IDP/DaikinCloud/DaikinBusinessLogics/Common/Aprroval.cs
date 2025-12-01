@@ -59,9 +59,10 @@ namespace Daikin.BusinessLogics.Common
                 var list = Utility.ConvertDataTableToList<ListDataID>(dt);
                 return list;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
@@ -128,9 +129,10 @@ namespace Daikin.BusinessLogics.Common
                 var list = Utility.ConvertDataTableToList<ListDataID>(dt);
                 return list;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
@@ -141,62 +143,48 @@ namespace Daikin.BusinessLogics.Common
         {
             DataTable dt = new DataTable();
             string connString = Utility.GetSqlConnection();
-            try
+            using(SqlConnection connection = new SqlConnection(connString))
             {
-                using(SqlConnection connection = new SqlConnection(connString))
+                connection.Open();
+                using(SqlCommand command = new SqlCommand("usp_NWC_GetDataByItemID", connection))
                 {
-                    connection.Open();
-                    using(SqlCommand command = new SqlCommand("usp_NWC_GetDataByItemID", connection))
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@ListName", ListName);
+                    command.Parameters.AddWithValue("@ItemID", ItemID);
+                    using(SqlDataReader dataReader = command.ExecuteReader())
                     {
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@ListName", ListName);
-                        command.Parameters.AddWithValue("@ItemID", ItemID);
-                        using(SqlDataReader dataReader = command.ExecuteReader())
-                        {
-                            dt.Load(dataReader);
-                        }
+                        dt.Load(dataReader);
                     }
                 }
-                var list = Utility.ConvertDataTableToList<ListDataID>(dt);
-                return list;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            var list = Utility.ConvertDataTableToList<ListDataID>(dt);
+            return list;
         }
 
         public static List<ListDataID> GetListDataIDByHeaderID_New(string ListName, int ID)
         {
             DataTable dt = new DataTable();
             string connString = Utility.GetSqlConnection();
-            try
+            using(SqlConnection _conn = new SqlConnection(connString))
             {
-                using(SqlConnection _conn = new SqlConnection(connString))
+                _conn.Open();
+                using(SqlCommand cmd = new SqlCommand("usp_NWC_GetDataByHeaderID", _conn))
                 {
-                    _conn.Open();
-                    using(SqlCommand cmd = new SqlCommand("usp_NWC_GetDataByHeaderID", _conn))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+
+                    cmd.Parameters.AddWithValue("@ListName", ListName);
+                    cmd.Parameters.AddWithValue("@HeaderID", ID);
+
+                    using (SqlDataReader dataReader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-
-                        cmd.Parameters.AddWithValue("@ListName", ListName);
-                        cmd.Parameters.AddWithValue("@HeaderID", ID);
-
-                        using (SqlDataReader dataReader = cmd.ExecuteReader())
-                        {
-                            dt.Load(dataReader);
-                        }
+                        dt.Load(dataReader);
                     }
                 }
-                var list = Utility.ConvertDataTableToList<ListDataID>(dt);
-                return list;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            var list = Utility.ConvertDataTableToList<ListDataID>(dt);
+            return list;
         }
     }
 }
