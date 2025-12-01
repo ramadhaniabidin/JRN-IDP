@@ -13,7 +13,7 @@ using System.Web.Script.Serialization;
 
 namespace Daikin.BusinessLogics.Common
 {
-    public class Aprroval
+    public static class Aprroval
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
