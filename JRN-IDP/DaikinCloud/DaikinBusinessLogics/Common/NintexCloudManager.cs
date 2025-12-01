@@ -454,7 +454,7 @@ namespace Daikin.BusinessLogics.Common
                         se_listname = List_Name
                     }
                 },
-                url = "https://au.nintex.io"
+                url = NACBaseURL
             };
             return nwc;
         }
@@ -545,7 +545,7 @@ namespace Daikin.BusinessLogics.Common
                             se_modulecode = Module_Code
                         }
                     },
-                    url = "https://au.nintex.io"
+                    url = NACBaseURL
                 };
                 string endpoint = "/workflows/v1/designs/" + WorkflowId + "/instances";      
                 var client = new HttpClient();
@@ -741,7 +741,7 @@ namespace Daikin.BusinessLogics.Common
                             se_modulecode = Module_Code
                         }
                     },
-                    url = "https://au.nintex.io"
+                    url = NACBaseURL
                 };
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
@@ -790,7 +790,7 @@ namespace Daikin.BusinessLogics.Common
                 nwc.param.startData.se_modulecode = Module_Code;
                 nwc.param.startData.se_listname = List_Name;
 
-                nwc.url = "https://au.nintex.io";
+                nwc.url = NACBaseURL;
                 //string endpoint = "/workflows/v1/designs/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances";         // prod
                 string endpoint = "/workflows/v1/designs/d6f0b3f9-50d1-46b6-abdc-46b8252dd3b7/instances";         // dev
                 string token = GetToken_DaikinNAC();
