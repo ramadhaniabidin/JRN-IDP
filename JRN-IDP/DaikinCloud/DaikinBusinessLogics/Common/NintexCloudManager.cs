@@ -820,28 +820,23 @@ namespace Daikin.BusinessLogics.Common
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-                        StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, result, "OK", 1);
-                    }
-                    else
-                    {
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", errorContent, -1);
-                    }
+                    var result = await response.Content.ReadAsStringAsync();
+                    string SysMessage = response.IsSuccessStatusCode ? "OK" : result;
+                    string InstanceID = response.IsSuccessStatusCode ? result : "-";
+                    int TriggerStatus = response.IsSuccessStatusCode ? 1 : -1;
+                    StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, InstanceID, SysMessage, TriggerStatus);
                 }
             }
             catch (HttpRequestException httpEx)
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", httpEx.Message, -1);
+                StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", $"Request error: {httpEx.Message}", -1);
                 throw httpEx;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", ex.Message, -1);
+                StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", $"General error: {ex.Message}", -1);
                 throw ex;
             }
         }
