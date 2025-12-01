@@ -675,11 +675,8 @@ namespace Daikin.BusinessLogics.Common
                         {
                             show = reader.GetBoolean(0);
                         }
-                        reader.Close();
                     }
                 }
-                con.Close();
-                con.Dispose();
             }
             return show;
         }
