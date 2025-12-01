@@ -25,6 +25,7 @@ namespace Daikin.BusinessLogics.Common
         private readonly string NACBaseURL = "https://au.nintex.io";
         private readonly string GetAttachmentWorkflowURL = "/workflows/v1/designs/91ad22e2-f7bc-4853-864f-0720a2b7eb19/instances";
         private readonly string PAL_WORKFLOW_DEV = "34450d42-417e-4e68-987b-6649f25ed62d";
+        private readonly string CONTENT_TYPE = "application/json";
 
         public string GetNACWorfklowID(string Module_Code)
         {
@@ -76,7 +77,7 @@ namespace Daikin.BusinessLogics.Common
                 //};
 
                 var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
-                var HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
                 var response = client.PostAsync(url, HttpContent).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
                 var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
@@ -107,7 +108,7 @@ namespace Daikin.BusinessLogics.Common
                     grant_type = "client_credentials"
                 };
                 var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
-                var HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
                 var response = client.PostAsync(url, HttpContent).Result;
                 var responseJson = response.Content.ReadAsStringAsync().Result;
                 var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
@@ -172,7 +173,7 @@ namespace Daikin.BusinessLogics.Common
         {
             var payload = new { outcome = approval_value };
             var jsonPayload = new JavaScriptSerializer().Serialize(payload);
-            return new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+            return new StringContent(jsonPayload, Encoding.UTF8, CONTENT_TYPE);
         }
 
         public CommonResponseModel CompleteNACTask(string approval_value, string task_id, string assignment_id)
@@ -387,7 +388,7 @@ namespace Daikin.BusinessLogics.Common
             string url = $"https://au.nintex.io/workflows/v2/designs/{workflow_id}/instances?status=Failed&order=ASC";
             using (HttpClient client = new HttpClient())
             {
-                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/problem+json"));
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
@@ -414,7 +415,7 @@ namespace Daikin.BusinessLogics.Common
                 grant_type = GetNacInfo("grant_type")
             };
             var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
-            var HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
             var response = client.PostAsync(url, HttpContent).Result;
             var responseJson = response.Content.ReadAsStringAsync().Result;
             var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
@@ -471,10 +472,10 @@ namespace Daikin.BusinessLogics.Common
                 };
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint)
                 {
-                    Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+                    Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE)
                 };
                 return new Dictionary<string, object>
                 {
@@ -551,9 +552,9 @@ namespace Daikin.BusinessLogics.Common
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
@@ -696,9 +697,9 @@ namespace Daikin.BusinessLogics.Common
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(param.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Content = new StringContent(serializer.Serialize(param.param), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(serializer.Serialize(param.param), Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
@@ -746,9 +747,9 @@ namespace Daikin.BusinessLogics.Common
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
                 client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, $"/workflows/v1/designs/{PAL_WORKFLOW_DEV}/instances");
-                request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, "application/json");
+                request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
@@ -800,9 +801,9 @@ namespace Daikin.BusinessLogics.Common
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 client.BaseAddress = new Uri(nwc.url);
 
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                request.Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
@@ -841,10 +842,10 @@ namespace Daikin.BusinessLogics.Common
                 string sBody = new JavaScriptSerializer().Serialize(nwc.param);
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.endpoint);
-                request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
+                request.Content = new StringContent(sBody, Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
@@ -884,9 +885,9 @@ namespace Daikin.BusinessLogics.Common
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             client.BaseAddress = new Uri(nwcModel.url);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, GetAttachmentWorkflowURL);
-            request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            request.Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE);
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
