@@ -101,8 +101,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public void CreateReportFile(string Folder_ID)
         {
-            DataTable dt = new DataTable();
-            dt = GetFolderLocation(Folder_ID);
+            DataTable dt = GetFolderLocation(Folder_ID);
             foreach (DataRow row in dt.Rows)
             {
                 string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
@@ -401,8 +400,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
             try
             {
-                DataTable dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
@@ -511,8 +509,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                DataTable dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
@@ -577,8 +574,7 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                DataTable dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
