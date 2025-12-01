@@ -82,11 +82,9 @@ namespace Daikin.BusinessLogics.Common
             return tasks;
         }
 
-        public async Task StartNWC(NintexWorkflowCloud nwc)
+        public static async Task StartNWC(NintexWorkflowCloud nwc)
         {
-
             string sBody = new JavaScriptSerializer().Serialize(nwc.param);
-
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(nwc.url);
             string token = Aprroval.GetToken();
@@ -94,18 +92,12 @@ namespace Daikin.BusinessLogics.Common
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token); 
-
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
-
             request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadAsStringAsync();
-                //return result; //instance guid
             }
-
         }
 
         public static List<ListDataID> GetListDataIDByHeaderID(string ListName, int ID)
