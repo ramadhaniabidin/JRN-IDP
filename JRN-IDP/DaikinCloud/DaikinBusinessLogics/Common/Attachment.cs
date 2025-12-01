@@ -12,7 +12,7 @@ using System.Web.Script.Serialization;
 
 namespace Daikin.BusinessLogics.Common
 {
-    public class Attachment
+    public static class Attachment
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
