@@ -16,7 +16,6 @@ namespace Daikin.BusinessLogics.Common
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
-        static DataTable dt = new DataTable();
         public static string GetToken()
         {
             string url = "https://us.nintex.io/authentication/v1/token";
@@ -41,7 +40,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static List<ListDataID> GetListDataID(string ListName, int ItemID, string currentLoginName)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
@@ -115,7 +114,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static List<ListDataID> GetListDataIDByHeaderID(string ListName, int ID)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             db.CloseConnection(ref conn);
             try
             {
@@ -145,7 +144,7 @@ namespace Daikin.BusinessLogics.Common
         }
         public static List<ListDataID> GetListDataID_New(string ListName, int ItemID)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             string connString = Utility.GetSqlConnection();
             try
             {
@@ -175,7 +174,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static List<ListDataID> GetListDataIDByHeaderID_New(string ListName, int ID)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             string connString = Utility.GetSqlConnection();
             try
             {
