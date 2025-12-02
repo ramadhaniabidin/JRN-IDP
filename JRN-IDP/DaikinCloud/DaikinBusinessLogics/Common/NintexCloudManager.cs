@@ -20,7 +20,7 @@ namespace Daikin.BusinessLogics.Common
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         private readonly DataTable dt = null;
-        JavaScriptSerializer serializer = new JavaScriptSerializer();
+        private readonly JavaScriptSerializer serializer = new JavaScriptSerializer();
         private readonly CommonLogic _func = new CommonLogic();
         private readonly string NACBaseURL = "https://au.nintex.io";
         private readonly string GetAttachmentWorkflowURL = "/workflows/v1/designs/91ad22e2-f7bc-4853-864f-0720a2b7eb19/instances";
