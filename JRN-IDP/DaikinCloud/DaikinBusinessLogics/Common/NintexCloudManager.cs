@@ -19,7 +19,7 @@ namespace Daikin.BusinessLogics.Common
     {
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        DataTable dt = null;
+        private readonly DataTable dt = null;
         JavaScriptSerializer serializer = new JavaScriptSerializer();
         private readonly CommonLogic _func = new CommonLogic();
         private readonly string NACBaseURL = "https://au.nintex.io";
