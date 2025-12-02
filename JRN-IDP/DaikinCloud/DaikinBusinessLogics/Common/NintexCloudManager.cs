@@ -17,7 +17,7 @@ namespace Daikin.BusinessLogics.Common
 {
     public class NintexCloudManager
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         DataTable dt = null;
         JavaScriptSerializer serializer = new JavaScriptSerializer();
