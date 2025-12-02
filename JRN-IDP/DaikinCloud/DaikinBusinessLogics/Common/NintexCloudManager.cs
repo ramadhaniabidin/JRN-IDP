@@ -520,14 +520,14 @@ namespace Daikin.BusinessLogics.Common
             catch (HttpRequestException httpEx)
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", httpEx.Message, -1);
-                throw httpEx;
+                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"Request error: {httpEx.Message}", -1);
+                throw;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", ex.Message, -1);
-                throw ex;
+                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"General error: {ex.Message}", -1);
+                throw;
             }
         }
 
@@ -653,14 +653,14 @@ namespace Daikin.BusinessLogics.Common
             catch (HttpRequestException httpEx)
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", httpEx.Message, -1);
-                throw httpEx;
+                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"Request error: {httpEx.Message}", -1);
+                throw;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", ex.Message, -1);
-                throw ex;
+                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"General error: {ex.Message}", -1);
+                throw;
             }
         }
 
@@ -704,14 +704,14 @@ namespace Daikin.BusinessLogics.Common
             catch (HttpRequestException httpEx)
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", httpEx.Message, -1);
-                throw httpEx;
+                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"Request error: {httpEx.Message}", -1);
+                throw;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", ex.Message, -1);
-                throw ex;
+                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"General error: {ex.Message}", -1);
+                throw;
             }
         }
 
@@ -760,14 +760,14 @@ namespace Daikin.BusinessLogics.Common
             catch (HttpRequestException httpEx)
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", httpEx.Message, -1);
-                throw httpEx;
+                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"Request error: {httpEx.Message}", -1);
+                throw;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", ex.Message, -1);
-                throw ex;
+                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"General error: {ex.Message}", -1);
+                throw;
             }
         }
 
@@ -796,13 +796,13 @@ namespace Daikin.BusinessLogics.Common
             {
                 Console.WriteLine($"Request error: {httpEx.Message}");
                 StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", $"Request error: {httpEx.Message}", -1);
-                throw httpEx;
+                throw;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"General error: {ex.Message}");
                 StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, nwc.param.startData.se_headerid, "-", $"General error: {ex.Message}", -1);
-                throw ex;
+                throw;
             }
         }
 
@@ -843,10 +843,10 @@ namespace Daikin.BusinessLogics.Common
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
