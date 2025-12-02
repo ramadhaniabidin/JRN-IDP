@@ -55,7 +55,7 @@ namespace Daikin.BusinessLogics.Common
 
         public string GetToken()
         {
-            string url = "https://us.nintex.io/authentication/v1/token";
+            string url = ConfigurationManager.AppSettings["NAC_TOKEN_URL"];
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
@@ -77,7 +77,7 @@ namespace Daikin.BusinessLogics.Common
 
         public string GetToken_DaikinNAC()
         {
-            string url = "https://au.nintex.io/authentication/v1/token";
+            string url = ConfigurationManager.AppSettings["NAC_TOKEN_URL"];
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
@@ -214,7 +214,7 @@ namespace Daikin.BusinessLogics.Common
             try
             {
                 string token = GetToken_DaikinNAC();
-                string url = "https://au.nintex.io/workflows/v2/tasks?status=active" + "&workflowInstanceId=" + NAC_Guid;
+                string url = $"{ConfigurationManager.AppSettings["NAC_TASKS_URL"]}&workflowInstanceId={NAC_Guid}";
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
                 var response = client.GetAsync(url);
@@ -855,7 +855,7 @@ namespace Daikin.BusinessLogics.Common
         public dynamic POSubconGetTask(string NAC_Guid, string Form_No)
         {
             string token = GetToken_DaikinNAC();
-            string url = "https://au.nintex.io/workflows/v2/tasks?status=active" + "&workflowInstanceId=" + NAC_Guid;
+            string url = $"{ConfigurationManager.AppSettings["NAC_TASKS_URL"]}&workflowInstanceId={NAC_Guid}";
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
             var response = client.GetAsync(url);
