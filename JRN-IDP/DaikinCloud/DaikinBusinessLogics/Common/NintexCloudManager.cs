@@ -75,27 +75,6 @@ namespace Daikin.BusinessLogics.Common
 
         }
 
-        public string GetToken_DaikinNAC()
-        {
-            string url = ConfigurationManager.AppSettings["NAC_TOKEN_URL"];
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HttpClient client = new HttpClient();
-            var requestBody = new
-            {
-                client_id = "dcc05cd6-10d7-4af1-8b68-0f0ac7dd77f5",
-                client_secret = "sLQKQtRSsNtRUsLROI2HtTsQLtTsO2GsPOJK2HsRRtWsQtPsMLItTRsNRtVsFRtTsNtUsFMOtUsOFtRsQRJFtTUsPtUsItRsOtSVsO2N",
-                grant_type = "client_credentials"
-            };
-            var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
-            var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
-            var response = client.PostAsync(url, HttpContent).Result;
-            var responseJson = response.Content.ReadAsStringAsync().Result;
-            var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-            string accessToken = responseObject["access_token"];
-            return accessToken;
-        }
-
         public IEnumerable<dynamic> GetTasks()
         {
             string url = System.Configuration.ConfigurationManager.AppSettings["NAC:task_url"].ToString();
@@ -148,7 +127,7 @@ namespace Daikin.BusinessLogics.Common
         {
             try
             {
-                string token = GetToken_DaikinNAC();
+                string token = GetToken();
                 var stringContent = GenerateApprovalPayload(approval_value);
                 string url = $"https://au.nintex.io/workflows/v2/tasks/{task_id}/assignments/{assignment_id}";
                 HttpClient client = new HttpClient();
@@ -213,7 +192,7 @@ namespace Daikin.BusinessLogics.Common
         {
             try
             {
-                string token = GetToken_DaikinNAC();
+                string token = GetToken();
                 string url = $"{ConfigurationManager.AppSettings["NAC_TASKS_URL"]}&workflowInstanceId={NAC_Guid}";
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
@@ -247,7 +226,7 @@ namespace Daikin.BusinessLogics.Common
             string url = $"https://au.nintex.io/workflows/v2/tasks?from=2025-02-01&workflowInstanceId={Instance_ID}";
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {GetToken_DaikinNAC()}");
+                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {GetToken()}");
                 HttpResponseMessage response = await client.GetAsync(url);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -418,7 +397,7 @@ namespace Daikin.BusinessLogics.Common
 
         public Dictionary<string, object> GenerateNACRequest(NintexWorkflowCloud nwc, string endpoint)
         {
-            string token = GetToken_DaikinNAC();
+            string token = GetToken();
             string requestBody = new JavaScriptSerializer().Serialize(nwc.param);
             HttpClient client = new HttpClient
             {
@@ -499,7 +478,7 @@ namespace Daikin.BusinessLogics.Common
                 };
                 string endpoint = "/workflows/v1/designs/" + WorkflowId + "/instances";      
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -632,7 +611,7 @@ namespace Daikin.BusinessLogics.Common
                 string endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(Module_Code)}/instances";
                 var param = NonCommercial_GenerateNACPayload(Item_ID, Header_ID, Module_Code, List_Name);
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
                 client.BaseAddress = new Uri(param.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -682,7 +661,7 @@ namespace Daikin.BusinessLogics.Common
                     url = NACBaseURL
                 };
                 var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, $"/workflows/v1/designs/{PAL_WORKFLOW_DEV}/instances");
@@ -731,7 +710,7 @@ namespace Daikin.BusinessLogics.Common
                 nwc.url = NACBaseURL;
                 //string endpoint = "/workflows/v1/designs/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances";         // prod
                 string endpoint = "/workflows/v1/designs/d6f0b3f9-50d1-46b6-abdc-46b8252dd3b7/instances";         // dev
-                string token = GetToken_DaikinNAC();
+                string token = GetToken();
                 Console.WriteLine(token);
                 string requestBody = new JavaScriptSerializer().Serialize(nwc.param);
                 HttpClient client = new HttpClient();
@@ -780,7 +759,7 @@ namespace Daikin.BusinessLogics.Common
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri(nwc.url);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken_DaikinNAC());
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.endpoint);
                 request.Content = new StringContent(sBody, Encoding.UTF8, CONTENT_TYPE);
                 using (var response = await client.SendAsync(request))
@@ -811,7 +790,7 @@ namespace Daikin.BusinessLogics.Common
         {
             Console.WriteLine("Begin retriggering stopped approval workflow");
             nwcModel.url = NACBaseURL;
-            string token = GetToken_DaikinNAC();
+            string token = GetToken();
             string requestBody = serializer.Serialize(nwcModel.param);
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
@@ -854,7 +833,7 @@ namespace Daikin.BusinessLogics.Common
         #region PO Subcon Approval Action
         public dynamic POSubconGetTask(string NAC_Guid, string Form_No)
         {
-            string token = GetToken_DaikinNAC();
+            string token = GetToken();
             string url = $"{ConfigurationManager.AppSettings["NAC_TASKS_URL"]}&workflowInstanceId={NAC_Guid}";
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
