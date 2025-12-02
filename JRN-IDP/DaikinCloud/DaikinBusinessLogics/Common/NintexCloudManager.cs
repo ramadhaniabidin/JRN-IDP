@@ -161,7 +161,6 @@ namespace Daikin.BusinessLogics.Common
             SPList list = web.Lists[listName];
             SPListItem listItem = list.GetItemById(itemID);
             string CurrApproverLogin = listItem["Approver_x0020_Login_x0020_Accou"].ToString();
-            string CurrApproverLoginName = listItem["Approver_x0020_Login_x0020_Name"].ToString();
             return new CurrentApproverModel
             {
                 Email = web.EnsureUser(CurrApproverLogin).Email.ToLower(),
@@ -275,7 +274,6 @@ namespace Daikin.BusinessLogics.Common
         {
             try
             {
-                var taskID = task.Id;
                 var targetAssignment = task.TaskAssignments.FirstOrDefault(ta => ta.Assignee.ToLowerInvariant().Contains(assignee.ToLowerInvariant()));
                 if (string.IsNullOrEmpty(targetAssignment.Id))
                 {
