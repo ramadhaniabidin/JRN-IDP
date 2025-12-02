@@ -3,6 +3,7 @@ using Daikin.BusinessLogics.Common.Model;
 using Microsoft.SharePoint;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Daikin.BusinessLogics.Common
         private readonly DataTable dt = null;
         private readonly JavaScriptSerializer serializer = new JavaScriptSerializer();
         private readonly CommonLogic _func = new CommonLogic();
-        private readonly string NACBaseURL = "https://au.nintex.io";
+        private readonly string NACBaseURL = ConfigurationManager.AppSettings["NAC_BASE_URL"];
         private readonly string GetAttachmentWorkflowURL = "/workflows/v1/designs/91ad22e2-f7bc-4853-864f-0720a2b7eb19/instances";
         private readonly string PAL_WORKFLOW_DEV = "34450d42-417e-4e68-987b-6649f25ed62d";
         private readonly string CONTENT_TYPE = "application/json";
