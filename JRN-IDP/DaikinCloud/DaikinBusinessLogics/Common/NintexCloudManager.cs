@@ -484,15 +484,11 @@ namespace Daikin.BusinessLogics.Common
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-                    }
-                    else
-                    {
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", errorContent, -1);
-                    }
+                    var result = await response.Content.ReadAsStringAsync();
+                    string SysMessage = response.IsSuccessStatusCode ? "OK" : result;
+                    string InstanceID = response.IsSuccessStatusCode ? result : "-";
+                    int TriggerStatus = response.IsSuccessStatusCode ? 1 : -1;
+                    StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, InstanceID, SysMessage, TriggerStatus);
                 }
             }
             catch (HttpRequestException httpEx)
@@ -602,6 +598,15 @@ namespace Daikin.BusinessLogics.Common
             #endregion
         }
 
+        public async Task HandleResponse(int Header_ID, int Item_ID, string Module_Code, HttpResponseMessage response)
+        {
+            string responseContent = await response.Content.ReadAsStringAsync();
+            string message = response.IsSuccessStatusCode ? "OK" : responseContent;
+            string instanceID = response.IsSuccessStatusCode ? responseContent : "-";
+            int triggerStatus = response.IsSuccessStatusCode ? 1 : -1;
+            StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, instanceID, message, triggerStatus);
+        }
+
         public async Task NonComm_StartNACWorkflow(int Header_ID, int Item_ID, string Module_Code, string List_Name)
         {
             try
@@ -614,19 +619,9 @@ namespace Daikin.BusinessLogics.Common
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                 request.Content = new StringContent(serializer.Serialize(param.param), Encoding.UTF8, CONTENT_TYPE);
-                using (var response = await client.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-                    }
-                    else
-                    {
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", errorContent, -1);
-                    }
-                }
+                var response = await client.SendAsync(request);
+                await HandleResponse(Header_ID, Item_ID, Module_Code, response);
+                response.EnsureSuccessStatusCode();
             }
             catch (HttpRequestException httpEx)
             {
