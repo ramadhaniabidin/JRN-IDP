@@ -229,7 +229,7 @@ namespace Daikin.BusinessLogics.Common
                 HttpResponseMessage response = await client.GetAsync(url);
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new Exception($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                    throw new HttpRequestException($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
                 }
                 string responseJson = await response.Content.ReadAsStringAsync();
                 var TaskResponse = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue, RecursionLimit = 100 }.Deserialize<TaskResponse>(responseJson);
@@ -686,7 +686,6 @@ namespace Daikin.BusinessLogics.Common
                     }
                     //return result; //instance guid
                 }
-                //Console.WriteLine("Trigger workflow success");
             }
             catch (HttpRequestException httpEx)
             {
