@@ -147,7 +147,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public CurrentApproverModel NonCommercial_GetCurrentApprover(string listName, int itemID)
+        public static CurrentApproverModel NonCommercial_GetCurrentApprover(string listName, int itemID)
         {
             SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
             if (listName.ToUpper().Contains("CONTRACT"))
@@ -270,7 +270,7 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public CommonResponseModel ProcessNACTask(TaskItem task, string assignee, string approvalValue)
+        public static CommonResponseModel ProcessNACTask(TaskItem task, string assignee, string approvalValue)
         {
             try
             {
@@ -283,7 +283,7 @@ namespace Daikin.BusinessLogics.Common
                         Message = $"There is no active task for {assignee}"
                     };
                 }
-                return CompleteNACTask(approvalValue, task.Id, targetAssignment.Id);
+                return new NintexCloudManager().CompleteNACTask(approvalValue, task.Id, targetAssignment.Id);
             }
             catch(Exception ex)
             {
