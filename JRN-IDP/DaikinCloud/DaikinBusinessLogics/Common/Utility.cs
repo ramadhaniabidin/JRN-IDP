@@ -561,16 +561,6 @@ namespace Daikin.BusinessLogics.Common
 
         public static string GetSqlConnection()
         {
-            //try
-            //{
-            //    return ConfigurationManager.ConnectionStrings["cnstr"].ToString();
-            //}
-            //catch
-            //{
-            //    return "Data Source=SPDEV;Initial Catalog=Daikin_Nintex_Development;User ID=sa;Password=7CxNsjEhHcWRgd*4FNY^";
-            //    //return "Data Source=SPDEV;Initial Catalog=Daikin_Testing;User ID=sa;Password=7CxNsjEhHcWRgd*4FNY^";
-            //    //return "Data Source=dbs1.daikin.co.id;Initial Catalog=Daikin_Nintex;User ID=nintex;Password=Daikin#12345";
-            //}
             return ConfigurationManager.ConnectionStrings["cnstr"].ToString();
         }
         #endregion
