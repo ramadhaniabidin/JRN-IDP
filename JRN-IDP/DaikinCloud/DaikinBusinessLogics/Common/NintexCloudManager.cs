@@ -752,8 +752,6 @@ namespace Daikin.BusinessLogics.Common
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Trigger workflow success");
             }
         }
 
