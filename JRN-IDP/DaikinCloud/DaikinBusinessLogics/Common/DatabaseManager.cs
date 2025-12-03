@@ -10,14 +10,7 @@ namespace Daikin.BusinessLogics.Common
 {
     public class DatabaseManager
     {
-        //public string sqlConnection = "Data Source=SP2K13;Initial Catalog=MSI_DAIKIN_DB;User ID=sa;Password=pass@word1";
-        //public string sqlConnection = "Data Source=dbs.daikin.co.id;Initial Catalog=Daikin_Nintex;User ID=nintex;Password=Daikin#12345";
-        //public string sqlConnection = "Data Source=DRC-HR;Initial Catalog=MSI_DAIKIN_DB;Integrated Security=true";
-        //public string sqlConnection = ConfigurationManager.ConnectionStrings["cnstr"].ToString();
-        //public string sqlConnection = "Data Source=SPDEV;Initial Catalog=Daikin_Nintex_Dev;User ID=sa;Password=7CxNsjEhHcWRgd*4FNY^";
         public string sqlConnection = "Data Source=SPDEV;Initial Catalog=Daikin_Nintex_Development;User ID=sa;Password=7CxNsjEhHcWRgd*4FNY^";
-        //public string sqlConnection = "Data Source=dbs1.daikin.co.id;Initial Catalog=Daikin_Nintex;User ID=nintex;Password=Daikin#12345";
-
         public SqlCommand cmd;
         public SqlDataReader dReader;
         public SqlTransaction trans;
