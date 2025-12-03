@@ -317,26 +317,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void ExecAdditionalSP(int ListItemID, string SPName)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = SPName;
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "ListItemID", ListItemID);
-
-                db.cmd.ExecuteNonQuery();
-                db.CloseConnection(ref conn);
-            }
-            catch (Exception)
-            {
-                db.CloseConnection(ref conn);
-                throw;
-            }
-        }
-
         public void SaveUpdateAttachments(AttachmentModel attc, bool Insert)
         {
             try
