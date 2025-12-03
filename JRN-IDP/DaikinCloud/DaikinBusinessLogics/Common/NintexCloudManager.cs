@@ -90,7 +90,7 @@ namespace Daikin.BusinessLogics.Common
             return tasks;
         }
 
-        public bool IsCurrentApprover(string FullName, string ModuleCode, string TransactionNumber)
+        public static bool IsCurrentApprover(string FullName, string ModuleCode, string TransactionNumber)
         {
             int count = 0;
             using(var _conn = new SqlConnection(Utility.GetSqlConnection()))
