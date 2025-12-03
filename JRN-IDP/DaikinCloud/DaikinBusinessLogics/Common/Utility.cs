@@ -21,7 +21,7 @@ namespace Daikin.BusinessLogics.Common
 {
     public class Utility
     {
-        public static string LevelAccessMessage = "You don't have permission to trigger this action";
+        public const string LevelAccessMessage = "You don't have permission to trigger this action";
         //public const string SpSiteUrl = "http://drc-hr/Lists/Scheduled%20Payment";
         //public const string SpSiteUrl ="https://sp3.daikin.co.id:8443/Lists/Scheduled%20Payment"; 
         public const string SpSiteUrl = "https://sp3.daikin.co.id:3473/";
