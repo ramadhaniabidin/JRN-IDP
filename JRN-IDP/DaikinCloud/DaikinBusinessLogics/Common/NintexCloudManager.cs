@@ -538,7 +538,8 @@ namespace Daikin.BusinessLogics.Common
                             se_headerid = HeaderID, se_itemid = ItemID, se_modulecode = ModuleCode, se_listname = ListName
                         }
                     },
-                    url = NACBaseURL
+                    url = NACBaseURL,
+                    endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
                 };
             }
             #endregion
@@ -551,7 +552,8 @@ namespace Daikin.BusinessLogics.Common
                     {
                         startData = new StartData { se_itemid = ItemID, se_modulecode = ModuleCode }
                     },
-                    url = NACBaseURL
+                    url = NACBaseURL,
+                    endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
                 };
             }
             #endregion
@@ -564,7 +566,8 @@ namespace Daikin.BusinessLogics.Common
                     {
                         startData = new StartData { se_itemid = ItemID, se_modulecode = ModuleCode }
                     },
-                    url = NACBaseURL
+                    url = NACBaseURL,
+                    endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
                 };
             }
             #endregion
