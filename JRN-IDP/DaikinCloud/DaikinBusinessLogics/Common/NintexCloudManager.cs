@@ -642,53 +642,8 @@ namespace Daikin.BusinessLogics.Common
 
         public async Task PAL_StartWorkflow(int Item_ID, string Module_Code)
         {
-            try
-            {
-                NintexWorkflowCloud nwc = new NintexWorkflowCloud
-                {
-                    param = new NWCParamModel
-                    {
-                        startData = new StartData
-                        {
-                            se_itemid = Item_ID,
-                            se_modulecode = Module_Code
-                        }
-                    },
-                    url = NACBaseURL
-                };
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
-                client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                var request = new HttpRequestMessage(HttpMethod.Post, $"/workflows/v1/designs/{PAL_WORKFLOW_DEV}/instances");
-                request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, CONTENT_TYPE);
-                using (var response = await client.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-                    }
-                    else
-                    {
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", errorContent, -1);
-                    }
-                }
-
-            }
-            catch (HttpRequestException httpEx)
-            {
-                Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"Request error: {httpEx.Message}", -1);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"General error: {ex.Message}", -1);
-                throw;
-            }
+            var param = GenerateNACPayload(0, Item_ID, Module_Code, "");
+            await StartNWC(param);
         }
 
         public async Task NonCommercial_StartWorkflow_V2(int Item_ID, int Header_ID, string Module_Code, string List_Name)
