@@ -10,7 +10,6 @@ namespace Daikin.BusinessLogics.Common
 {
     public class DatabaseManager
     {
-        public string sqlConnection = "Data Source=SPDEV;Initial Catalog=Daikin_Nintex_Development;User ID=sa;Password=7CxNsjEhHcWRgd*4FNY^";
         public SqlCommand cmd;
         public SqlDataReader dReader;
         public SqlTransaction trans;
