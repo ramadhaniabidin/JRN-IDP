@@ -1163,6 +1163,13 @@ namespace Daikin.BusinessLogics.Common
             return (xmlstr);
         }
 
+        public static string ConvertValueToString(int SPColumnType, DataRow row, SPListItem listItem)
+        {
+            string columnName = Utility.GetStringValue(row, "Sharepoint_Column_Name");
+            bool isNull = listItem[columnName] == null;
+            return isNull ? "NULL " : $"'{listItem[columnName]}'";
+        }
+
         static public string getColumnValue(int SPColumnType, DataRow row, SPListItem listItem)
         {
             string val = "";
