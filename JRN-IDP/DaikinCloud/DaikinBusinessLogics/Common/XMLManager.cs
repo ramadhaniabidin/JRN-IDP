@@ -22,18 +22,6 @@ namespace Daikin.BusinessLogics.Common
     }
     public class XMLManager
     {
-        //        var xml = @"<?xml version='1.0' encoding='utf-8'?><RepeaterData><Version/><Items><Item><No type='System.String'>1</No><Item_Text type='System.String'>BASIC SALARY SECURITY DID BEKASI</Item_Text><ddl_MaterialAnaplan type='System.String'>ZGA010001007</ddl_MaterialAnaplan><GL type='System.String'>TEMPORARY STAFFING EXPENSE</GL><ddl_CostCenter type='System.String'>BKS0300500 - General Affair </ddl_CostCenter><Tax_Type type='System.String'>Non WHT</Tax_Type><Qty type='System.String'>3</Qty><Unit_Price type='System.Double'>0</Unit_Price><Currency type='System.String'>IDR</Currency><cvAmount type='System.Double'>17478237.0000</cvAmount><cost_center_code type='System.String'>BKS0300500 - General Affair </cost_center_code><Material_Anaplan_Name type='System.String'>ZGA010001007 Basic Salary (outsourcing)</Material_Anaplan_Name><material_anaplan_code type='System.String'>ZGA010001007</material_anaplan_code><Amount type='System.String'>17478237.0000</Amount></Item><Item><No type='System.String'>2</No><Item_Text type='System.String'>MANAGEMENT FEE</Item_Text><ddl_MaterialAnaplan type='System.String'>ZGA010001010</ddl_MaterialAnaplan><GL type='System.String'>TEMPORARY STAFFING EXPENSE</GL><ddl_CostCenter type='System.String'>BKS0300500 - General Affair </ddl_CostCenter><Tax_Type type='System.String'>WHT</Tax_Type><Qty type='System.String'>1</Qty><Unit_Price type='System.Double'>1</Unit_Price><Currency type='System.String'>IDR</Currency><cvAmount type='System.Double'>1747824.0000</cvAmount><cost_center_code type='System.String'>BKS0300500 - General Affair </cost_center_code><Material_Anaplan_Name type='System.String'>ZGA010001010 Management Fee (outsourcing)</Material_Anaplan_Name><material_anaplan_code type='System.String'>ZGA010001010</material_anaplan_code><Amount type='System.String'>1747824.0000</Amount></Item></Items></RepeaterData>";
-        //        var doc = XDocument.Parse(xml);
-        //        var result = doc.Descendants("Item");
-        //        var data = result.ToList();
-        //        var table = ConvertToDataTable(data);
-        //		foreach(DataRow row in table.Rows){
-        //			foreach(DataColumn col in table.Columns)
-        //			{
-        //				Console.WriteLine(col + " : " + row[col.ColumnName].ToString());
-        //			}
-        //}
-
         public static string GetValue(XElement item, string Attribute)
         {
             try
