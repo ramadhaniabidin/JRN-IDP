@@ -176,9 +176,10 @@ namespace Daikin.BusinessLogics.Common
 
 
             var r = list.GetItems(q);
-            foreach (SPListItem item in r)
+            if(r.Count > 0)
             {
-                return item[RetrieveColumn].ToString();
+                var value = r[0][RetrieveColumn];
+                return value?.ToString() ?? string.Empty;
             }
             return string.Empty;
         }
