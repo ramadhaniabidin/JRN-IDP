@@ -225,16 +225,9 @@ namespace Daikin.BusinessLogics.Common
 
             foreach (SPListItem item in r)
             {
-                try
-                {
-                    string itemAttributeValue = item[AttributeName].ToString();
-                    branch = itemAttributeValue.Split('#')[1];
-                    listBranch.Add(branch);
-                }
-                catch
-                {
-
-                }
+                string itemAttributeValue = item[AttributeName].ToString();
+                branch = itemAttributeValue.Split('#')[1];
+                listBranch.Add(branch);
             }
             return listBranch;
         }
@@ -252,18 +245,10 @@ namespace Daikin.BusinessLogics.Common
 
             foreach (SPListItem item in r)
             {
-                try
+                string itemAttributeValue = item[AttributeName].ToString();
+                if (itemAttributeValue.ToLower() == CompareValue.ToLower())
                 {
-                    string itemAttributeValue = item[AttributeName].ToString();
-                    if (itemAttributeValue.ToLower() == CompareValue.ToLower())
-                    {
-                        IsExists = true;
-                        return IsExists;
-                    }
-                }
-                catch
-                {
-
+                    return true;
                 }
             }
             return IsExists;
