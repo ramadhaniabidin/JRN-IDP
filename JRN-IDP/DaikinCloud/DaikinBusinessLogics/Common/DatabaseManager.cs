@@ -135,7 +135,7 @@ namespace Daikin.BusinessLogics.Common
 
         public string Autocounter(string fieldName, string TableName, string fieldCriteria, string valueCriteria, int LengthOfString, string fieldNameConverted = "")
         {
-            SqlDataReader dReader;
+            SqlDataReader reader;
             string str = "";
             string str2 = "1";
 
@@ -148,12 +148,12 @@ namespace Daikin.BusinessLogics.Common
 
             cmd.CommandType = CommandType.Text;
 
-            dReader = cmd.ExecuteReader();
+            reader = cmd.ExecuteReader();
 
-            if (dReader.HasRows)
+            if (reader.HasRows)
             {
-                dReader.Read();
-                str2 = dReader[fieldName].ToString();
+                reader.Read();
+                str2 = reader[fieldName].ToString();
 
                 int StartFrom = valueCriteria.Length;
                 int EndUntil = 0;
@@ -168,9 +168,10 @@ namespace Daikin.BusinessLogics.Common
                 i += 1;
             }
             str = valueCriteria + str + str2;
-            CloseDataReader(dReader);
+            CloseDataReader(reader);
             return str;
         }
+
 
         public DataTable GetValueFromSP(string SPName, string ParamName, string ParamValue)
         {
