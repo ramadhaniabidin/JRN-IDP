@@ -26,6 +26,8 @@ namespace Daikin.BusinessLogics.Common
         public const string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
         public const string SpSiteUrl_DEV = "http://spdev:3473/";
         private const string ENCRYPTION_KEY = "G21Express";
+        private readonly DatabaseManager db = new DatabaseManager();
+        SqlConnection conn = new SqlConnection();
 
         #region Encryption/decryption
         /// <summary>
@@ -133,9 +135,6 @@ namespace Daikin.BusinessLogics.Common
             }
 
         }
-
-        DatabaseManager db = new DatabaseManager();
-        SqlConnection conn = new SqlConnection();
 
         public CommonResponseModel UpdateDocumentReceived(string ID, string Module_ID)
         {
@@ -336,7 +335,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static DateTime GetDateValue(DataRow value, string key)
         {
-            DateTime date = new DateTime();
+            DateTime date = new DateTime(1, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             try
             {
                 return DateTime.Parse(value[key].ToString());
