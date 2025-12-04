@@ -523,7 +523,7 @@ namespace Daikin.BusinessLogics.Common
             };
         }
 
-        public NintexWorkflowCloud GenerateNACPayload(int HeaderID, int ItemID, string ModuleCode, string ListName)
+        public NintexWorkflowCloud GenerateNACPayload(int HeaderID, int ItemID, string ModuleCode, string ListName, string PoNumber = "")
         {
             List<string> nonCommercials = new List<string> { "M014", "M015", "M016", "M017", "M018", "M020" };
             #region Non Commercials
@@ -579,6 +579,20 @@ namespace Daikin.BusinessLogics.Common
                     param = new NWCParamModel
                     {
                         startData = new StartData { se_headerid = ItemID, se_tablename = ModuleCode }
+                    },
+                    url = NACBaseURL,
+                    endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
+                };
+            }
+            #endregion
+            #region PO Subcon Get Attachment From SF
+            else if(ModuleCode == "M019-01")
+            {
+                return new NintexWorkflowCloud
+                {
+                    param = new NWCParamModel
+                    {
+                        startData = new StartData { se_itemid = ItemID, se_ponumber = PoNumber }
                     },
                     url = NACBaseURL,
                     endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
