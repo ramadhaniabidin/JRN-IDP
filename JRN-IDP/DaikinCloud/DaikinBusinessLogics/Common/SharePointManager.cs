@@ -293,16 +293,11 @@ namespace Daikin.BusinessLogics.Common
             SPGroup group = null;
 
             // Check if the group exists
-            try
+            SPSecurity.RunWithElevatedPrivileges(delegate
             {
-                SPSecurity.RunWithElevatedPrivileges(delegate
-                {
-                    root.AllowUnsafeUpdates = true;
-                    group = root.SiteGroups[groupName];
-                });
-            }
-            catch { }
-
+                root.AllowUnsafeUpdates = true;
+                group = root.SiteGroups[groupName];
+            });
             // If it doesn't, add it
             if (group == null)
             {
