@@ -17,7 +17,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        private readonly string SP3_CONNSTRING = "Data Source=dbs1.daikin.co.id;Initial Catalog=Daikin_Nintex;User ID=nintex;Password=Daikin#12345";
+        private readonly string SP3_CONNSTRING = Utility.GetSqlConnection();
 
         #region SPDEV
         public List<ListHeaderReportApproval> SPDEV_ListDataApproval(ListHeaderReportApproval model)
