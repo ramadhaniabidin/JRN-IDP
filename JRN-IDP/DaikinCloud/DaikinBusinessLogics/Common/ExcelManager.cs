@@ -78,13 +78,6 @@ namespace Daikin.BusinessLogics.Common
                 }
             }
         }
-        //public void Generate(string DestinationPath, DataTable dt)
-        //{
-        //    using (XLWorkbook wb = new XLWorkbook())
-        //    {
-        //        wb.Worksheets.Add(dt, "Customers");
-        //        wb.SaveAs(DestinationPath + "DataGridViewExport.xlsx");
-        //    }
-        //}
+
     }
 }
