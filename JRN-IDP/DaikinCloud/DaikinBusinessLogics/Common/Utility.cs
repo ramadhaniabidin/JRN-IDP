@@ -1163,16 +1163,50 @@ namespace Daikin.BusinessLogics.Common
             return (xmlstr);
         }
 
-        public static string ConvertValueToString(int SPColumnType, DataRow row, SPListItem listItem)
+        public static string ConvertValueToString(SPListItem listItem, string columnName, bool isValueNull)
+        {
+            return isValueNull ? "NULL " : $"'{listItem[columnName]}'";
+        }
+
+        public static string ConvertValueToNumber(SPListItem listItem, string columnName, bool isValueNull)
+        {
+            return isValueNull ? "NULL " : $"CAST('{listItem[columnName]}' AS NUMERIC)";
+        }
+
+        public static string ConvertValueToDateTime(SPListItem listItem, string columnName, bool isValueNull)
+        {
+            DateTime dateTime = isValueNull ? DateTime.Parse("1900-01-01") : (DateTime)listItem[columnName];
+            string formatDateTime = "yyyy-MM-dd HH:mm:ss";
+            return $"'{dateTime.ToString(formatDateTime)}'";
+        }
+
+        public static string ConvertValueToBit(SPListItem listItem, string columnName)
+        {
+            return listItem[columnName].ToString().ToUpperInvariant() == "TRUE" ? "1" : "0";
+        }
+
+        public static string ConvertValueToLookup(SPListItem listItem, string columnName)
+        {
+            var splits = listItem[columnName]?.ToString().Split('#');
+            return splits?.Length > 1 ? $"'{splits[1]}'" : "NULL";
+        }
+
+        public static string getColumnValue_V2(int SPColumnType, DataRow row, SPListItem item)
         {
             string columnName = Utility.GetStringValue(row, "Sharepoint_Column_Name");
-            bool isNull = listItem[columnName] == null;
-            return isNull ? "NULL " : $"'{listItem[columnName]}'";
+            bool isValueNull = item[columnName] == null;
+            string val = "";
+            if(SPColumnType == 1 || SPColumnType == 2 || SPColumnType == 9)
+            {
+                val = ConvertValueToString(item, columnName, isValueNull);
+            }
+            return val;
         }
 
         static public string getColumnValue(int SPColumnType, DataRow row, SPListItem listItem)
         {
             string val = "";
+            string columnName = Utility.GetStringValue(row, "Sharepoint_Column_Name");
 
             #region Values
             if (SPColumnType == 1 || SPColumnType == 2) //Single or Multiple Line of Text
