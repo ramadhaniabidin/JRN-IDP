@@ -106,7 +106,6 @@ namespace Daikin.BusinessLogics.Common
                             model.Url_Site = WebUrl;
                             model.Content_Data = binFile;
                             listAttach.Add(model);
-                            //UploadFileInCustomList(DestListName, DestItemId, binFile, WebUrl, file.Name);
                         }
 
                     }
@@ -207,11 +206,6 @@ namespace Daikin.BusinessLogics.Common
                     om.Code = itemValue.LookupId.ToString();
                     om.Name = itemValue.LookupValue.ToString();
                     listValues.Add(om);
-                    //ListItem litem = new ListItem();
-                    //litem.Text = itemValue.LookupValue;
-                    //litem.Value = itemValue.LookupId.ToString();
-                    //dropdownlist.Items.Add(litem);
-
                 }
             }
             return listValues;
@@ -221,7 +215,6 @@ namespace Daikin.BusinessLogics.Common
         {
             string branch = "";
             List<string> listBranch = new List<string>();
-            //SPList list = web.Lists[new Guid("308cecf4-12c7-4930-b097-01faa963f27c")];
             SPList list = web.Lists["Master Finance Team"]; //TESTING LOCAL
             var q = new SPQuery()
             {
@@ -545,8 +538,6 @@ namespace Daikin.BusinessLogics.Common
                                 web.AllowUnsafeUpdates = false;
 
                             }
-
-                            //parentFolder.DocumentLibrary.Permissions.Remove(0);
                         }
                     }
                 }
@@ -662,7 +653,6 @@ namespace Daikin.BusinessLogics.Common
                         }
 
                         item.Attachments.Add(File_Name, ContentData);
-                        //item.Update();
                         Web.AllowUnsafeUpdates = false;
                         System.Threading.Thread.Sleep(TimeSpan.FromSeconds(10));
                     }
@@ -745,38 +735,6 @@ namespace Daikin.BusinessLogics.Common
             return DestUrl;
         }
 
-        //public void DeleteFileInDocumentLibrary(string SiteUrl, string DocumentURL)
-        //{
-        //    SPSecurity.RunWithElevatedPrivileges(delegate ()
-        //    {
-        //        using (SPSite site = new SPSite(SiteUrl))
-        //        {
-        //            using (SPWeb web = site.OpenWeb())
-        //            {
-        //                web.AllowUnsafeUpdates = true;
-
-        //                string folderUrl = new Utility().GetParentUriString(new Uri(DocumentURL));
-
-        //                SPFolder folder = web.GetFolder(folderUrl);
-        //                string FileName = Path.GetFileName(DocumentURL);
-
-        //                SPFileCollection files = folder.Files;
-        //                for (int i = 0; i < files.Count; i++)
-        //                {
-        //                    SPFile tempFile = files[i];
-        //                    if (tempFile.Name.ToUpper() == FileName.ToUpper())
-        //                    {
-        //                        folder.Files.Delete(tempFile.Url);
-        //                        break;
-        //                    }
-        //                }
-
-        //                web.AllowUnsafeUpdates = false;
-        //            }
-        //        }
-        //    });
-        //}
-
         public void DeleteFileInSharePointListItem(int ItemId, string File_Name, string List_Name, string Url_Site)
         {
             SPSecurity.RunWithElevatedPrivileges(delegate ()
@@ -821,7 +779,6 @@ namespace Daikin.BusinessLogics.Common
                 {
                     SPList List = Web.Lists.TryGetList(List_Name);
                     SPListItem item = List.GetItemById(Item_ID);
-                    //SPList parentList = item.ParentList;
                     SPWorkflowAssociationCollection associationCollection = List.WorkflowAssociations;
                     foreach (SPWorkflowAssociation association in associationCollection)
                     {
