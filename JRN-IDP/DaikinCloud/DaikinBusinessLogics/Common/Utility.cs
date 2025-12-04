@@ -22,8 +22,6 @@ namespace Daikin.BusinessLogics.Common
     public class Utility
     {
         public const string LevelAccessMessage = "You don't have permission to trigger this action";
-        //public const string SpSiteUrl = "http://drc-hr/Lists/Scheduled%20Payment";
-        //public const string SpSiteUrl ="https://sp3.daikin.co.id:8443/Lists/Scheduled%20Payment"; 
         public const string SpSiteUrl = "https://sp3.daikin.co.id:3473/";
         public const string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
         public const string SpSiteUrl_DEV = "http://spdev:3473/";
@@ -44,7 +42,6 @@ namespace Daikin.BusinessLogics.Common
         {
             var rijndaelCipher = new RijndaelManaged();
             byte[] plainText = Encoding.Unicode.GetBytes(inputText.Replace(" ", "+"));
-            //Rfc2898DeriveBytes secretKey1 = new Rfc2898DeriveBytes(ENCRYPTION_KEY, SALT);
             var SecretKey = new PasswordDeriveBytes(ENCRYPTION_KEY, Salt);
             using (
             ICryptoTransform encryptor = rijndaelCipher.CreateEncryptor(SecretKey.GetBytes(32),
@@ -69,7 +66,6 @@ namespace Daikin.BusinessLogics.Common
         {
             var rijndaelCipher = new RijndaelManaged();
             byte[] encryptedData = Convert.FromBase64String(inputText);
-            //Rfc2898DeriveBytes secretKey1 = new Rfc2898DeriveBytes(ENCRYPTION_KEY, SALT);
             var secretKey = new PasswordDeriveBytes(ENCRYPTION_KEY, Salt);
             using (ICryptoTransform decryptor = rijndaelCipher.CreateDecryptor(secretKey.GetBytes(32), secretKey.GetBytes(16)))
             {
