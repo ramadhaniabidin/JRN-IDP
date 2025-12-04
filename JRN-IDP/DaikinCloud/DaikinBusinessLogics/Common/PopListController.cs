@@ -12,11 +12,11 @@ namespace Daikin.BusinessLogics.Common
 {
     public class PopListController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
-        DataTable dt = new DataTable();
-        string ConnString = string.Empty;
+        private readonly DataTable dt = new DataTable();
+        private readonly string ConnString = string.Empty;
         public PopListController(string _ConnString)
         {
             ConnString = _ConnString;
