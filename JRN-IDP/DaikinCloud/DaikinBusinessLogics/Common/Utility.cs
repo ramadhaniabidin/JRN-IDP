@@ -126,10 +126,10 @@ namespace Daikin.BusinessLogics.Common
                 }
                 return string.Empty;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
 
         }
@@ -175,10 +175,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
                 return Branch;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -197,10 +197,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
                 return Utility.ConvertDataTableToList<Model.ApproverRoleModel>(dtBranch);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
 
             }
 
@@ -216,10 +216,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
                 return Approver;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -241,10 +241,10 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
         
@@ -273,10 +273,10 @@ namespace Daikin.BusinessLogics.Common
                 }
                 return listBranch;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
