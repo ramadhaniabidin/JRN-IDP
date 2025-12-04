@@ -1191,85 +1191,32 @@ namespace Daikin.BusinessLogics.Common
             return splits?.Length > 1 ? $"'{splits[1]}'" : "NULL";
         }
 
-        public static string getColumnValue_V2(int SPColumnType, DataRow row, SPListItem item)
-        {
-            string columnName = Utility.GetStringValue(row, "Sharepoint_Column_Name");
-            bool isValueNull = item[columnName] == null;
-            string val = "";
-            if(SPColumnType == 1 || SPColumnType == 2 || SPColumnType == 9)
-            {
-                val = ConvertValueToString(item, columnName, isValueNull);
-            }
-            return val;
-        }
-
         static public string getColumnValue(int SPColumnType, DataRow row, SPListItem listItem)
         {
             string val = "";
             string columnName = Utility.GetStringValue(row, "Sharepoint_Column_Name");
+            bool isValueNull = listItem[columnName] == null;
 
             #region Values
-            if (SPColumnType == 1 || SPColumnType == 2) //Single or Multiple Line of Text
+            if (SPColumnType == 1 || SPColumnType == 2 || SPColumnType == 9) //Single or Multiple Line of Text or Choice
             {
-                val = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")] == null ?
-                         "NULL " : "'" + listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")] + "'";
+                val = ConvertValueToString(listItem, columnName, isValueNull);
             }
             else if (SPColumnType == 3) //Number
             {
-                val = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")] == null ?
-                "NULL " : "CAST('" + listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")] + "' AS NUMERIC) ";
+                val = ConvertValueToNumber(listItem, columnName, isValueNull);
             }
             else if (SPColumnType == 4) //datetime
             {
-
-                DateTime dateTime = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")] == null ?
-                       DateTime.Parse("1900-01-01") : (DateTime)listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")];
-
-                val = "'" + dateTime.ToString("yyyy-MM-dd HH:mm:ss") + "'";
-
+                val = ConvertValueToDateTime(listItem, columnName, isValueNull);
             }
             else if (SPColumnType == 6) //Yes or No
             {
-                if (listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")].ToString().ToUpper() == "TRUE")
-                {
-                    val = "1";
-                }
-                else
-                {
-                    val = "0";
-                }
+                val = ConvertValueToBit(listItem, columnName);
             }
             else if (SPColumnType == 7 || SPColumnType == 5) //Person or Group || Lookup
             {
-                //string originalValue = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")].ToString();
-                //Console.WriteLine(originalValue);
-                string currentValue = "";
-                var gets = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")]?.ToString().Split('#');
-                if (gets?.Length > 1)
-                {
-                    // Temporary bypass
-                    currentValue = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")]?.ToString().Split('#')[1];
-                    val = "'" + currentValue + "'";
-                }
-                else
-                {
-                    val = "NULL";
-                }
-
-                //string currentValue = listItem[Utility.GetStringValue(row, "Sharepoint_Column_Name")].ToString().Split('#')[1];
-                //SPUser user = properties.Web.Users.GetByID(new SPFieldLookupValue(currentValue).LookupId);
-            }
-            else if (SPColumnType == 9) // Choice
-            {
-                string currVal = Utility.GetStringValue(row, "Sharepoint_Column_Name")?.ToString();
-                if (!string.IsNullOrWhiteSpace(currVal))
-                {
-                    val = $"'{currVal}'";
-                }
-                else
-                {
-                    val = "NULL";
-                }
+                val = ConvertValueToLookup(listItem, columnName);
             }
             #endregion
 
