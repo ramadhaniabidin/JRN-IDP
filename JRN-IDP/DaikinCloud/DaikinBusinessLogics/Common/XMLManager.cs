@@ -48,14 +48,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static void AddAttribute(XElement item, string Attribute, string Value)
         {
-            try
-            {
-                item.Add(new XElement(Attribute, Value));
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            item.Add(new XElement(Attribute, Value));
         }
 
         public static List<string> ConvertDataTableToSQL(DataTable dtAttributesFilter, DefaultAttrModel attr, string vendorName)
@@ -64,7 +57,6 @@ namespace Daikin.BusinessLogics.Common
             string currAtt = "";
             try
             {
-                //DataTable dtSources = ConvertXMLRepeatingSectionToDataTable(attr.XMLString);
                 List<string> listQuery = new List<string>();
                 string queryValues = string.Empty;
                 string fullQuery = string.Empty;
