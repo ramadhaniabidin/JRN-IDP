@@ -267,19 +267,12 @@ namespace Daikin.BusinessLogics.Common
             List<string> listBranch = new List<string>();
             foreach (SPListItem item in r)
             {
-                try
+                string itemAttributeValue = item["UserAccName"].ToString();
+                if (itemAttributeValue.ToLower().Contains(CurrentLogin.ToLower()))
                 {
-                    string itemAttributeValue = item["UserAccName"].ToString();
-                    if (itemAttributeValue.ToLower().Contains(CurrentLogin.ToLower()))
-                    {
-                        string itemBranchValue = item["Branch"].ToString();
-                        string branch = itemBranchValue.Split('#')[1];
-                        listBranch.Add(branch);
-                    }
-                }
-                catch
-                {
-
+                    string itemBranchValue = item["Branch"].ToString();
+                    string branch = itemBranchValue.Split('#')[1];
+                    listBranch.Add(branch);
                 }
             }
             return listBranch;
