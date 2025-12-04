@@ -198,14 +198,13 @@ namespace Daikin.BusinessLogics.Common
             foreach (SPListItem item in r)
             {
                 SPFieldLookupValueCollection MultipleValues = item[AttributeName] as SPFieldLookupValueCollection;
-                OptionModel om = new OptionModel();
-
                 foreach (SPFieldLookupValue itemValue in MultipleValues)
                 {
-                    om = new OptionModel();
-                    om.Code = itemValue.LookupId.ToString();
-                    om.Name = itemValue.LookupValue.ToString();
-                    listValues.Add(om);
+                    listValues.Add(new OptionModel
+                    {
+                        Code = itemValue.LookupId.ToString(),
+                        Name = itemValue.LookupValue.ToString()
+                    });
                 }
             }
             return listValues;
