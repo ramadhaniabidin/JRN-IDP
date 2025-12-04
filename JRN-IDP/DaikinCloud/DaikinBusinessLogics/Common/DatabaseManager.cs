@@ -20,7 +20,7 @@ namespace Daikin.BusinessLogics.Common
 
         public void OpenConnection(ref SqlConnection connection, string ConnString, bool IsTrans = false)
         {
-            if (connection == null)
+            if(connection == null || connection.State == ConnectionState.Closed)
             {
                 connection = new SqlConnection(ConnString);
                 connection.Open();
@@ -32,26 +32,11 @@ namespace Daikin.BusinessLogics.Common
                     cmd.Transaction = trans;
                 }
             }
-            else
-            {
-                if (connection.State == ConnectionState.Closed)
-                {
-                    connection = new SqlConnection(ConnString);
-                    connection.Open();
-                    cmd = connection.CreateCommand();
-                    cmd.CommandTimeout = 0;
-                    if (IsTrans)
-                    {
-                        trans = connection.BeginTransaction();
-                        cmd.Transaction = trans;
-                    }
-                }
-            }
         }
 
         public void OpenConnection(ref SqlConnection connection, bool IsTrans = false)
         {
-            if (connection == null)
+            if(connection == null || connection.State == ConnectionState.Closed)
             {
                 connection = new SqlConnection(GetSQLConnectionString());
                 connection.Open();
@@ -61,21 +46,6 @@ namespace Daikin.BusinessLogics.Common
                 {
                     trans = connection.BeginTransaction();
                     cmd.Transaction = trans;
-                }
-            }
-            else
-            {
-                if (connection.State == ConnectionState.Closed)
-                {
-                    connection = new SqlConnection(GetSQLConnectionString());
-                    connection.Open();
-                    cmd = connection.CreateCommand();
-                    cmd.CommandTimeout = 0;
-                    if (IsTrans)
-                    {
-                        trans = connection.BeginTransaction();
-                        cmd.Transaction = trans;
-                    }
                 }
             }
         }
