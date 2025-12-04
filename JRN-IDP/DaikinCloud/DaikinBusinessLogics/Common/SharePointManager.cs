@@ -27,53 +27,46 @@ namespace Daikin.BusinessLogics.Common
         {
             DataTable dt = new DataTable();
             List<ApproverRoleModel> listOption = new List<ApproverRoleModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
+
+                SPList list = web.Lists[ListName];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
+
+
+            ApproverRoleModel data = new ApproverRoleModel();
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                data = new ApproverRoleModel();
+                data.Position_ID = Utility.GetIntValue(row, "Position_x003a_ID");
+                data.Position_Name = Utility.GetStringValue(row, "Position_x003a_Title");
+                data.Order_ID = Utility.GetIntValue(row, "Order_x0020_Id");
+                bool ItemExists = listOption.Any(item => item.Position_ID == data.Position_ID);
+                if (!ItemExists)
                 {
-
-                    SPList list = web.Lists[ListName];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
-
-
-                ApproverRoleModel data = new ApproverRoleModel();
-
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    data = new ApproverRoleModel();
-                    data.Position_ID = Utility.GetIntValue(row, "Position_x003a_ID");
-                    data.Position_Name = Utility.GetStringValue(row, "Position_x003a_Title");
-                    data.Order_ID = Utility.GetIntValue(row, "Order_x0020_Id");
-                    bool ItemExists = listOption.Any(item => item.Position_ID == data.Position_ID);
-                    if (!ItemExists)
-                    {
-                        listOption.Add(data);
-                    }
+                    listOption.Add(data);
                 }
-                data = new ApproverRoleModel();
-                data.Position_ID = 0;
-                data.Position_Name = "All";
-                data.Order_ID = 0;
-                listOption.Insert(0, data);
-
-
-                data = new ApproverRoleModel();
-                data.Position_ID = 999;
-                data.Position_Name = "None";
-                data.Order_ID = 99;
-                listOption.Add(data);
-
-                return listOption.OrderBy(o => o.Order_ID).ToList();
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            data = new ApproverRoleModel();
+            data.Position_ID = 0;
+            data.Position_Name = "All";
+            data.Order_ID = 0;
+            listOption.Insert(0, data);
+
+
+            data = new ApproverRoleModel();
+            data.Position_ID = 999;
+            data.Position_Name = "None";
+            data.Order_ID = 99;
+            listOption.Add(data);
+
+            return listOption.OrderBy(o => o.Order_ID).ToList();
         }
 
 
@@ -746,36 +739,29 @@ namespace Daikin.BusinessLogics.Common
 
         public void StartWorkflowBySystemAccount(string SiteURL, int Item_ID, string WF_Name, string List_Name)
         {
-            try
+            SPSite spSite = new SPSite(SiteURL);
+            SPWeb Web = spSite.OpenWeb();
+            var currentLogin = new Utility().GetConfigValue("SystemUser");
+            SPUserToken token = Web.EnsureUser(currentLogin).UserToken;
+            spSite = new SPSite(Web.Site.ID, token);
+            Web = spSite.OpenWeb();
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPSite spSite = new SPSite(SiteURL);
-                SPWeb Web = spSite.OpenWeb();
-                var currentLogin = new Utility().GetConfigValue("SystemUser");
-                SPUserToken token = Web.EnsureUser(currentLogin).UserToken;
-                spSite = new SPSite(Web.Site.ID, token);
-                Web = spSite.OpenWeb();
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
+                SPList List = Web.Lists.TryGetList(List_Name);
+                SPListItem item = List.GetItemById(Item_ID);
+                SPWorkflowAssociationCollection associationCollection = List.WorkflowAssociations;
+                foreach (SPWorkflowAssociation association in associationCollection)
                 {
-                    SPList List = Web.Lists.TryGetList(List_Name);
-                    SPListItem item = List.GetItemById(Item_ID);
-                    SPWorkflowAssociationCollection associationCollection = List.WorkflowAssociations;
-                    foreach (SPWorkflowAssociation association in associationCollection)
+                    if (association.Name.ToUpper() == WF_Name.ToUpper())
                     {
-                        if (association.Name.ToUpper() == WF_Name.ToUpper())
-                        {
-                            Web.AllowUnsafeUpdates = true;
-                            association.AssociationData = string.Empty;
-                            spSite.WorkflowManager.StartWorkflow(item, association, association.AssociationData);
-                            Web.AllowUnsafeUpdates = false;
-                            break;
-                        }
+                        Web.AllowUnsafeUpdates = true;
+                        association.AssociationData = string.Empty;
+                        spSite.WorkflowManager.StartWorkflow(item, association, association.AssociationData);
+                        Web.AllowUnsafeUpdates = false;
+                        break;
                     }
-                });
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+                }
+            });
         }
 
         public Dictionary<string, object> RetrieveAttachmentBase64(string SiteURL, string ListName, int ItemID, string FileName)
