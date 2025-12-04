@@ -22,6 +22,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
+        private readonly NintexCloudManager ntxManager = new NintexCloudManager();
 
         public List<VendorSubconModel> ListVendor(int PageIndex, string Keywords, out int RecordCount)
         {
@@ -647,14 +648,8 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     new SAPSubconController().SaveAttachmentPOSubcon(data.Form_No, Item_ID);
                     #endregion
 
-                    #region Call Workflow Get Attachment from SF
-                    GetAttachmentFromSF model = new GetAttachmentFromSF();
-                    model.param = new GetAttachmentFromSFParam();
-                    model.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/7b256802-b3cf-4a65-a184-7bb069b79259/swagger.json?token=BNjvPZeRcGjBwL4OI3H4iy3VuO5JEJkfc0J35XdH3Rg3XuifQUmjliYtidNAJ9L0sqlUwb";
-                    model.param.startData = new ParamStartData();
-                    model.param.startData.se_ponumber = data.Form_No;
-                    Task.Run(async () => { await GetAttachmentFromSalesForce(model); }).Wait();
-                    #endregion
+                    // Trigger workflow Get Attachment
+                    GetAttachment(Item_ID, data.Form_No);
                 }
 
             }
@@ -663,6 +658,12 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 throw ex;
             }
+        }
+
+        public void GetAttachment(int ItemID, string PoNumber)
+        {
+            var param = ntxManager.GenerateNACPayload(0, ItemID, "M019-01", "", PoNumber);
+            ntxManager.StartNWC(param).GetAwaiter().GetResult();
         }
 
         public static async Task GetAttachmentFromSalesForce(GetAttachmentFromSF model)
