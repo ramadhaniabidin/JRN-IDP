@@ -92,12 +92,14 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                foreach (DataRow row in dt.Rows)
-                {
-                    return true;
-                }
+                return dt.Rows.Count >= 0;
 
-                return false;
+                //foreach (DataRow row in dt.Rows)
+                //{
+                //    return true;
+                //}
+
+                //return false;
             }
             catch (Exception ex)
             {
