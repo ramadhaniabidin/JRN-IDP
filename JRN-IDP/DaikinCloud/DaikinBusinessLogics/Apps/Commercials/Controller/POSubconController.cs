@@ -292,50 +292,38 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
             SPListItem item;
 
-            if (ListItemId == 0)
-            {
-                item = list.Items.Add();
-                item["Title"] = h.Form_No;
-                item["Date Process"] = DateTime.Now;
-                item["Requester Name"] = h.Requester_Name;
-                item["Requester Email"] = h.Requester_Email;
-                item["Requester Account"] = h.Requester_Account;
-                item["Requester Branch"] = h.Requester_Branch;
-                item["Vendor Number"] = h.Vendor_Number;
-                item["Vendor Name"] = h.Vendor_Name;
-                item["Vendor Account Number"] = h.Account_Number;
-                item["Vendor Account Name"] = h.Bank_Account_Name;
-                item["Vendor Bank"] = h.Bank_Key_Name;
-                item["Document Date"] = h.Document_Date;
-                item["Form Type"] = "SUBCON";
-                item["Nintex No"] = h.Form_No;
+            item = list.Items.Add();
+            item["Title"] = h.Form_No;
+            item["Date Process"] = DateTime.Now;
+            item["Requester Name"] = h.Requester_Name;
+            item["Requester Email"] = h.Requester_Email;
+            item["Requester Account"] = h.Requester_Account;
+            item["Requester Branch"] = h.Requester_Branch;
+            item["Vendor Number"] = h.Vendor_Number;
+            item["Vendor Name"] = h.Vendor_Name;
+            item["Vendor Account Number"] = h.Account_Number;
+            item["Vendor Account Name"] = h.Bank_Account_Name;
+            item["Vendor Bank"] = h.Bank_Key_Name;
+            item["Document Date"] = h.Document_Date;
+            item["Form Type"] = "SUBCON";
+            item["Nintex No"] = h.Form_No;
 
-                item["Details"] = xml;
-                item["Mandatory Attachment"] = xml_rs_atc_mandatory;
-                item["Detail Attachments"] = xml_rs_atc_optional;
+            item["Details"] = xml;
+            item["Mandatory Attachment"] = xml_rs_atc_mandatory;
+            item["Detail Attachments"] = xml_rs_atc_optional;
 
-                item["Status"] = "Draft";
-                item["Allow Edit"] = "1";
-                item["Current Layer"] = 0;
-                item["Grand Total"] = h.Grand_Total;
-                item["Approval Type"] = "1"; //for PO Subcon Requestor
-                item["Notify"] = "3"; //Info to Admin Service Team that PO Subcon has been generated
-                item["SVO No"] = h.SVO_No;
+            item["Status"] = "Draft";
+            item["Allow Edit"] = "1";
+            item["Current Layer"] = 0;
+            item["Grand Total"] = h.Grand_Total;
+            item["Approval Type"] = "1"; //for PO Subcon Requestor
+            item["Notify"] = "3"; //Info to Admin Service Team that PO Subcon has been generated
+            item["SVO No"] = h.SVO_No;
 
-                item["Purch Group"] = h.Purchasing_Group;
-                item["Subcon Category"] = h.Subcon_Category_Name;
+            item["Purch Group"] = h.Purchasing_Group;
+            item["Subcon Category"] = h.Subcon_Category_Name;
 
-                if (h.ID > 0) item["Transaction ID"] = h.ID;
-            }
-            else
-            {
-                item = list.GetItemById(ListItemId);
-                item["Transaction ID"] = h.ID;
-                item["Details"] = xml;
-                item["Status"] = "";
-                item["Notify"] = "0"; //Sending EMail to Requestor after submit
-                item["Grand Total"] = h.Grand_Total;
-            }
+            if (h.ID > 0) item["Transaction ID"] = h.ID;
             item.Update();
             ListItemId = item.ID;
             web.AllowUnsafeUpdates = false;
