@@ -212,10 +212,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             using(var con = new SqlConnection(Utility.GetSqlConnection()))
             {
                 con.Open();
-                string query = $"SELECT TOP 1 [Description] FROM MasterBank WHERE Code = '{Bank_Key}'";
+                string query = $"SELECT TOP 1 [Description] FROM MasterBank WHERE Code = @bank_key";
                 using(SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "bank_key", Value = Bank_Key, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                     Bank_Name = cmd.ExecuteScalar().ToString();
                 }
                 con.Close();
