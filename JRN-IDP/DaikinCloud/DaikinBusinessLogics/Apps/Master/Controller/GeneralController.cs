@@ -73,18 +73,10 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
             {
                 int Transaction_ID = 0;
                 db.OpenConnection(ref conn);
-                string tableName = "";
-                if (Module_Code == "M014")
-                {
-                    tableName = "ContractHeader";
-                }
-                else if (Module_Code == "M020")
-                {
-                    tableName = "POContractHeader";
-                }
-
-                db.cmd.CommandText = $"SELECT TOP 1 ID FROM {tableName} WHERE Form_No = '{Form_No}'";
+                string tableName = Module_Code == "M014" ? "ContractHeader" : "POContractHeader";
+                db.cmd.CommandText = $"SELECT TOP 1 ID FROM {tableName} WHERE Form_No = @form_no";
                 db.cmd.CommandType = CommandType.Text;
+                db.AddInParameter(db.cmd, "form_no", Form_No);
                 reader = db.cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -101,7 +93,7 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 throw ex;
             }
         }
-
+        
         public List<GeneralHistoryLogModel> GetHistoryLogByTransaction_ID(int Transaction_ID, string Module_Code)
         {
             try
