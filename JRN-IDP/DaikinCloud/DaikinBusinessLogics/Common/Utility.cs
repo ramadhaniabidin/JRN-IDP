@@ -24,7 +24,7 @@ namespace Daikin.BusinessLogics.Common
         public const string LevelAccessMessage = "You don't have permission to trigger this action";
         public const string SpSiteUrl = "https://sp3.daikin.co.id:3473/";
         public const string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
-        public const string SpSiteUrl_DEV = "http://spdev:3473/";
+        public readonly string SpSiteUrl_DEV = ConfigurationManager.AppSettings["SPDEV_BASE_URL"];
         private const string ENCRYPTION_KEY = "G21Express";
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
