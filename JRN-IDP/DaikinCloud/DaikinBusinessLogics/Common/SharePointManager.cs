@@ -519,12 +519,7 @@ namespace Daikin.BusinessLogics.Common
         public void UploadFileInCustomList(string List_Name, int Item_ID, string PathFile, string Url_Site)
         {
             string File_Name = Path.GetFileName(PathFile);
-
-            FileStream fs = new FileStream(PathFile, FileMode.Open, FileAccess.Read);
-
-            Byte[] imgByte = new byte[fs.Length];
-            fs.Read(imgByte, 0, System.Convert.ToInt32(fs.Length));
-            fs.Close();
+            Byte[] imgByte = File.ReadAllBytes(PathFile);
             SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
                 using (SPSite Site = new SPSite(Url_Site))
@@ -535,23 +530,19 @@ namespace Daikin.BusinessLogics.Common
                         SPList List = Web.Lists[List_Name];
                         SPListItem item = List.GetItemById(Item_ID);
                         SPAttachmentCollection attchList = item.Attachments;
-                        int countElem = attchList.Count;
-                        if (countElem > 0)
+
+                        // Remove existing file with the same name
+                        for(int i = attchList.Count - 1; i >= 0; i--)
                         {
-                            for (int i = 0; i < countElem; i++)
+                            if (string.Equals(attchList[i], File_Name, StringComparison.OrdinalIgnoreCase))
                             {
-                                string currAttch = attchList[i];
-                                if (currAttch.ToUpper() == File_Name.ToUpper())
-                                {
-                                    attchList.Delete(File_Name);
-                                    break;
-                                }
+                                attchList.Delete(File_Name);
+                                break;
                             }
                         }
 
                         item.Attachments.Add(File_Name, imgByte);
-                        string fileName = System.IO.Path.GetFileName(PathFile);
-                        item["Link Attachment"] = $"/Lists/{List_Name}/Attachments/" + Item_ID.ToString() + "/" + fileName;
+                        item["Link Attachment"] = $"/Lists/{List_Name}/Attachments/" + Item_ID.ToString() + "/" + File_Name;
                         item.Update();
                         Web.AllowUnsafeUpdates = false;
                     }
