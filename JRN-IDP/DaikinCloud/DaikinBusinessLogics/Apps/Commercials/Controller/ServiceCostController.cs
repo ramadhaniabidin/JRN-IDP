@@ -518,37 +518,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             return listDueOn;
         }
 
-        public string KoreksiAttachment()
-        {
-            string query = "";
-            string ListId = "193,194,195,196,197,198,199,200,201,202,203,206,207";
-            foreach (string s in ListId.Split(','))
-            {
-                string AttachmentList = sp.GetAllAttachmentByListName("Commercials", Convert.ToInt32(s), "https://sp3.daikin.co.id:8443");
-                int i = 1;
-                foreach (string attach in AttachmentList.Split(';'))
-                {
-                    if (!string.IsNullOrEmpty(attach))
-                    {
-                        string fileName = System.IO.Path.GetFileName(attach);
-                        db.OpenConnection(ref conn);
-                        db.cmd.CommandText = "UPDATE ServiceCostDetail SET [File_Name] = '" + fileName + "'";
-                        db.cmd.CommandText += ", Attachment_Url = '" + attach.Replace("https://sp.daikin.co.id:8443", "") + "'";
-                        db.cmd.CommandText += " FROM ServiceCostHeader a inner join ServiceCostDetail b";
-                        db.cmd.CommandText += " ON b.Header_ID = a.ID";
-                        db.cmd.CommandText += " WHERE b.Item_ID = " + s + " AND b.[No] = " + i.ToString();
-                        query += Environment.NewLine + db.cmd.CommandText;
-
-                        Console.WriteLine(query);
-
-                        db.CloseConnection(ref conn);
-                        i++;
-                    }
-                }
-            }
-            return query;
-        }
-
         public void SaveDataLog(string Module_Code, int Transaction_ID, string Form_No, string Message)
         {
             try
