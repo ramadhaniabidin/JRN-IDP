@@ -507,7 +507,8 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 dt = new DataTable();
                 #region Validasi Contract No
                 db.OpenConnection(ref conn);
-                db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = '" + Vendor_Code + "' and Branch = '" + Branch + "' AND Procurement_Department = '" + Procurement_Department + "'";
+                //db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = '" + Vendor_Code + "' and Branch = '" + Branch + "' AND Procurement_Department = '" + Procurement_Department + "'";
+                db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = @vendor_code AND Branch = @branch AND Procurement_Department = @proc_dept";
                 db.cmd.CommandType = CommandType.Text;
                 db.cmd.Parameters.Clear();
 
