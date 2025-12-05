@@ -685,11 +685,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         #endregion
 
                         #region COLLECT PO NUMBER
-                        string dbName = isDev ? "Daikin_Nintex_Development" : "Daikin_nintex";
-                        db.cmd.CommandText = $"UPDATE {dbName}.[dbo].[ContractHeader] SET [PO_Number] = [PO_Number]+'" + h.Form_No + ";' WHERE [ID] = " + detail.Contract_ID;
-                        db.cmd.CommandType = CommandType.Text;
-                        db.cmd.Parameters.Clear();
-                        db.cmd.ExecuteNonQuery();
+                        //string dbName = isDev ? "Daikin_Nintex_Development" : "Daikin_nintex";
+                        //db.cmd.CommandText = $"UPDATE {dbName}.[dbo].[ContractHeader] SET [PO_Number] = [PO_Number]+'" + h.Form_No + ";' WHERE [ID] = " + detail.Contract_ID;
+                        //db.cmd.CommandType = CommandType.Text;
+                        //db.cmd.Parameters.Clear();
+                        //db.cmd.ExecuteNonQuery();
+                        UpdatePONumberContract(h.Form_No, (int)detail.Contract_ID);
                         #endregion
 
                         foreach (POContractMaterial m in detail.Materials)
@@ -812,6 +813,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 db.CloseConnection(ref conn);
                 throw ex;
+            }
+        }
+        
+        public void UpdatePONumberContract(string PoNumber, int ID)
+        {
+            using (var con = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                con.Open();
+                using (var cmd = new SqlCommand("usp_ContractHeader_UpdatePONumber", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "PO_Number", Value = PoNumber, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "ID", Value = ID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
