@@ -184,10 +184,12 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 using(var conn = new SqlConnection(Utility.GetSqlConnection()))
                 {
                     conn.Open();
-                    var query = $"SELECT * FROM {TableName}";
-                    using(var cmd = new SqlCommand(query, conn))
+                    //var query = $"SELECT * FROM {TableName}";
+                    //var query = $"SELECT * FROM {TableName}";
+                    using (var cmd = new SqlCommand("dbo.usp_GetMasterData", conn))
                     {
-                        cmd.CommandType = CommandType.Text;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                         using(var reader = cmd.ExecuteReader())
                         {
                             dt = new DataTable();
