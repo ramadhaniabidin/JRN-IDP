@@ -133,43 +133,24 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public string Autocounter(string fieldName, string TableName, string fieldCriteria, string valueCriteria, int LengthOfString, string fieldNameConverted = "")
+        public string Autocounter(string fieldName, string TableName, string fieldCriteria, string valueCriteria, int LengthOfString)
         {
-            SqlDataReader reader;
-            string str = "";
-            string str2 = "1";
-
-            cmd.CommandText = "select top 1 " + fieldName + " from " + TableName +
-                                   " where " + fieldCriteria + " like '%" + valueCriteria + "%'";
-            if (fieldNameConverted != "")
-                cmd.CommandText += " order by " + fieldNameConverted + " desc";
-            else
-                cmd.CommandText += " order by " + fieldName + " desc";
-
-            cmd.CommandType = CommandType.Text;
-
-            reader = cmd.ExecuteReader();
-
-            if (reader.HasRows)
+            string autoCode = "";
+            using (var con = new SqlConnection(GetSQLConnectionString()))
             {
-                reader.Read();
-                str2 = reader[fieldName].ToString();
-
-                int StartFrom = valueCriteria.Length;
-                int EndUntil = 0;
-                EndUntil = str2.Length - StartFrom;
-
-                str2 = (int.Parse(str2.Substring(StartFrom, EndUntil)) + 1).ToString();
+                con.Open();
+                using (var command = new SqlCommand("[usp_Utility_AutoCounter]", con))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add(new SqlParameter { ParameterName = "FieldName", Value = fieldName, Direction = ParameterDirection.Input });
+                    command.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, Direction = ParameterDirection.Input });
+                    command.Parameters.Add(new SqlParameter { ParameterName = "FieldCriteria", Value = fieldCriteria, Direction = ParameterDirection.Input });
+                    command.Parameters.Add(new SqlParameter { ParameterName = "ValueCriteria", Value = valueCriteria, Direction = ParameterDirection.Input });
+                    command.Parameters.Add(new SqlParameter { ParameterName = "LengthOfString", Value = LengthOfString, Direction = ParameterDirection.Input });
+                    autoCode = cmd.ExecuteScalar().ToString();
+                    return autoCode;
+                }
             }
-            int i = 0;
-            while (i < LengthOfString - str2.Length)
-            {
-                str += "0";
-                i += 1;
-            }
-            str = valueCriteria + str + str2;
-            CloseDataReader(reader);
-            return str;
         }
 
 
