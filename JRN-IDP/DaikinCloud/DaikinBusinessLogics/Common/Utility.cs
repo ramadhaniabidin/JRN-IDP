@@ -350,11 +350,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public string StripHTML(string input)
-        {
-            return Regex.Replace(input, "<.*?>", String.Empty).Replace("&nbsp;", " ").Replace("&amp;", "&");
-        }
-
         public string GetUntilOrEmpty(string text, string stopAt = "", string orStopAt = "")
         {
             if (!String.IsNullOrWhiteSpace(text))
