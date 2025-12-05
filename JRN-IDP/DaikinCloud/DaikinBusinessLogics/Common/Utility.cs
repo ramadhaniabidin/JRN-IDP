@@ -33,7 +33,7 @@ namespace Daikin.BusinessLogics.Common
         /// <summary>
         /// The salt value used to strengthen the encryption.
         /// </summary>
-        private static readonly byte[] Salt = Encoding.ASCII.GetBytes(ENCRYPTION_KEY.Length.ToString());
+        private static readonly byte[] Salt = Encoding.ASCII.GetBytes("DaikinNintex");
 
         /// <summary>
         /// Encrypts any string using the Rijndael algorithm.
@@ -42,19 +42,21 @@ namespace Daikin.BusinessLogics.Common
         /// <returns>A Base64 encrypted string.</returns>
         public static string Encrypt(string inputText)
         {
-            var rijndaelCipher = new RijndaelManaged();
-            byte[] plainText = Encoding.Unicode.GetBytes(inputText.Replace(" ", "+"));
-            var SecretKey = new PasswordDeriveBytes(ENCRYPTION_KEY, Salt);
-            using (
-            ICryptoTransform encryptor = rijndaelCipher.CreateEncryptor(SecretKey.GetBytes(32),
-            SecretKey.GetBytes(16)))
-            using (var memoryStream = new MemoryStream())
+            using (var aes = Aes.Create())
             {
-                using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                var keyGen = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 10000);
+
+                aes.Key = keyGen.GetBytes(32);
+                aes.IV = keyGen.GetBytes(16);
+
+                using (var memory = new MemoryStream())
+                using (var crypto = new CryptoStream(memory, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                using (var writer = new StreamWriter(crypto, Encoding.Unicode))
                 {
-                    cryptoStream.Write(plainText, 0, plainText.Length);
-                    cryptoStream.FlushFinalBlock();
-                    return Convert.ToBase64String(memoryStream.ToArray());
+                    writer.Write(inputText);
+                    writer.Flush();
+                    crypto.FlushFinalBlock();
+                    return Convert.ToBase64String(memory.ToArray());
                 }
             }
         }
@@ -66,18 +68,20 @@ namespace Daikin.BusinessLogics.Common
         /// <returns>A decrypted string.</returns>
         public static string Decrypt(string inputText)
         {
-            var rijndaelCipher = new RijndaelManaged();
-            byte[] encryptedData = Convert.FromBase64String(inputText);
-            var secretKey = new PasswordDeriveBytes(ENCRYPTION_KEY, Salt);
-            using (ICryptoTransform decryptor = rijndaelCipher.CreateDecryptor(secretKey.GetBytes(32), secretKey.GetBytes(16)))
+            byte[] encryptedText = Convert.FromBase64String(inputText);
+            using (var aes = Aes.Create())
             {
-                using (var memoryStream = new MemoryStream(encryptedData))
+                var keyGenerator = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 10000);
+                aes.Key = keyGenerator.GetBytes(32);
+                aes.IV = keyGenerator.GetBytes(16);
+                using (var memoryStram = new MemoryStream(encryptedText))
                 {
-                    using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                    using (var cryptoStream = new CryptoStream(memoryStram, aes.CreateDecryptor(), CryptoStreamMode.Read))
                     {
-                        var plainText = new byte[encryptedData.Length];
-                        int decryptedCount = cryptoStream.Read(plainText, 0, plainText.Length);
-                        return Encoding.Unicode.GetString(plainText, 0, decryptedCount).Replace("+", " ");
+                        using (var reader = new StreamReader(cryptoStream, Encoding.Unicode))
+                        {
+                            return reader.ReadToEnd();
+                        }
                     }
                 }
             }
