@@ -179,7 +179,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
@@ -235,7 +235,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
@@ -292,7 +292,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
