@@ -80,14 +80,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         if (ListName.Equals("Master Material Anaplan"))
                         {
                             string SiteUrl = SPContext.Current.Site.Url;
-                            if (SiteUrl.Equals("http://spf2k13:3031"))
-                            {
-                                data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x000");
-                            }
-                            else
-                            {
-                                data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x001");
-                            }
+                            data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x001");
                         }
 
                         data.Code = Utility.GetStringValue(row, codeColumn);
