@@ -56,7 +56,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         data.Name = row["Procurement_Department"].ToString();
                         listOption.Add(data);
                     }
-                    listOption.OrderBy(o => o.Name).ToList();
+                    listOption = listOption.OrderBy(o => o.Name).ToList();
                 }
 
                 return listOption;
@@ -143,7 +143,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         data.Name = row["Vendor_Name"].ToString();
                         listOption.Add(data);
                     }
-                    listOption.OrderBy(o => o.Name).ToList();
+                    listOption = listOption.OrderBy(o => o.Name).ToList();
                 }
 
                 return listOption;
