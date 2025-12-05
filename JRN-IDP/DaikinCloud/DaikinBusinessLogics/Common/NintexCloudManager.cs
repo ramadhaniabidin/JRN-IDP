@@ -362,8 +362,10 @@ namespace Daikin.BusinessLogics.Common
         {
             string info = "";
             db.OpenConnection(ref conn);
-            db.cmd.CommandText = $"SELECT [value] FROM dbo.NAC_Info WHERE [key] = '{key}'";
+            db.cmd.CommandText = $"SELECT [value] FROM dbo.NAC_Info WHERE [key] = @key";
             db.cmd.CommandType = System.Data.CommandType.Text;
+            db.cmd.Parameters.Clear();
+            db.AddInParameter(db.cmd, "key", key);
             SqlDataReader reader = db.cmd.ExecuteReader();
             while (reader.Read())
             {
