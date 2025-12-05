@@ -44,7 +44,7 @@ namespace Daikin.BusinessLogics.Common
         {
             using (var aes = Aes.Create())
             {
-                var keyGen = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 10000);
+                var keyGen = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 100000);
 
                 aes.Key = keyGen.GetBytes(32);
                 aes.IV = keyGen.GetBytes(16);
@@ -71,7 +71,7 @@ namespace Daikin.BusinessLogics.Common
             byte[] encryptedText = Convert.FromBase64String(inputText);
             using (var aes = Aes.Create())
             {
-                var keyGenerator = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 10000);
+                var keyGenerator = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 100000);
                 aes.Key = keyGenerator.GetBytes(32);
                 aes.IV = keyGenerator.GetBytes(16);
                 using (var memoryStram = new MemoryStream(encryptedText))
