@@ -13,12 +13,12 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 {
     public class SAPController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        SharePointManager sp = new SharePointManager();
-        Utility util = new Utility();
+        private readonly SharePointManager sp = new SharePointManager();
+        private readonly Utility util = new Utility();
 
         #region Index SAP Txt File AP
         //Company Code	Year 	Vendor	Partner Bank Account 	Business Area	Business Place	Document Number 	Posting Date 	Document Date	Due On	
