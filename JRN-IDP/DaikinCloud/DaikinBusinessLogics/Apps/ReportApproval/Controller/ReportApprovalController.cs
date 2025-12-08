@@ -34,10 +34,10 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                     {"Commercials","usp_Approval_ListDataCommercials"},
                     {"Non Commercials","usp_Approval_ListDataNonCommercials"}
                 };
-                using (var conn = new SqlConnection(SP3_CONNSTRING))
+                using (var conn_ = new SqlConnection(SP3_CONNSTRING))
                 {
-                    conn.Open();
-                    using (var cmd = new SqlCommand(storedProcedures[model.ModuleCategory], conn))
+                    conn_.Open();
+                    using (var cmd = new SqlCommand(storedProcedures[model.ModuleCategory], conn_))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue(MODULE_CATEGORY_KEY, model.ModuleCategory);
@@ -55,7 +55,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                             reader.Close();
                         }
                     }
-                    conn.Close();
+                    conn_.Close();
                 }
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) : new List<ListHeaderReportApproval>();
             }
