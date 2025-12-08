@@ -20,11 +20,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
     public class POContractController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        SharePointManager sp = new SharePointManager();
+        private readonly SharePointManager sp = new SharePointManager();
         public string SPList = "Non Commercials";
         private readonly bool isDev = true;
 
