@@ -15,7 +15,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
     {
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        SqlDataReader reader = null;
+        //SqlDataReader reader = null;
         DataTable dt = new DataTable();
         private readonly string SP3_CONNSTRING = Utility.GetSqlConnection();
 
@@ -80,7 +80,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.AddInParameter(db.cmd, "StartDate", model.StartDate);
                 db.AddInParameter(db.cmd, "EndDate", model.EndDate);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -110,7 +110,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.AddInParameter(db.cmd, "EndDate", model.EndDate);
                 db.AddInParameter(db.cmd, "ProcDept", model.ProcDept);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -169,7 +169,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.AddInParameter(db.cmd, "StartDate", model.StartDate);
                 db.AddInParameter(db.cmd, "EndDate", model.EndDate);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
