@@ -12,7 +12,7 @@ namespace Daikin.BusinessLogics.Apps.ScheduledPayment.Controller
 {
     public class ScheduledPaymentController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
@@ -47,10 +47,10 @@ namespace Daikin.BusinessLogics.Apps.ScheduledPayment.Controller
                 db.CloseConnection(ref conn);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ScheduledPaymentHeader>(dt) : new List<ScheduledPaymentHeader>();
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
     }
