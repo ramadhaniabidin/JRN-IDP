@@ -20,6 +20,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         DataTable dt = new DataTable();
         SharePointManager sp = new SharePointManager();
         Utility util = new Utility();
+        private readonly BatchController batch = new BatchController();
 
         #region Index Commercial Subcon Header
         public int H_IDX_PurchasingDoc = 0;
@@ -318,101 +319,128 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 throw ex;
             }
         }
-        public void ReadCommercialSubconGR(string SAPFolderID)
+
+        public void ProcessEachFileSubconGR(string FolderPath)
         {
-            try
+            List<string> listPurchasingDoc = new List<string>();
+            foreach(string file in System.IO.Directory.EnumerateFiles(FolderPath, "*.txt"))
             {
-                Console.WriteLine("Begin Reading PO Subcon GR Data");
-                //string folder = util.GetConfigValue("NetworkPath");
-                //folder += @"\Subcon\GR";
-                dt = new DataTable();
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-                foreach (DataRow row in dt.Rows)
+                try
                 {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-                    string Purchasing_Document = string.Empty;
-                    List<string> listPurchDoc = new List<string>();
-                    List<string> listUniquePurchDoc = new List<string>();
-                    foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
+                    string[] lines = System.IO.File.ReadAllLines(file);
+                    foreach(string line in lines)
                     {
-                        string file_name = System.IO.Path.GetFileName(file);
-                        try
-                        {
-                            string[] lines = System.IO.File.ReadAllLines(file);
-                            foreach (string line in lines)
-                            {
-                                string[] split_data = line.Split(';');
-                                //Save GR
-
-                                try
-                                {
-                                    listPurchDoc.Add(split_data[0]);
-                                    SaveCommercialSubconSAP_GR(split_data);
-                                    Utility.SaveLog("Read Commercial Subcon GR", split_data[0], file, "", 1);
-                                    Console.WriteLine("Success reading PO Subcon GR Data");
-                                    System.Threading.Thread.Sleep(2000);
-
-                                }
-                                catch (Exception ex)
-                                {
-                                    Utility.SaveLog("Fail Commercial Subcon GR", split_data[0], file, ex.Message, 0);
-                                    Console.WriteLine($"Error reading PO Subcon GR Data: {ex.Message}");
-                                    System.Threading.Thread.Sleep(2000);
-                                }
-                                Console.WriteLine(line);
-
-                            }
-
-                            #region Update Delivery Date
-                            listUniquePurchDoc = listPurchDoc.Distinct().ToList();
-
-                            foreach (string pd in listUniquePurchDoc)
-                            {
-                                List<POSubconDetailModel> listDetail = new POSubconController().listDetailByNintexNo(pd);
-                                if (listDetail.Count > 0)
-                                {
-                                    string xml_RS = new POSubconController().GenerateXML_RS(listDetail, false);
-
-                                    int ListItemId = new POSubconController().GetItemId(pd);
-                                    //Trigger Workflow and Continue to Finance Receiver
-                                    if (ListItemId > 0) new POSubconController().UpdateXML_List(xml_RS, ListItemId);
-                                    else Utility.SaveLog("Read Commercial Subcon GR", pd, file, "Item Id not found", 0);
-
-                                }
-                            }
-                            #endregion  
-
-                            string DoneFilePath = folder + "\\DONE\\" + file_name;
-                            if (System.IO.File.Exists(DoneFilePath))
-                            {
-                                System.IO.File.Delete(DoneFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-                            Console.WriteLine("Success reading PO Subcon GR Data");
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Utility.SaveLog("Read Commercial Subcon GR", "-", file, ex.Message, 0);
-                            string ErrorFilePath = folder + "\\ERROR\\" + file_name;
-                            if (System.IO.File.Exists(ErrorFilePath))
-                            {
-                                System.IO.File.Delete(ErrorFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, ErrorFilePath);
-                            Console.WriteLine($"Error reading PO Subcon GR Data: {ex.Message}");
-                            System.Threading.Thread.Sleep(2000);
-                        }
+                        ProcessEachLineSubconGR(file, line);
                     }
                 }
+                catch
+                {
+
+                }
+
             }
-            catch (Exception ex)
+        }
+
+        public void ProcessEachLineSubconGR(string File, string Line)
+        {
+            string file_name = System.IO.Path.GetFileName(File);
+            string[] split_data = Line.Split(';');
+            string[] lines = System.IO.File.ReadAllLines(File);
+            foreach(string line in lines)
             {
-                Console.WriteLine($"Error reading PO Subcon GR Data: {ex.Message}");
-                System.Threading.Thread.Sleep(2000);
-                throw ex;
+                try
+                {
+                    //listPurchDoc.Add(split_data[0]);
+                    SaveCommercialSubconSAP_GR(split_data);
+                    Utility.SaveLog("Read Commercial Subcon GR", split_data[0], File, "", 1);
+                }
+                catch (Exception ex)
+                {
+                    Utility.SaveLog("Fail Commercial Subcon GR", split_data[0], File, ex.Message, 0);
+                }
             }
+
+        }
+
+        public void ReadCommercialSubconGR(string SAPFolderID)
+        {
+            var folderLocation = batch.GetFolderLocation_V2(SAPFolderID);
+            string folderPath = folderLocation.PathLocation;
+            ProcessFolderGRFiles(folderPath);
+        }
+
+        public void UpdateDeliveryDate(List<string> purchasingDocs, string file)
+        {
+            foreach (string pd in purchasingDocs)
+            {
+                List<POSubconDetailModel> listDetail = new POSubconController().listDetailByNintexNo(pd);
+                if (listDetail.Count > 0)
+                {
+                    string xml_RS = new POSubconController().GenerateXML_RS(listDetail, false);
+
+                    int ListItemId = new POSubconController().GetItemId(pd);
+                    //Trigger Workflow and Continue to Finance Receiver
+                    if (ListItemId > 0) new POSubconController().UpdateXML_List(xml_RS, ListItemId);
+                    else Utility.SaveLog("Read Commercial Subcon GR", pd, file, "Item Id not found", 0);
+
+                }
+            }
+        }
+
+        public string ProcessGRLine(string line, string filePath)
+        {
+            string[] columns = line.Split(';');
+            string purchasingDoc = columns[0];
+            try
+            {
+                SaveCommercialSubconSAP_GR(columns);
+                Utility.SaveLog("Read Commercial Subcon GR", purchasingDoc, filePath, "", 1);
+            }
+            catch(Exception ex)
+            {
+                Utility.SaveLog("Fail Commercial Subcon GR", purchasingDoc, filePath, ex.Message, 0);
+            }
+            return purchasingDoc;
+        }
+
+        public void ProcessFolderGRFiles(string folderPath)
+        {
+            foreach(string filePath in System.IO.Directory.EnumerateFiles(folderPath, "*.txt"))
+            {
+                ProcessGRFile(filePath, folderPath);
+            }
+        }
+
+        public void ProcessGRFile(string filePath, string folderPath)
+        {
+            HashSet<string> purchasingDocs = new HashSet<string>();
+            string fileName = System.IO.Path.GetFileName(filePath);
+            try
+            {
+                string[] lines = System.IO.File.ReadAllLines(filePath);
+                foreach(var line in lines)
+                {
+                    string purchasingDoc = ProcessGRLine(line, filePath);
+                    purchasingDocs.Add(purchasingDoc);
+                }
+                UpdateDeliveryDate(purchasingDocs.ToList(), filePath);
+                MoveFileToFolder(folderPath, fileName, "DONE");
+            }
+            catch(Exception ex)
+            {
+                Utility.SaveLog("Read Commercial Subcon GR", "-", filePath, ex.Message, 0);
+                MoveFileToFolder(folderPath, fileName, "ERROR");
+            }
+        }
+
+        public void MoveFileToFolder(string folderPath, string fileName, string category)
+        {
+            string destPath = System.IO.Path.Combine(folderPath, category, fileName);
+            if(System.IO.File.Exists(destPath))
+            {
+                System.IO.File.Delete(destPath);
+            }
+            System.IO.File.Move(System.IO.Path.Combine(folderPath, fileName), destPath);
         }
 
         //public void GetPrintOut(string SAPFolderID, string Nintex_No, int item_id)
