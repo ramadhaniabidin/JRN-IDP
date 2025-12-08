@@ -15,7 +15,6 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
     {
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        DataTable dt = new DataTable();
         private readonly string SP3_CONNSTRING = Utility.GetSqlConnection();
 
         #region SPDEV
@@ -23,7 +22,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
         {
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 var storedProcedures = new Dictionary<string, string>
                 {
                     {"Claim Reimbursement","usp_Approval_ListData"},
@@ -65,7 +64,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
 
         public List<ListHeaderReportApproval> ListData(ListHeaderReportApproval model)
         {
-            dt = new DataTable();
+            var dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
@@ -94,7 +93,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
 
         public List<ListHeaderReportApproval> ListDataNonCommercials(ListHeaderReportApproval model)
         {
-            dt = new DataTable();
+            var dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
@@ -124,7 +123,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
 
         public List<ListHeaderReportApproval> ListDataCommercials(ListHeaderReportApproval model)
         {
-            dt = new DataTable();
+            var dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
