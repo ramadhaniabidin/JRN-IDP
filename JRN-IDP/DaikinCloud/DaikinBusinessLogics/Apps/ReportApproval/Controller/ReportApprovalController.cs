@@ -13,7 +13,7 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
 {
     public class ReportApprovalController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
