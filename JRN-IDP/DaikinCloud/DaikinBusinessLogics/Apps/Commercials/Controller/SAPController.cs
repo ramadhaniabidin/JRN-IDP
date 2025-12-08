@@ -104,10 +104,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     new ServiceCostController().NotifAccountingMIRO(ItemID, data[F_LC_IDX_MIRO_No], data[F_LC_IDX_NintexNo]);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -186,9 +186,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
@@ -333,10 +334,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
 
         }
@@ -477,10 +478,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -516,10 +517,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
