@@ -493,63 +493,48 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         //        Utility.SaveLog("Read Commercial Subcon - ReadAllLines", "", "", ex.Message, 0);
         //    }
         //}
+
+
+        public void POSubconProcessFile(string File, string FolderPath)
+        {
+            string[] lines = System.IO.File.ReadAllLines(File);
+            string FileName = System.IO.Path.GetFileName(File);
+            string NintexNo = "";
+            int HeaderID = 0;
+            try
+            {
+                foreach (string line in lines)
+                {
+                    string[] columns = line.Split(';');
+                    if (NintexNo != columns[0])
+                    {
+                        NintexNo = columns[0];
+                        HeaderID = SaveCommercialSubconSAP_Header(columns, 0);
+                    }
+                    else
+                    {
+                        SaveCommercialSubconSAP_Detail(columns, HeaderID, NintexNo);
+                    }
+                    Utility.SaveLog("Read Commercial Subcon", columns[0], File, "", 1);
+                }
+                MoveFileToFolder(FolderPath, FileName, "DONE");
+            }
+            catch(Exception ex)
+            {
+                Utility.SaveLog("Read Commercial Subcon", NintexNo, File, ex.Message, 0);
+                MoveFileToFolder(FolderPath, FileName, "ERROR");
+            }
+        }
+
         public void ReadCommercialSubcon(string SAPFolderID)
         {
             try
             {
-                dt = new DataTable();
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-                foreach (DataRow row in dt.Rows)
+                var folderPath = batch.GetFolderLocation_V2(SAPFolderID);
+                string folder = folderPath.PathLocation;
+                foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
                 {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-                    string Purchasing_Document = string.Empty;
-                    string Nintex_No = "";
-                    int Header_ID = 0;
-                    foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
-                    {
-                        string file_name = System.IO.Path.GetFileName(file);
-                        try
-                        {
-                            string[] lines = System.IO.File.ReadAllLines(file);
-                            foreach (string line in lines)
-                            {
-                                string[] split_data = line.Split(';');
-                                if (Nintex_No != split_data[0])
-                                {
-                                    Nintex_No = split_data[0];
-                                    //Save Header
-                                    Header_ID = SaveCommercialSubconSAP_Header(split_data, 0);
-                                }
-                                else
-                                {
-                                    //Save Detail
-                                    SaveCommercialSubconSAP_Detail(split_data, Header_ID, Nintex_No);
-                                }
-
-                                Utility.SaveLog("Read Commercial Subcon", split_data[0], file, "", 1);
-                                Console.WriteLine(line);
-
-                            }
-                            string DoneFilePath = folder + "\\DONE\\" + file_name;
-                            if (System.IO.File.Exists(DoneFilePath))
-                            {
-                                System.IO.File.Delete(DoneFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Utility.SaveLog("Read Commercial Subcon", Nintex_No, file, ex.Message, 0);
-                            string ErrorFilePath = folder + "\\ERROR\\" + file_name;
-                            if (System.IO.File.Exists(ErrorFilePath))
-                            {
-                                System.IO.File.Delete(ErrorFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, ErrorFilePath);
-                        }
-                    }
+                    POSubconProcessFile(file, folder);
                 }
             }
             catch (Exception ex)
