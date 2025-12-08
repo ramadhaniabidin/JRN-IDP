@@ -15,7 +15,6 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
     {
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        //SqlDataReader reader = null;
         DataTable dt = new DataTable();
         private readonly string SP3_CONNSTRING = Utility.GetSqlConnection();
 
@@ -122,36 +121,6 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 throw ex;
             }
         }
-
-        //public List<ListHeaderReportPOSubcon> ListDataPOSubcon(ListHeaderReportPOSubcon model)
-        //{
-        //    dt = new DataTable();
-        //    try
-        //    {
-        //        db.OpenConnection(ref conn);
-        //        db.cmd.CommandText = "dbo.usp_Report_POSubcon";
-        //        db.cmd.CommandType = CommandType.StoredProcedure;
-
-        //        db.cmd.Parameters.Clear();
-        //        db.AddInParameter(db.cmd, "SearchBy", model.SearchBy);
-        //        db.AddInParameter(db.cmd, "Keywords", model.Keywords);
-        //        db.AddInParameter(db.cmd, "Branch", model.Branch);
-        //        db.AddInParameter(db.cmd, "StartDate", model.StartDate);
-        //        db.AddInParameter(db.cmd, "EndDate", model.EndDate);
-        //        db.AddInParameter(db.cmd, "Status", model.Status);
-
-        //        reader = db.cmd.ExecuteReader();
-        //        dt.Load(reader);
-        //        db.CloseDataReader(reader);
-        //        db.CloseConnection(ref conn);
-        //        return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportPOSubcon>(dt) : new List<ListHeaderReportPOSubcon>();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        db.CloseConnection(ref conn);
-        //        throw ex;
-        //    }
-        //}
 
         public List<ListHeaderReportApproval> ListDataCommercials(ListHeaderReportApproval model)
         {
