@@ -1,6 +1,6 @@
 ﻿using Daikin.BusinessLogics.Apps.Batch;
+using Daikin.BusinessLogics.Apps.Batch.Controller;
 using Daikin.BusinessLogics.Common;
-using Daikin.JobSchedulersLogic.Controller;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,6 +19,7 @@ namespace Daikin.BusinessLogics.Apps.SubCon.Controller
         DataTable dt = new DataTable();
         SharePointManager sp = new SharePointManager();
         Utility util = new Utility();
+        private readonly BatchController batch = new BatchController();
 
 
         #region Index SAP Feedback Release
@@ -178,67 +179,60 @@ namespace Daikin.BusinessLogics.Apps.SubCon.Controller
             }
         }
 
+        public void SAPVendorData_ProcessEachLine(string Folder, string File, string SAPFolderID)
+        {
+            string FileName = System.IO.Path.GetFileName(File);
+            string VendorCode = "";
+            try
+            {
+                string[] lines = System.IO.File.ReadAllLines(File);
+                foreach(string line in lines)
+                {
+                    string[] columns = line.Split(';');
+                    if(VendorCode != columns[0])
+                    {
+                        VendorCode = columns[0];
+                        SaveSAPVendorData(columns, SAPFolderID);
+                        Utility.SaveLog("Read SAP Vendor Data", columns[0], File, "", 1);
+                    }
+                    else
+                    {
+                        SaveSAPVendorBankData(columns, SAPFolderID);
+                        Utility.SaveLog("Read SAP Vendor Bank Data", columns[0], File, "", 1);
+                    }
+                }
+
+                MoveFileToFolder(Folder, FileName, "DONE");
+            }
+            catch(Exception ex)
+            {
+                Utility.SaveLog("Read SAP Vendor Data", "-", File, ex.Message, 0);
+                MoveFileToFolder(Folder, FileName, "ERROR");
+            }
+        }
+
+        public void MoveFileToFolder(string folderPath, string fileName, string category)
+        {
+            string destPath = System.IO.Path.Combine(folderPath, category, fileName);
+            if (System.IO.File.Exists(destPath))
+            {
+                System.IO.File.Delete(destPath);
+            }
+            System.IO.File.Move(System.IO.Path.Combine(folderPath, fileName), destPath);
+        }
+
         //Non Commercials & Subcon Commercials
         public void ReadSAPVendorData(string SAPFolderID)
         {
             try
             {
-                dt = new DataTable();
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-                foreach (DataRow row in dt.Rows)
+                var folderObj = batch.GetFolderLocation_V2(SAPFolderID);
+                string folder = folderObj.PathLocation;
+                string Vendor_Code = string.Empty;
+                foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
                 {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-                    string Vendor_Code = string.Empty;
-                    foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
-                    {
-                        string file_name = System.IO.Path.GetFileName(file);
-                        try
-                        {
-                            Console.WriteLine("Insert data SAP Vendor - In Progress");
-                            string[] lines = System.IO.File.ReadAllLines(file);
-                            foreach (string line in lines)
-                            {
-                                string[] split_data = line.Split(';');
-                                if (Vendor_Code != split_data[0])
-                                {
-                                    Vendor_Code = split_data[0];
-                                    //5 - Non Commercials
-                                    //12 - Subcon
-                                    SaveSAPVendorData(split_data, SAPFolderID);
-                                    Utility.SaveLog("Read SAP Vendor Data", split_data[0], file, "", 1);
-                                }
-                                else
-                                {
-                                    SaveSAPVendorBankData(split_data, SAPFolderID);
-                                    Utility.SaveLog("Read SAP Vendor Bank Data", split_data[0], file, "", 1);
-                                }
-
-                                Console.WriteLine(line);
-
-                            }
-                            string DoneFilePath = folder + "\\DONE\\" + file_name;
-                            if (System.IO.File.Exists(DoneFilePath))
-                            {
-                                System.IO.File.Delete(DoneFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Insert SAP Vendor - {ex}");
-                            Utility.SaveLog("Read SAP Vendor Data", "-", file, ex.Message, 0);
-                            string ErrorFilePath = folder + "\\ERROR\\" + file_name;
-                            if (System.IO.File.Exists(ErrorFilePath))
-                            {
-                                System.IO.File.Delete(ErrorFilePath);
-                            }
-                            System.IO.File.Move(folder + "\\" + file_name, ErrorFilePath);
-                        }
-                    }
+                    SAPVendorData_ProcessEachLine(folder, file, SAPFolderID);
                 }
-                Console.WriteLine("Insert Data SAP Vendor - Success");
             }
             catch (Exception ex)
             {
