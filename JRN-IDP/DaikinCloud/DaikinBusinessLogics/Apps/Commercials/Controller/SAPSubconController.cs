@@ -610,60 +610,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             }
         }
 
-        public void ReadFeedbackRelease(string SAPFolderID)
-        {
-            try
-            {
-                dt = new DataTable();
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-                    foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
-                    {
-                        string[] lines = System.IO.File.ReadAllLines(file);
-                        string file_name = System.IO.Path.GetFileName(file);
-                        Console.WriteLine(file_name);
-
-                        foreach (string line in lines)
-                        {
-                            string[] split_data = line.Split(';');
-                            int item_id = SaveFeedbackRelease(split_data);
-                            if (split_data[IDX_FR_Status].ToUpper().Contains("SUCCESS"))
-                            {
-                                if (item_id > 0) new POSubconController().ResumeApproval(item_id, "1", "2");
-                                string DoneFilePath = folder + "\\DONE\\" + file_name;
-                                if (System.IO.File.Exists(DoneFilePath))
-                                {
-                                    System.IO.File.Delete(DoneFilePath);
-                                }
-                                System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-
-                            }
-                            else
-                            {
-                                string DoneFilePath = folder + "\\ERROR\\" + file_name;
-                                if (System.IO.File.Exists(DoneFilePath))
-                                {
-                                    System.IO.File.Delete(DoneFilePath);
-                                }
-                                System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-
-                            }
-
-                        }
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         //After Accounting Manager approved, Nintex kirim File Batch MIRO ke SAP lalu SAP akan kirimkan feedbac
         //Kemudian Trigger Workflow kembali untuk melanjutkan approval berikutnya
         public void ReadFeedbackMIRO(string SAPFolderID)
