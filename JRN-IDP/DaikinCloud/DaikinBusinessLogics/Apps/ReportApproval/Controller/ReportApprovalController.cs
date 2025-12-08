@@ -25,44 +25,38 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
         #region SPDEV
         public List<ListHeaderReportApproval> SPDEV_ListDataApproval(ListHeaderReportApproval model)
         {
-            try
+            var dt = new DataTable();
+            var storedProcedures = new Dictionary<string, string>
             {
-                var dt = new DataTable();
-                var storedProcedures = new Dictionary<string, string>
+                {"Claim Reimbursement","usp_Approval_ListData"},
+                {"Commercials","usp_Approval_ListDataCommercials"},
+                {"Non Commercials","usp_Approval_ListDataNonCommercials"}
+            };
+            using (var conn_ = new SqlConnection(SP3_CONNSTRING))
+            {
+                conn_.Open();
+                using (var cmd = new SqlCommand(storedProcedures[model.ModuleCategory], conn_))
                 {
-                    {"Claim Reimbursement","usp_Approval_ListData"},
-                    {"Commercials","usp_Approval_ListDataCommercials"},
-                    {"Non Commercials","usp_Approval_ListDataNonCommercials"}
-                };
-                using (var conn_ = new SqlConnection(SP3_CONNSTRING))
-                {
-                    conn_.Open();
-                    using (var cmd = new SqlCommand(storedProcedures[model.ModuleCategory], conn_))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue(MODULE_CATEGORY_KEY, model.ModuleCategory);
+                    cmd.Parameters.AddWithValue(MODULE_KEY, model.Module.ToUpperInvariant().Contains("SUBCON") ? "PO Subcon" : model.Module);
+                    cmd.Parameters.AddWithValue(BRANCH_KEY, model.Branch);
+                    cmd.Parameters.AddWithValue(START_DATE_KEY, model.StartDate);
+                    cmd.Parameters.AddWithValue(END_DATE_KEY, model.EndDate);
+                    if (model.ModuleCategory.ToUpperInvariant() == "NON COMMERCIALS")
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue(MODULE_CATEGORY_KEY, model.ModuleCategory);
-                        cmd.Parameters.AddWithValue(MODULE_KEY, model.Module.ToUpperInvariant().Contains("SUBCON") ? "PO Subcon" : model.Module);
-                        cmd.Parameters.AddWithValue(BRANCH_KEY, model.Branch);
-                        cmd.Parameters.AddWithValue(START_DATE_KEY, model.StartDate);
-                        cmd.Parameters.AddWithValue(END_DATE_KEY, model.EndDate);
-                        if(model.ModuleCategory.ToUpperInvariant() == "NON COMMERCIALS")
-                        {
-                            cmd.Parameters.AddWithValue("ProcDept", model.ProcDept);
-                        }
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            reader.Close();
-                        }
+                        cmd.Parameters.AddWithValue("ProcDept", model.ProcDept);
                     }
-                    conn_.Close();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        reader.Close();
+                    }
                 }
-                return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) : new List<ListHeaderReportApproval>();
+                conn_.Close();
             }
-            catch(Exception)
-            {
-                throw;
-            }
+            return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) :
+                new List<ListHeaderReportApproval>();
         }
 
         #endregion
@@ -89,10 +83,10 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.CloseConnection(ref conn);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) : new List<ListHeaderReportApproval>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -119,10 +113,10 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.CloseConnection(ref conn);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) : new List<ListHeaderReportApproval>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -148,10 +142,10 @@ namespace Daikin.BusinessLogics.Apps.ReportApproval.Controller
                 db.CloseConnection(ref conn);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<ListHeaderReportApproval>(dt) : new List<ListHeaderReportApproval>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
     }
