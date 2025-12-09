@@ -1,4 +1,4 @@
-const app = angular.module('app', []);
+﻿var app = angular.module('app', []);
 app.directive('button', function () {
     return {
         restrict: 'E',
@@ -16,12 +16,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            const updateModel = function (dateText) {
+            var updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            const options = {
+            var options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -51,24 +51,24 @@ app.directive('loading', ['$http', function ($http) {
 
 }]);
 app.filter("FormatDate", function () {
-    const re = /\/Date\(([0-9]*)\)\//;
+    var re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        const m = x.match(re);
-        if (m) return new Date(Number.parseInt(m[1]));
+        var m = x.match(re);
+        if (m) return new Date(parseInt(m[1]));
         else return null;
     };
 });
 
 app.service("svc", function ($http) {
     this.svc_ListLog = function (Form_No, Module_Code, Trans_ID) {
-
-        const param = {
+        var param = {
             Form_No: Form_No,
             Module_Code: Module_Code,
             Transaction_ID: Trans_ID
         };
+        console.log("Param history log: ", param);
 
-        const response = $http({
+        var response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -78,10 +78,11 @@ app.service("svc", function ($http) {
     }
 
     this.svc_POSubconListData = function (model) {
-        const param = {
+        var param = {
             model: model
-        };
-        const response = $http({
+        }
+        console.log('subcon', param);
+        var response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/POSubconListData",
             data: JSON.stringify(param),
@@ -92,12 +93,13 @@ app.service("svc", function ($http) {
     }
 
     this.svc_PIBListData = function (model) {
-        const param = {
+        var param = {
             model: model
-        };
-        const response = $http({
+        }
+        console.log('pib', param);
+        var response = $http({
             method: "post",
-            url: "/_layouts/15/WebServices/Commercials.asmx/PIBListData",
+            url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/PIBListData",
             data: JSON.stringify(param),
             dataType: "json"
         });
@@ -118,13 +120,13 @@ app.service("svc", function ($http) {
     }
 
     this.svc_LoadApproverRoles = function (ListName) {
-        const param = {
+        var param = {
             ListName: ListName
-        };
+        }
 
-        const response = $http({
+        var response = $http({
             method: "post",
-            url: "/_layouts/15/WebServices/Commercials.asmx/LoadApproverRoles",
+            url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/LoadApproverRoles",
             data: JSON.stringify(param),
             dataType: "json"
         });
@@ -146,9 +148,10 @@ app.service("svc", function ($http) {
     }
 
     this.svc_PlantOptions = function () {
-        const response = $http({
+        var param = {};
+        var response = $http({
             method: "post",
-            url: "/_layouts/15/WebServices/Master.asmx/PlantOptions",
+            url: "/_layouts/15/daikin.application/WebServices/Master.asmx/PlantOptions",
             data: {},
             dataType: "json"
         });
@@ -162,70 +165,20 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.showModal = 'none';
     $scope.colspan = 7;
 
-    const PostingStatus_M025 = [
-        { Code: '', Name: 'All' },
-        { Code: '8', Name: 'Draft' },
-        { Code: '1', Name: 'Submitted' },
-        { Code: '5', Name: 'Revised' },
-        { Code: '6', Name: 'Rejected' },
-        { Code: '7', Name: 'Approved' },
-        { Code: '4', Name: 'Waiting for Approval' },
-        { Code: '14', Name: 'Waiting for MIRO' },
-        { Code: '17', Name: 'Waiting for PEN' },
-        { Code: '18', Name: 'Completed' }
-    ];
-
-    const SearchBy_M025 = [
-        { Code: 'Form_No', Name: 'Nintex No' },
-        { Code: 'Requester_Name', Name: 'Requester' },
-        { Code: 'PIB_Number', Name: 'PIB Number' },
-        { Code: 'PEN_Number', Name: 'PEN Number' },
-        { Code: 'Remarks', Name: 'Remarks' }
-    ];
-
-    const FilterBy_M025 = [
-        { Code: 'Created_Time', Name: 'Created Date' },
-    ];
-
-    const PostingStatus_Default = [
-        { Code: '', Name: 'All' },
-        { Code: '1', Name: 'Posted' },
-        { Code: '0', Name: 'Pending SAP Post' },
-        { Code: '5', Name: 'Revised' },
-        { Code: '6', Name: 'Rejected' },
-        { Code: '7', Name: 'Approved' },
-        { Code: '8', Name: 'Draft' }
-    ];
-
-    const PostingStatus_M019 = [
-        { Code: '', Name: 'All' },
-        { Code: '3', Name: 'Generated' },
-        { Code: '4', Name: 'Pending for Approval' },
-        { Code: '11', Name: 'Pending for Submit Document' },
-        { Code: '12', Name: 'Waiting for Feedback Release' },
-        { Code: '13', Name: 'Waiting for Feedback MIGO' },
-        { Code: '14', Name: 'Waiting for Feedback MIRO' },
-        { Code: '5', Name: 'Revised' },
-        { Code: '6', Name: 'Rejected' },
-        { Code: '7', Name: 'Approved' },
-        { Code: '15', Name: 'Pending for Closing' }
-    ];
-
-
     const modal = document.getElementById("appModal");
-    globalThis.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            $scope.closeModal();
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            $scope.showModal = 'none';
         }
-    });
+    }
 
     $scope.GetModuleURL = function (Module_Code) {
-        if (Module_Code == 'M011')
-            return '/_layouts/15/daikin.application/Commercials/ServiceCost.aspx';
-        else if (Module_Code == 'M010')
-            return '/_layouts/15/daikin.application/Commercials/FOB.aspx';
-        else if (Module_Code == 'M025')
-            return '/Lists/PIB/NewForm.aspx'
+        if (Module_Code === "M025") {
+            return "/Lists/PIB/NewForm.aspx";
+        }
+        const ur1 = "/_layouts/15/daikin.application/Commercials";
+        const ur2 = Module_Code === "M011" ? "/ServiceCost.aspx" : "/FOB.aspx";
+        return ur1 + ur2;
     };
 
     $scope.CreateNewForm = function () {
@@ -274,64 +227,153 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.plant = {};
     $scope.dllPlants = [];
-    let init = true;
+    var init = true;
     $scope.onChangeDDLModule = function () {
         $scope.ddlPendingApprover = [];
         $scope.PendingApproverRole = {};
-        const code = $scope.Module.Code;
+
         try {
-            $scope.colspan = code === "M010" ? 7 : 5;
-            if (code === "M025") {
-                $scope.ddlPostingStatus = PostingStatus_M025;
-                $scope.ddlSearchBy = SearchBy_M025;
-                $scope.SearchBy = $scope.ddlSearchBy[0];
-                $scope.ddlFilterBy = FilterBy_M025;
-                $scope.FilterBy = $scope.ddlFilterBy[0];
-            } else if (code === "M019") {
-                $scope.ddlPostingStatus = PostingStatus_M019;
+            if ($scope.Module.Code == 'M010') { //FOB
+                $scope.colspan = 7;
             } else {
-                $scope.ddlPostingStatus = PostingStatus_Default;
+                $scope.colspan = 5;
+            }
+
+            if ($scope.Module.Code == 'M025') {
+                $scope.ddlPostingStatus = [
+                     //{ Code: "", Name: "Please Select" },
+                     { Code: '', Name: 'All' },
+                     { Code: '8', Name: 'Draft' },
+                     { Code: '1', Name: 'Submitted' },
+                     { Code: '5', Name: 'Revised' },
+                     { Code: '6', Name: 'Rejected' },
+                     { Code: '7', Name: 'Approved' },
+                     { Code: '4', Name: 'Waiting for Approval' },
+                     { Code: '14', Name: 'Waiting for MIRO' },
+                     { Code: '17', Name: 'Waiting for PEN' },
+                     { Code: '18', Name: 'Completed' }
+
+                ];
+
+                $scope.ddlSearchBy = [
+                    { Code: 'Form_No', Name: 'Nintex No' },
+                    { Code: 'Requester_Name', Name: 'Requester' },
+                    { Code: 'PIB_Number', Name: 'PIB Number' },
+                    { Code: 'PEN_Number', Name: 'PEN Number' },
+                    { Code: 'Remarks', Name: 'Remarks' },
+                ];
+                $scope.SearchBy = $scope.ddlSearchBy[0];
+
+                $scope.ddlFilterBy = [
+                //{ Code: "", Name: "Please Select" },
+                { Code: 'Created_Time', Name: 'Created Date' },
+                ];
+                $scope.FilterBy = $scope.ddlFilterBy[0];
+
+            }
+            else if ($scope.Module.Code !== 'M019') {
+                $scope.ddlPostingStatus = [
+                    //{ Code: "", Name: "Please Select" },
+                    { Code: '', Name: 'All' },
+                    { Code: '1', Name: 'Posted' },
+                    { Code: '0', Name: 'Pending SAP Post' },
+                    { Code: '5', Name: 'Revised' },
+                    { Code: '6', Name: 'Rejected' },
+                    { Code: '7', Name: 'Approved' },
+                    { Code: '8', Name: 'Draft' },
+                ];
+            } else {
+                $scope.ddlPostingStatus = [
+                    { Code: '', Name: 'All' },
+                    { Code: '3', Name: 'Generated' },
+                    { Code: '4', Name: 'Pending for Approval' },
+                    { Code: '11', Name: 'Pending for Submit Document' },
+                    { Code: '12', Name: 'Waiting for Feedback Release' },
+                    { Code: '13', Name: 'Waiting for Feedback MIGO' },
+                    { Code: '14', Name: 'Waiting for Feedback MIRO' },
+                    { Code: '5', Name: 'Revised' },
+                    { Code: '6', Name: 'Rejected' },
+                    { Code: '7', Name: 'Approved' },
+                    { Code: '15', Name: 'Pending for Closing' },
+                ];
+
             }
             $scope.PostingStatus = $scope.ddlPostingStatus[0];
+
+
             if (!init) $scope.GetModuleOptions($scope.Module.Code);
+
+            //if ($scope.Module.List_Approval !== undefined) {
+            //    var proc = svc.svc_LoadApproverRoles($scope.Module.List_Approval);
+            //    proc.then(function (response) {
+            //        var data = JSON.parse(response.data.d);
+            //        if (data.ProcessSuccess) {
+            //            $scope.ddlPendingApprover = data.listApproverRole;
+            //            console.log('Pending Approver', data.listApproverRole);
+            //            $scope.PendingApproverRole = data.listApproverRole[0];
+
+            //            const IsPlant = ['M010', 'M011'].indexOf($scope.Module.Code) >= 0
+
+            //            if (IsPlant) $scope.GetPlantOptions();
+
+            //        } else {
+            //            alert(`onChangeDDLModule: ${data.InfoMessage}`)
+            //            console.log(data);
+            //        }
+            //    }, function (data, status) {
+            //        console.log(data.statusText + ' - ' + data.data.Message);
+            //    });
+            //}
+
         } catch (e) {
             console.log(e.message);
         }
-    };
+    }
+
+    function getParameterByName(name) {
+        var url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
 
     $scope.getSelectedClass = function (entity) {
         return $scope.isSelected(entity.Item_ID) ? 'selected' : '';
     };
 
     $scope.selectAll = function ($event) {
-        const checkbox = $event.target;
-        const action = (checkbox.checked ? 'add' : 'remove');
-        for (let entity of $scope.Items) {
-            if (entity.Current_Index_Approver === 2) {
+        var checkbox = $event.target;
+        var action = (checkbox.checked ? 'add' : 'remove');
+        for (var i = 0; i < $scope.Items.length; i++) {
+            var entity = $scope.Items[i];
+            if (entity.Current_Index_Approver == 2) {
                 updateSelected(action, entity.Item_ID);
             }
         }
     };
     $scope.isSelected = function (id) {
-        return $scope.selected.includes(id);
+        return $scope.selected.indexOf(id) >= 0;
     };
 
     $scope.isSelectedAll = function () {
         return $scope.selected.length === $scope.Items.length;
     };
 
-    const updateSelected = function (action, id) {
-        if (action === 'add' && !$scope.selected.includes(id)) {
+    var updateSelected = function (action, id) {
+        if (action === 'add' && $scope.selected.indexOf(id) === -1) {
             $scope.selected.push(id);
         }
-        if (action === 'remove' && $scope.selected.includes(id)) {
+        if (action === 'remove' && $scope.selected.indexOf(id) !== -1) {
             $scope.selected.splice($scope.selected.indexOf(id), 1);
         }
     };
 
     $scope.updateSelection = function ($event, id) {
-        const checkbox = $event.target;
-        const action = (checkbox.checked ? 'add' : 'remove');
+        var checkbox = $event.target;
+        var action = (checkbox.checked ? 'add' : 'remove');
         updateSelected(action, id);
     };
 
@@ -342,9 +384,11 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.ApproverLog = function (obj) {
         $scope.showModal = 'block';
-        const proc = svc.svc_ListLog(obj.Form_No, $scope.Module.Code, obj.ID);
+        const item_id = obj.Module_Code == "M026" ? obj.Item_ID : obj.ID;
+        var proc = svc.svc_ListLog(obj.Form_No, $scope.Module.Code, item_id);
+        console.log(obj);
         proc.then(function (response) {
-            const data = JSON.parse(response.data.d);
+            var data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 $scope.Logs = data.Logs;
@@ -355,10 +399,11 @@ app.controller('ctrl', function ($scope, svc) {
                 $scope.Approval_Status = obj.Approval_Status;
                 $scope.Approval_Status_Name = obj.Approval_Status_Name;
             } else {
+                console.log(`ApproverLog : ${data}`);
                 alert(data.InfoMessage);
             }
-        }, function (error, status) {
-            console.log(error.statusText + ' - ' + error.data.Message);
+        }, function (data, status) {
+            console.log(data.statusText + ' - ' + data.data.Message);
         });
 
     }
@@ -367,6 +412,8 @@ app.controller('ctrl', function ($scope, svc) {
         return arr.findIndex(item => item.Name === 'All');
     };
 
+    var arrBranch;
+
     $scope.Module = {};
     $scope.ddlModule = [];
     $scope.GetModuleOptions = function (module_code) {
@@ -374,6 +421,8 @@ app.controller('ctrl', function ($scope, svc) {
             const proc = svc.svc_GetOptions();
             proc.then(function (response) {
                 const data = JSON.parse(response.data.d);
+                console.log('Module Data: ', data);
+                console.log('Module URL: ', $scope.Module.Module_Url);
                 if (data.ProcessSuccess) {
                     $scope.ddlModule = [];
                     $scope.ddlModule = [...$scope.ddlModule, ...data.Items];
@@ -383,10 +432,25 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.PendingApproverRole = $scope.ddlPendingApprover[0];
                     $scope.dllPlants = data.listPlant;
                     $scope.plant = data.listPlant[0];
-                    const isSubcon = module_code === "M019" || module_code === "M026";
-                    $scope.ddlBranch = isSubcon ? data.listBranchSubcon : data.listBranch;
-                    $scope.Branch = $scope.ddlBranch[$scope.FindIndexAll($scope.ddlBranch)];
-                    $scope.Module = isSubcon ? $scope.Module[0] : $scope.ddlModule.find(m => m.Code === module_code);
+                    arrBranch = data.listBranch;
+                    if ((module_code == 'M019') || (module_code == 'M026'))
+                        $scope.ddlBranch = data.listBranchSubcon;
+                    else
+                        $scope.ddlBranch = data.listBranch;
+                    if (data.Branch == '') {
+                        $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
+                    } else {
+                        if ((module_code == 'M019') || (module_code == 'M026')) {
+                            $scope.Branch = data.listBranchSubcon[$scope.FindIndexAll(data.listBranchSubcon)];
+                        } else {
+                            $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
+                        }
+                    }
+                    if ((module_code == 'M019') || (module_code == 'M026')) {
+                        $scope.Module = $scope.ddlModule[0];
+                    } else {
+                        $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
+                    }
                 }
                 else {
                     console.log(`GetModuleOptions : ${data}`);
@@ -404,7 +468,7 @@ app.controller('ctrl', function ($scope, svc) {
         const proc = svc.svc_PlantOptions();
 
         proc.then(function (response) {
-            const data = JSON.parse(response.data.d);
+            var data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 $scope.dllPlants = data.listPlant;
@@ -414,8 +478,8 @@ app.controller('ctrl', function ($scope, svc) {
                 console.log(`GetPlantOptions : ${data}`);
                 alert(data.InfoMessage);
             }
-        }, function (error) {
-            console.error(error.statusText + ' - ' + error.data.Message);
+        }, function (data) {
+            console.error(data.statusText + ' - ' + data.data.Message);
         });
     }
 
@@ -423,10 +487,10 @@ app.controller('ctrl', function ($scope, svc) {
         if (x == null)
             return x;
 
-        const re = /\/Date\(([0-9]*)\)\//;
-        const m = x.match(re);
+        var re = /\/Date\(([0-9]*)\)\//;
+        var m = x.match(re);
         if (m)
-            return new Date(Number.parseInt(m[1]));
+            return new Date(parseInt(m[1]));
         else
             return null;
     }
@@ -438,12 +502,15 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.Keywords = '';
     $scope.GrandTotal = 0;
     $scope.ListData = function (PageIndex) {
-        const TableName = $scope.Module.Table_Name;
-        const FilterBy = $scope.FilterBy.Code;
-        const StartDate = $scope.Date.Start;
-        const EndDate = $scope.Date.End;
-        const Branch = $scope.Branch.Name === "All" ? "" : $scope.Branch.Name;
-        const param = {
+        var TableName = $scope.Module.Table_Name;
+        var FilterBy = $scope.FilterBy.Code;
+        var StartDate = $scope.Date.Start;
+        var EndDate = $scope.Date.End;
+        var Branch = $scope.Branch.Name;
+        if (Branch == 'All') {
+            Branch = '';
+        }
+        var param = {
             TableName: TableName,
             FilterBy: FilterBy,
             Plant_Code: $scope.plant.Code,
@@ -458,18 +525,20 @@ app.controller('ctrl', function ($scope, svc) {
             ModuleId: $scope.Module.Code,
             PendingApproverRoleID: $scope.PendingApproverRole.Position_ID == undefined ? 999 : $scope.PendingApproverRole.Position_ID,
         };
+        // console.log(param);
         if ($scope.Module.Code == 'M010' || $scope.Module.Code == 'M011') { //FOB or LC
             if (TableName != undefined) {
                 const proc = svc.svc_ListData(param);
                 proc.then(function (response) {
                     const data = JSON.parse(response.data.d);
+                    console.log(data);
                     if (data.ProcessSuccess) {
                         $scope.GrandTotal = data.GrandTotal;
                         $scope.Total = 0;
                         $scope.Items = data.Items;
-                        for (let x in $scope.Items) {
+                        for (x in $scope.Items) {
                             $scope.Total += $scope.Items[x].Grand_Total;
-                            for (let y in $scope.Items[x]) {
+                            for (y in $scope.Items[x]) {
                                 if (y.endsWith('Date')) {
                                     $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
                                 }
@@ -487,23 +556,26 @@ app.controller('ctrl', function ($scope, svc) {
                         console.log(`ListData : ${data}`);
                         alert(data.InfoMessage);
                     }
-                }, function (error, status) {
-                    console.log(error);
-                    alert(error.statusText + ' - ' + error.data.Message);
+                }, function (data, status) {
+                    console.log(data);
+                    alert(data.statusText + ' - ' + data.data.Message);
                 });
 
             }
         }
         else if ($scope.Module.Code == 'M025') { //PIB
             param.PendingApproverRoleID = $scope.PendingApproverRole.Position_ID;
-            const proc = svc.svc_PIBListData(param);
+
+            var proc = svc.svc_PIBListData(param);
             proc.then(function (response) {
-                const data = JSON.parse(response.data.d);
+                var data = JSON.parse(response.data.d);
+                console.log(data);
 
                 if (data.ProcessSuccess) {
                     $scope.GrandTotal = data.Total;
                     $scope.Total = 0;
                     $scope.ItemsPIB = data.Items;
+
                     $(".Pager").ASPSnippets_Pager({
                         ActiveCssClass: "current",
                         PagerCssClass: "pager",
@@ -512,17 +584,18 @@ app.controller('ctrl', function ($scope, svc) {
                         RecordCount: data.RecordCount
                     });
                 }
-            }, function (error, status) {
-                console.log(error);
-                alert(error.statusText + ' - ' + error.data.Message);
+            }, function (data, status) {
+                console.log(data);
+                alert(data.statusText + ' - ' + data.data.Message);
             });
         }
         else {
             param.PendingApproverRoleID = $scope.PendingApproverRole.Position_ID;
 
-            const proc = svc.svc_POSubconListData(param);
+            var proc = svc.svc_POSubconListData(param);
             proc.then(function (response) {
-                const data = JSON.parse(response.data.d);
+                var data = JSON.parse(response.data.d);
+                console.log(data);
                 if (data.ProcessSuccess) {
                     $scope.GrandTotal = data.GrandTotal;
                     $scope.Total = 0;
@@ -536,9 +609,9 @@ app.controller('ctrl', function ($scope, svc) {
                         RecordCount: data.RecordCount
                     });
                 }
-            }, function (error, status) {
-                console.log(error);
-                alert(error.statusText + ' - ' + error.data.Message);
+            }, function (data, status) {
+                console.log(data);
+                alert(data.statusText + ' - ' + data.data.Message);
             });
 
         }
@@ -547,11 +620,11 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.Search = function () {
         $scope.ListData(1);
-    };
+    }
 
 
     $("body").on("click", ".Pager .page", function () {
-        $scope.ListData(Number.parseInt($(this).attr('page')));
+        $scope.ListData(parseInt($(this).attr('page')));
     });
 
     $scope.SearchHelper = function (keyEvent) {
@@ -563,7 +636,7 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.loadPage = function () {
         try {
-            $scope.GetModuleOptions('M019');
+            $scope.GetModuleOptions('M026');
             $scope.onChangeDDLModule();
             if (init) {
                 $scope.ddlPostingStatus = [
