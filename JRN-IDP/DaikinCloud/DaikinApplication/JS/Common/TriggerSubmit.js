@@ -222,7 +222,7 @@ function setAttachmentSelfie(Item_ID) {
 }
 
 function getApprover(ListName, ListItemID) {
-    param = {
+    const param = {
         ListName: ListName,
         ListItemID: ListItemID,
     };
@@ -288,11 +288,7 @@ function SaveApproval(approvalValue, ListName, ListItemID) {
     }
 }
 function SaveApprovalNonCom(approvalValue, ListName, ListItemID, HeaderID) {
-    //var approvalComment = NWF$("#" + Comment).val();
-    //if (approvalComment != "" && approvalComment != null && approvalComment == undefined) {
-
-    //}
-    param = {
+    const param = {
         approvalValue: approvalValue,
         ListName: ListName,
         ListItemID: ListItemID,
@@ -420,7 +416,6 @@ function PopUp_ShowDialog(shownPopup, module, currentRow) {
             { db_col: "Partner_Bank", name: "Partner Bank" },
         ];
 
-        //trgtID = ["VendorName", "VendorNumber", "BankKey", "BankAccountNo", "BankAccountName", "BankName", "PartnerBank"];
         trgtID = ["VendorName"];
         trgtCol = ["Vendor_Name"];
     }
@@ -556,9 +551,6 @@ function PopUp_List(PageIndex, SearchBy, Keywords, SelectedItem) {
         async: true,
         success: function (data) {
             const tBodyHTML = document.getElementById("PopUp_TableBody");
-            //while (tBodyHTML.firstChild) {
-            //    tBodyHTML.removeChild(tBodyHTML.lastChild);
-            //}
             $('#PopUp_TableBody').html('');
 
             var jsonData = JSON.parse(data.d);
@@ -578,14 +570,6 @@ function PopUp_List(PageIndex, SearchBy, Keywords, SelectedItem) {
                     var value = values.filter(e => e.Key == data.db_col)[0].Value;
                     if (typeof value === 'string' && value.indexOf("/Date(") >= 0) {
                         value = value.substring(6, 19);
-
-                        //if (isAvail_momentJs) {
-                        //    var formattedDate = moment(parseInt(value)).format("YYYY-MM-DD hh:mm:ss");
-                        //    dataCol.innerHTML = formattedDate;
-                        //} else if (isBase) {
-                        //    var formattedDate = UNIXTimeStampeToSQLDate(parseInt(value));
-                        //    dataCol.innerHTML = formattedDate;
-                        //}
                     } else {
                         dataCol.innerHTML = value;
                     }
@@ -645,7 +629,6 @@ function PopUp_SelectItem(id) {
         }
     }
     else if (moduleName == "ANC Vendor Bank") {
-        //console.log('606', moduleName, id)
         $.each(trgtCol, function (index, values) {
             var resultValue;
             if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
@@ -656,9 +639,6 @@ function PopUp_SelectItem(id) {
                 resultValue = "";
             }
             console.log('606', resultValue, trgtID[index], moduleName)
-
-            //var resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
-
             if (typeof resultValue === 'string' && resultValue.startsWith('/Date(') && resultValue.endsWith(')/')) {
                 var timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
                 var formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });

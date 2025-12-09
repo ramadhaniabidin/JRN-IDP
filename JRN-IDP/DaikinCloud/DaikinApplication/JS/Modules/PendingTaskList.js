@@ -77,37 +77,41 @@ app.controller('ctrl', function ($scope, svc) {
         if (m) {
             jsondate = new Date(parseInt(m[1]));
             var date = new Date(jsondate);
-            year = date.getFullYear();
+            let year = date.getFullYear();
 
-            month = date.getMonth();
-            months = {
+            let month = date.getMonth();
+            let months = {
                 mmmm: new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
                 mmm: new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
                 mm: new Array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"),
                 m: new Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"),
             };
 
-            d = date.getDate();
+            let d = date.getDate();
+            let dd;
             if (d < 10) dd = "0" + d;
             else dd = d;
 
-            day = date.getDay();
-            days = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+            let day = date.getDay();
+            let days = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
             //days = new Array('Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu');
 
-            H = date.getHours();
+            let H = date.getHours();
+            let HH;
             if (H < 10) HH = "0" + H;
             else HH = H;
 
-            M = date.getMinutes();
+            let M = date.getMinutes();
+            let MM;
             if (M < 10) MM = "0" + M;
             else MM = M;
 
-            S = date.getSeconds();
+            let S = date.getSeconds();
+            let SS;
             if (S < 10) SS = "0" + S;
             else SS = S;
 
-            format = format.replace("{yyyy}", year);
+            let format = format.replace("{yyyy}", year);
             format = format.replace("{mmmm}", months["mmmm"][month]);
             format = format.replace("{mmm}", months["mmm"][month]);
             format = format.replace("{mm}", months["mm"][month]);
@@ -136,13 +140,10 @@ app.controller('ctrl', function ($scope, svc) {
             proc.then(function (response) {
                 var data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
-                    // console.log(data);
-                    console.log(data);
-
                     $scope.PendingTasks = data.data;
 
-                    for (x in $scope.PendingTasks) {
-                        for (y in $scope.PendingTasks[x]) {
+                    for (let x in $scope.PendingTasks) {
+                        for (let y in $scope.PendingTasks[x]) {
                             if (y.endsWith('Date')) {
                                 $scope.PendingTasks[x][y] = $scope.ConvertJSONDate($scope.PendingTasks[x][y]);
                             }
