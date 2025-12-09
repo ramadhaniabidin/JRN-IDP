@@ -15,7 +15,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
     public class PIBController
     {
         DataTable dt = new DataTable();
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         private readonly NintexCloudManager nintexCloudManager = new NintexCloudManager();
@@ -53,10 +53,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 GrandTotal = Convert.ToDecimal(db.cmd.Parameters["@GrandTotal"].Value);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<PIBModel>(dt) : new List<PIBModel>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
