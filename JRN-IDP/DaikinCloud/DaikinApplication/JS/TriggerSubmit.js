@@ -38,7 +38,7 @@ function getApprover(ListName, ListItemID) {
 }
 
 function SaveApproval(approvalValue, ListName, ListItemID) {
-    param = {
+    const param = {
         approvalValue: approvalValue,
         ListName: ListName,
         ListItemID: ListItemID,
