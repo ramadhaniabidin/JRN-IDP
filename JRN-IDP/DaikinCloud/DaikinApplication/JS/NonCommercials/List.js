@@ -433,9 +433,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     }
                     $scope.Items = data.Items;
 
-                    for (x in $scope.Items) {
+                    for (let x in $scope.Items) {
                         $scope.Total += $scope.Items[x].Grand_Total;
-                        for (y in $scope.Items[x]) {
+                        for (let y in $scope.Items[x]) {
                             if (y.endsWith('Date')) {
                                 $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
                             }
