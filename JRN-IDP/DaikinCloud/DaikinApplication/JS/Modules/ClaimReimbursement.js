@@ -151,9 +151,7 @@ app.service("svc", function ($http) {
         var param = {
             Form_No: Trans_ID,
             Module_Code: Module_Code,
-        }
-
-        // console.log(param);
+        };
 
         var response = $http({
             method: "post",
@@ -165,11 +163,7 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ListLogByTransID = function (Transaction_ID, Module_Code) {
-
-        var param = { Transaction_ID, Module_Code }
-
-        // console.log(param);
-
+        var param = { Transaction_ID, Module_Code };
         var response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/GetHistoryLogByTransactionID",
@@ -345,9 +339,7 @@ app.controller('ctrl', function ($scope, svc) {
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.ddlModule = [...$scope.ddlModule, ...data.Items];
-                //$scope.Module = $scope.ddlModule[0];
                 var module_code = GetQueryString()['module'];
-
                 $scope.ddlBranch = data.listBranch;
                 console.log('GetModuleOptions - Branch: ', data.Branch);
                 var br = data.Branch;
@@ -370,9 +362,6 @@ app.controller('ctrl', function ($scope, svc) {
                 } else {
                     $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
                 }
-
-                //if (!!x)
-                //x();
             }
         }, function (data, status) {
             console.log(data.statusText + ' - ' + data.data.Message);
@@ -400,7 +389,6 @@ app.controller('ctrl', function ($scope, svc) {
     }
 
     $scope.ddlFilterBy = [
-        //{ Code: "", Name: "Please Select" },
         { Code: 'Created_Date', Name: 'Created Date' },
         { Code: 'Approval_Date', Name: 'Approval Date' },
         { Code: 'MIRO_Date', Name: 'MIRO Date' },
@@ -411,7 +399,6 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.FilterBy = $scope.ddlFilterBy[0];
 
     $scope.ddlPaymentStatus = [
-        //{ Code: "", Name: "Please Select" },
         { Code: '', Name: 'All' },
         { Code: '1', Name: 'Paid' },
         { Code: '0', Name: 'Unpaid' },
@@ -420,7 +407,6 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.PaymentStatus = $scope.ddlPaymentStatus[0];
 
     $scope.ddlPostingStatus = [
-        //{ Code: "", Name: "Please Select" },
         { Code: '', Name: 'All' },
         { Code: '1', Name: 'Submitted' },
         { Code: '4', Name: 'Pending Approval' },
@@ -530,8 +516,6 @@ app.controller('ctrl', function ($scope, svc) {
         var param = {
             TableName: TableName,
             FilterBy: FilterBy,
-            //StartDate: StartDate.toISOString().split('T')[0],
-            //EndDate: EndDate.toISOString().split('T')[0],
             StartDate: StartDate,
             EndDate: EndDate,
             PageIndex: PageIndex,
@@ -542,8 +526,6 @@ app.controller('ctrl', function ($scope, svc) {
             BranchName: Branch,
             ListName: listName,
             PendingApproverRole: $scope.PendingApprovalRole.Code,
-            //RequestorDepartment: RequestorDepartment
-            //CurrentLogin: 'daikin\\urohman',
         }; 
          
 
@@ -558,9 +540,9 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.Total = 0;
                     $scope.Items = data.Items;
 
-                    for (x in $scope.Items) {
+                    for (let x in $scope.Items) {
                         $scope.Total += $scope.Items[x].Grand_Total;
-                        for (y in $scope.Items[x]) {
+                        for (let y in $scope.Items[x]) {
                             if (y.endsWith('Date')) {
                                 $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
                             }
@@ -613,11 +595,5 @@ app.controller('ctrl', function ($scope, svc) {
             $scope.Search();
         }
     };
-
-
-    //setTimeout(function(){ 
-    //    $scope.Search();
-    //}, 3000);
-
 
 });
