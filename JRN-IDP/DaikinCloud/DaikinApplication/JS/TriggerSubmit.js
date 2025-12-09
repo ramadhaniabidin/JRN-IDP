@@ -4,7 +4,7 @@
 });
 
 function getApprover(ListName, ListItemID) {
-    param = {
+    const param = {
         ListName: ListName,
         ListItemID: ListItemID,
     };
