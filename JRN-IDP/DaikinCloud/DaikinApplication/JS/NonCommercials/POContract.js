@@ -1154,31 +1154,7 @@ app.controller("ctrl", function ($scope, svc) {
         $scope.Header.Detail[i].Materials[j].Cost_Center = data;
     };
 
-    //$scope.POWithContractCopyingMaterial = (i,j) => {
-    //    return new Promise((resolve,reject) => {
-    //        const newMaterial = angular.copy($scope.Header.Detail[i].Materials[j]);
-    //        newMaterial.CostCenter.Branches = "";
-    //        newMaterial.CostCenter.Business_Area = "";
-    //        newMaterial.CostCenter.Code = "";
-    //        newMaterial.CostCenter.Cost_Center = "";
-    //        newMaterial.CostCenter.Description = "";
-    //        newMaterial.CostCenter.Name = "";
-    //        newMaterial.Qty = 1;
-    //        newMaterial.Text = "";
-    //        newMaterial.WHT = false;
-    //        newMaterial.Cost_Center = "";
-
-    //        $scope.Header.Detail[i].Materials.push(newMaterial);
-    //        resolve("Copying material..");
-    //    })
-    //}
-
     $scope.POWithContractCopyMaterial = (i, j) => {
-        //async function checkRequestdata() {
-        //    const newData = await $scope.POWithContractCopyingMaterial(i,j);
-        //    console.log(newData)
-        //}
-        //checkRequestdata();
         const newMaterial = angular.copy($scope.Header.Detail[i].Materials[j]);
         newMaterial.CostCenter.Branches = "";
         newMaterial.CostCenter.Business_Area = "";
@@ -1260,23 +1236,7 @@ app.controller("ctrl", function ($scope, svc) {
                         var data = JSON.parse(response.data.d);
                         console.log(data);
                         if (data.ProcessSuccess) {
-
-                            // data.Detail.Create_PO_From_Period = DateFormat_ddMMMyyyy(new Date(new Date().setDate(1)));
-                            // data.Detail.Create_PO_To_Period = DateFormat_ddMMMyyyy(new Date());
-                            // data.Detail.Period_Start = $scope.ConvertJSONDate(data.Detail.Period_Start);
-                            // data.Detail.Period_End = $scope.ConvertJSONDate(data.Detail.Period_End);
                             data.Detail.Remark = valDetail;
-
-                            //$scope.CostCenters = [];
-                            //const diffCostCenter = data.CostCenter.filter(
-                            //    ({ Code: val1 }) =>
-                            //        !$scope.CostCenters.some(({ Code: val2 }) => val1 == val2)
-                            //);
-
-                            //diffCostCenter.forEach((o) => {
-                            //    $scope.CostCenters.push(o);
-                            //});
-
                             const checkData = (datas) => {
                                 if (Array.isArray(datas)) {
                                     datas.forEach((obj) => {
@@ -1301,7 +1261,7 @@ app.controller("ctrl", function ($scope, svc) {
                                         }
                                     });
                                 } else {
-                                    for (objProp in datas) {
+                                    for (let objProp in datas) {
                                         if (objProp.match("Create_PO_From_Period"))
                                             datas[objProp] = DateFormat_ddMMMyyyy(
                                                 new Date(new Date().setDate(1))
@@ -1453,7 +1413,6 @@ app.controller("ctrl", function ($scope, svc) {
                 function (response) {
                     var data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
-                        // console.log(data);
                         $scope.Branches = data.Branches;
                         $scope.Branch = data.Branches[0];
 
@@ -1548,9 +1507,6 @@ app.controller("ctrl", function ($scope, svc) {
 
         $scope.RemarkSelected = [];
         $scope.Remarks = [];
-
-        //$scope.
-
         $scope.POWithContractGetVendor();
 
         $scope.POWithContractGetMarketingCategory();
@@ -1565,18 +1521,11 @@ app.controller("ctrl", function ($scope, svc) {
             function (response) {
                 var data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
-                    console.log(data);
-                    //const UserProceDept = $scope.FilterArrayName(
-                    //    data.UserProcDepts,
-                    //    data.ContractUserProcDepts
-                    //);
                     const UserProceDept = data.UserProcDepts;
-                    console.log("User Procurement Departments : ", UserProceDept);
                     $scope.User.Name = data.CurrentLoginName;
                     $scope.User.Email = data.CurrentLoginEmail;
                     $scope.ProcurementDepartments = UserProceDept;
                     $scope.ProcurementDepartment = UserProceDept[0];
-
                     $scope.IsUserPOCreated = false;
 
                     $scope.ResetHeader();
@@ -1618,135 +1567,6 @@ app.controller("ctrl", function ($scope, svc) {
             alert(e.message);
         }
     };
-
-    //$scope.POWithContractGetDataById = () => {
-    //    try {
-    //        var id = GetQueryString()["ID"]; //Nintex No
-
-    //        if (id != undefined) {
-    //            const proc = svc.svc_POWithContractGetDataById(id);
-    //            let data = JSON.parse(proc.data.d);
-    //            if (data.ProcessSuccess) {
-    //                console.log(data);
-
-    //                const formattingDate = (vals) => {
-    //                    if (Array.isArray(vals)) {
-    //                        vals.map((val) => {
-    //                            for (let header in val) {
-    //                                if (header.match("Create_PO_From_Period")) {
-    //                                    val[header] = $scope.ConvertJSONDate(val[header]);
-    //                                } else if (header.match("Create_PO_To_Period")) {
-    //                                    val[header] = $scope.ConvertJSONDate(val[header]);
-    //                                } else if (header.match("Period_Start")) {
-    //                                    val[header] = $scope.ConvertJSONDate(val[header]);
-    //                                } else if (header.match("Period_End")) {
-    //                                    val[header] = $scope.ConvertJSONDate(val[header]);
-    //                                } else if (header.endsWith("Date")) {
-    //                                    val[header] = $scope.ConvertJSONDate(val[header]);
-    //                                }
-
-    //                                if (Array.isArray(val[header])) formattingDate(val[header]);
-    //                            }
-    //                        });
-    //                    } else {
-    //                        for (let header in vals) {
-    //                            if (header.match("Create_PO_From_Period")) {
-    //                                vals[header] = $scope.ConvertJSONDate(vals[header]);
-    //                            } else if (header.match("Create_PO_To_Period")) {
-    //                                vals[header] = $scope.ConvertJSONDate(vals[header]);
-    //                            } else if (header.match("Period_Start")) {
-    //                                vals[header] = $scope.ConvertJSONDate(vals[header]);
-    //                            } else if (header.match("Period_End")) {
-    //                                vals[header] = $scope.ConvertJSONDate(vals[header]);
-    //                            } else if (header.endsWith("Date")) {
-    //                                vals[header] = $scope.ConvertJSONDate(vals[header]);
-    //                            }
-
-    //                            if (Array.isArray(vals[header])) formattingDate(vals[header]);
-    //                        }
-    //                    }
-    //                };
-    //                formattingDate(data.Header);
-    //                $scope.Header = data.Header;
-
-    //                $scope.Vendors = data.Vendors;
-    //                data.Vendors.map((i) => {
-    //                    if (i.Code == data.Header.Vendor_Code) $scope.Vendor = i;
-    //                });
-
-    //                $scope.Branches = data.Branches;
-    //                data.Branches.map((i) => {
-    //                    if (i.Name == data.Header.Branch) $scope.Branch = i;
-    //                });
-
-    //                $scope.Remarks = data.Remarks;
-    //                data.Remarks.map((i) => {
-    //                    $scope.Header.Detail.map((j, k) => {
-    //                        if (i.Name == j.Remarks_Contract)
-    //                            $scope.Header.Detail[k].Remark = i;
-    //                    });
-    //                });
-
-    //                $scope.MarketingCategories = data.MarketingCategories;
-    //                data.MarketingCategories.map((i) => {
-    //                    if (i.Name == data.Header.Marketing_Category_Name)
-    //                        $scope.MarketingCategory = i;
-    //                });
-
-    //                $scope.ProcurementDepartments = data.UserDepartment;
-    //                $scope.IsDepartment = false;
-    //                data.UserDepartment.map((i) => {
-    //                    if (i.Name == data.Header.Procurement_Department) {
-    //                        $scope.ProcurementDepartment = i;
-    //                        $scope.IsDepartment = true;
-    //                    }
-    //                });
-
-    //                const diffCostCenter = data.CostCenter.filter(
-    //                    ({ Name: val1 }) =>
-    //                        !$scope.CostCenters.some(({ Name: val2 }) => val1 == val2)
-    //                );
-
-    //                diffCostCenter.forEach((o) => {
-    //                    $scope.CostCenters.push(o);
-    //                });
-
-    //                // //data.forEach
-    //                data.CostCenter.map((i) => {
-    //                    $scope.Header.Detail.map((j, k) => {
-    //                        j.Materials.map((l, m) => {
-    //                            if (i.Name == l.Cost_Center)
-    //                                $scope.Header.Detail[k].Materials[m].CostCenter = i;
-    //                            // console.log(i);
-    //                        });
-    //                    });
-    //                });
-
-    //                $scope.IsCurrentApprover = data.IsCurrentApprover;
-    //                $scope.IsReceiverDocs = data.IsReceiverDocs;
-    //                $scope.IsRequestor = data.IsRequestor;
-    //                $scope.IsTaxVerifier = data.IsTaxVerifier;
-
-    //                $scope.IsDocumentReceived =
-    //                    data.Header.Document_Received == "0" ? false : true;
-
-    //                $scope.ApproverLog();
-    //                $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
-
-    //                $scope.POWithContractCheckStyle();
-    //                if (['Marketing Trade','Marketing Digital'].indexOf($scope.ProcurementDepartment.Name) >= 0) {
-    //                    $scope.InternalOrderIsShow = true;
-    //                }
-    //            } else {
-    //                console.error(data.statusText);
-    //            }
-    //        } else {
-    //            $scope.POWithContractGetData();
-    //        }
-    //    } catch (err) {
-    //        alert(err);
-    //    }
-    //};
 
     $scope.POWithContractGetDataById = () => {
         var id = GetQueryString()["ID"]; //Nintex No
@@ -1838,27 +1658,6 @@ app.controller("ctrl", function ($scope, svc) {
                         }
                     });
 
-                    //const diffCostCenter = data.CostCenter.filter(
-                    //               ({ Name: val1 }) =>
-                    //                   !$scope.CostCenters.some(({ Name: val2 }) => val1 == val2)
-                    //           );
-
-                    //diffCostCenter.forEach((o) => {
-                    //    $scope.CostCenters.push(o);
-                    //});
-
-
-                    //// //data.forEach
-                    //data.CostCenter.map((i) => {
-                    //    $scope.Header.Detail.map((j, k) => {
-                    //        j.Materials.map((l, m) => {
-                    //            if (i.Name == l.Cost_Center)
-                    //                $scope.Header.Detail[k].Materials[m].CostCenter = i;
-                    //            // console.log(i);
-                    //        });
-                    //    });
-                    //});
-
                     $scope.IsCurrentApprover = data.IsCurrentApprover;
                     $scope.IsReceiverDocs = data.IsReceiverDocs;
                     $scope.IsRequestor = data.IsRequestor;
@@ -1887,20 +1686,4 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetDataById();
-
-    // Count group
-    // const countSelected = $scope.RemarkSelected.reduce((cur,val) => {
-    //     let code = val.Code.replace(" ", "_");
-    //     if (!cur.hasOwnProperty(code)) {
-    //         cur[code] = 0;
-    //     }
-    //     cur[code]++;
-    //     return cur;
-    // }, {});
-
-    // var countsExtended = Object.keys(countSelected).map(k => {
-    //     return {name: k.replace("_", " "), count: countSelected[k]};
-    // });
-
-    // console.log(countsExtended);
 });
