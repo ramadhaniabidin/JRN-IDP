@@ -22,6 +22,7 @@ var ColumnToFilter = "";
 var FilterValue = "";
 var targetID_Detail = [];
 var targetCol_Detail = [];
+let totalItemCnt;
 
 NWF.FormFiller.Events.RegisterAfterReady(function () {
     console.log("Masuk Condition Business Relation")
@@ -185,7 +186,7 @@ function deleteRepeaterRow(NoRow) {
 }
 
 function setAttachmentSelfie(Item_ID) {
-    param = {
+    const param = {
         Item_ID: Item_ID,
     };
     console.log(param)

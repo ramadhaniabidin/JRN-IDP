@@ -202,7 +202,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ItemSelected = [];
         TotalChecked = 0;
 
-        for (x in $scope.Items) {
+        for (let x in $scope.Items) {
             //$scope.Items[x].check = $scope.Items[x].check ? false : true;
             if (!$scope.checkAll) {
                 $scope.Items[x].check = true;
@@ -307,12 +307,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.sumByCurrency = function (Curr) {
         var total = 0;
-        for (count = 0; count < $scope.ItemSelected.length; count++) {
+        for (let count = 0; count < $scope.ItemSelected.length; count++) {
             if ($scope.ItemSelected[count].Currency == Curr)
                 total += $scope.ItemSelected[count].Amount;
         }
         return total;
-    }
+    };
 
     $scope.SelectFile = function (file, obj) {
         obj.File_Name = file[0].name;
