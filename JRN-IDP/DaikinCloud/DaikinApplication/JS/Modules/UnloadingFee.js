@@ -23,6 +23,8 @@ var ColumnToFilter = "";
 var FilterValue = "";
 var targetID_Detail = [];
 var targetCol_Detail = [];
+let itemsRS_currSelected;
+let totalItemCnt;
 
 //var isAvail_momentJs = false;
 //try {
