@@ -861,7 +861,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     }
 
                     if (window.FileReader) {
-                        reader = new FileReader();
+                        let reader = new FileReader();
                         reader.onloadend = function (e) {
                             //showUploadedItem(e.target.result);
                         };
