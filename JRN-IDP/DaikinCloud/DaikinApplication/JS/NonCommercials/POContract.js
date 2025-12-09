@@ -1751,7 +1751,7 @@ app.controller("ctrl", function ($scope, svc) {
                 if (data.ProcessSuccess) {
                     const formattingDate = (vals) => {
                         if (Array.isArray(vals)) {
-                            vals.map((val) => {
+                            vals.forEach((obj) => {
                                 for (let header in val) {
                                     if (header.match("Create_PO_From_Period")) {
                                         val[header] = $scope.ConvertJSONDate(val[header]);
