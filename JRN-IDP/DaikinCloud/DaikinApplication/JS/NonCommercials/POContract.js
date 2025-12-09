@@ -495,7 +495,7 @@ app.controller("ctrl", function ($scope, svc) {
                 $scope.popUpTotalPageCount = jsonData.TotalPages;
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
-                for(i of jsonData.Logs) {
+                for (i of jsonData.Logs) {
                     var newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Cost Center': i.filter(x => x.Key == 'Cost_Center')[0].Value,
@@ -1271,20 +1271,25 @@ app.controller("ctrl", function ($scope, svc) {
 
                             const checkData = (datas) => {
                                 if (Array.isArray(datas)) {
-                                    datas.map((obj) => {
+                                    datas.forEach((obj) => {
                                         for (objProp in obj) {
+
                                             if (objProp.match("Create_PO_From_Period"))
                                                 obj[objProp] = DateFormat_ddMMMyyyy(
                                                     new Date(new Date().setDate(1))
                                                 );
+
                                             else if (objProp.match("Create_PO_To_Period"))
                                                 obj[objProp] = DateFormat_ddMMMyyyy(new Date());
+
                                             else if (objProp.includes("Period"))
                                                 obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
+
                                             else if (objProp.includes("Date"))
                                                 obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
 
-                                            if (Array.isArray(obj[objProp])) checkData(obj[objProp]);
+                                            if (Array.isArray(obj[objProp]))
+                                                checkData(obj[objProp]);
                                         }
                                     });
                                 } else {
@@ -1852,7 +1857,7 @@ app.controller("ctrl", function ($scope, svc) {
                     $scope.IsTaxVerifier = data.IsTaxVerifier;
 
                     $scope.IsDocumentReceived =
-                    data.Header.Document_Received == "0" ? false : true;
+                        data.Header.Document_Received == "0" ? false : true;
 
                     $scope.ApproverLog();
                     $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
