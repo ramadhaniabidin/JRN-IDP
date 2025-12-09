@@ -1,6 +1,5 @@
 ﻿using Daikin.BusinessLogics.Apps.ClaimReimbursement.Model;
 using Daikin.BusinessLogics.Apps.Commercials.Model;
-//using Daikin.BusinessLogics.Apps.Master.Model;
 using Daikin.BusinessLogics.Common;
 using Daikin.BusinessLogics.Common.Model;
 using System;
@@ -70,7 +69,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 {
                     return new CommonResponseModel { Success = false, Message = "Error occurred when retrieving Task Responder on Commercial_GetTaskResponder method" };
                 }
-                //new ListController().CustomFormUpdateApprover(HeaderID, ListName, taskResponder.UserName, taskResponder.FullName, Comment);
                 var transactionData = Aprroval.GetListDataIDByHeaderID_New(ListName, HeaderID);
                 var taskAssignmentResponse = nintexCloudManager.GetTaskAssignment(transactionData[0].NAC_Guid, Form_No);
                 if (!taskAssignmentResponse.Success || taskAssignmentResponse.TaskAssignments == null)
