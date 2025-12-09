@@ -13,7 +13,7 @@ namespace Daikin.BusinessLogics.Apps.Commercial.Controller
     public class InvoiceCommercialNumberController
     {
         DataTable dt = new DataTable();
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
 
@@ -38,10 +38,10 @@ namespace Daikin.BusinessLogics.Apps.Commercial.Controller
                 return Utility.ConvertDataTableToList<ICNModel>(dt);
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
         public List<InvoiceCommercialNumber> ListCommercialNumberOnly(string Keywords)
@@ -62,10 +62,10 @@ namespace Daikin.BusinessLogics.Apps.Commercial.Controller
                 return Utility.ConvertDataTableToList<InvoiceCommercialNumber>(dt);
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
