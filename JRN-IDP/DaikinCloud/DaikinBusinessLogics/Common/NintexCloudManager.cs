@@ -275,7 +275,7 @@ namespace Daikin.BusinessLogics.Common
             try
             {
                 var targetAssignment = task.TaskAssignments.FirstOrDefault(ta => ta.Assignee.ToLowerInvariant().Contains(assignee.ToLowerInvariant()));
-                if (string.IsNullOrEmpty(targetAssignment.Id))
+                if (targetAssignment == null || string.IsNullOrEmpty(targetAssignment.Id))
                 {
                     return new CommonResponseModel
                     {
