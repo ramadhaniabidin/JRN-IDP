@@ -174,8 +174,8 @@ app.controller('ctrl', function ($scope, svc) {
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.Items = data.Items;
-                for (x in $scope.Items) {
-                    for (y in $scope.Items[x]) {
+                for (let x in $scope.Items) {
+                    for (let y in $scope.Items[x]) {
                         if (y.endsWith('Date')) {
                             $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
                         }
