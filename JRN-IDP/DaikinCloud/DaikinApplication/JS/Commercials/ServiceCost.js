@@ -1044,145 +1044,270 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         console.log($scope.FilteredCondition, 'filtered ddl condition');
     };
 
+    $scope.ProcessRemarks = function (remarks) {
+        $scope.Remarks = remarks || [];
+        $scope.Remarks.forEach(r => {
+            r.Outcome = (r.Outcome === "True");
+        });
+    };
+
+    $scope.ProcessFlags = function (data) {
+        $scope.IsCurrentApprover = data.IsCurrentApprover;
+        $scope.IsTaxVerifier = data.IsTaxVerifier;
+        $scope.IsReceiverDocs = data.IsReceiverDocs;
+        const h = data.header;
+        $scope.IsRequestor = (h.Approval_Status === "5") && data.IsRequestor;
+        $scope.showWHT = data.IsTaxVerifier || h.Approval_Status === "7";
+
+        const isRevise = (h.Approval_Status === "5");
+        $scope.CanEdit = isRevise;
+        $scope.DisableActivate = !isRevise;
+        $scope.Val_Message = isRevise ? "" : undefined;
+
+        $scope.ApproverLog();
+    };
+
+    $scope.ProcessHeader = function (h) {
+        $scope.Header = {
+            ...$scope.Header,
+            ...h,
+            OA_Summary_Attachment: h.OA_Summary_Attachment,
+            OA_Summary_FileName: h.OA_Summary_FileName,
+            Document_Received: h.Document_Received,
+            Grand_Total: h.Grand_Total
+        };
+        $scope.IsDocumentReceived = (h.Document_Received !== "0");
+    };
+
+    $scope.ProcessDropDownValues = function (data) {
+        const h = data.header;
+        // Trading partner
+        $scope.ddlTradingPartner = data.listTradingPartner;
+        $scope.tradingPartner = $scope.ddlTradingPartner.find(o => o.Code == h.Trading_Partner_Code);
+        // Plant
+        $scope.ddlPlant = data.listPlant;
+        $scope.plant = $scope.ddlPlant.find(o => o.Code == h.Plant_Code);
+        // Expense type
+        $scope.ddlExpenseType = data.listExpenseType;
+        $scope.expenseType = $scope.ddlExpenseType.find(o => o.Name == h.Expense_Type_Name);
+        // Business place
+        $scope.ddlBussPlace = data.listBussPlace;
+        $scope.bussPlace = $scope.ddlBussPlace.find(o => o.Code == h.Buss_Place_Code);
+        // PPJK
+        $scope.ddlPPJK = data.listPPJK;
+        $scope.ppjk = $scope.ddlPPJK.find(o => o.Code == h.PPJK_Code);
+
+        // detail dropdowns
+        $scope.ddlVendor = data.listMasterVendor;
+        $scope.ddlWHT = data.listWHT;
+        $scope.ddlCondition = data.listConditionSC;
+        $scope.ddlVAT = data.listVAT;
+    };
+
+    $scope.ProcessDetails = function (details) {
+        if (!details) return;
+        $scope.Items = details.map(d => ({
+            No: d.No,
+            ID: d.ID,
+            Document_Date: d.Document_Date,
+            Ref_No: d.Ref_No,
+            Ref_Type: d.Ref_Type,
+            BL_No: d.BL_No,
+            FOB_No: d.FOB_No,
+
+            // Dropdowns
+            ddlVendor: $scope.ddlVendor,
+            ddlCondition: $scope.ddlCondition,
+            ddlWHT: $scope.ddlWHT,
+            ddlVAT: $scope.ddlVAT,
+
+            Freight_Cost: addCommas(d.Freight_Cost),
+
+            Vendor_No: d.Vendor_No,
+            Vendor_Name: d.Vendor_Name,
+            Vendor_Invoice_No: d.Vendor_Invoice_No,
+
+            Condition_ID: d.Condition_ID,
+            Condition_Code: d.Condition_Code,
+            Condition_Name: d.Condition_Name,
+
+            VAT_No: d.VAT_No,
+            VAT_Type: d.VAT_Type,
+            VAT_Percent: d.VAT_Percent,
+            VAT_Amount: d.VAT_Amount,
+
+            WHT_Type_Code: d.WHT_Type_Code,
+            WHT_Type_Name: d.WHT_Type_Name,
+            WHT_Amount: d.WHT_Amount,
+
+            Tax_Base_Amount: addCommas(d.Tax_Base_Amount),
+            Total_Amount: d.Total_Amount,
+            Text: d.Text,
+            File_Name: d.File_Name,
+            Attachment_URL: d.Attachment_URL
+        }));
+    };
+
     $scope.GetData = function () {
         try {
-            var id = GetQueryString()['ID']; //Nintex No
-            if (id != undefined) {
-                var proc = svc.svc_GetData(id);
-                proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
-                    console.log('Get data', data);
-                    if (data.ProcessSuccess) {
-                        var h = data.Header;
-                        var d = data.Details;
-                        $scope.Remarks = data.Remarks;
-
-                        for (var x = 0; x < data.Remarks.length; x++) {
-                            if (data.Remarks[x].Outcome == 'True') {
-                                $scope.Remarks[x].Outcome = true;
-                            }
-                        }
-                        $scope.IsCurrentApprover = data.IsCurrentApprover;
-                        console.log($scope.IsCurrentApprover, 'IsCurrentApprover');
-
-                        $scope.Header.OA_Summary_Attachment = h.OA_Summary_Attachment;
-                        $scope.Header.OA_Summary_FileName = h.OA_Summary_FileName;
-                        $scope.Header.ID = h.ID;
-                        $scope.Header.Form_No = h.Form_No;
-                        $scope.Header.Requester_Email = h.Requester_Email;
-                        $scope.Header.Requester_Name = h.Requester_Name;
-                        $scope.Header.Approval_Status = h.Approval_Status;
-                        $scope.Header.Approval_Status_Name = h.Approval_Status_Name;
-                        $scope.Header.PPJK_Category = h.PPJK_Category;
-                        $scope.Header.PPJK_Curr = h.PPJK_Curr;
-                        $scope.Header.Grand_Total = h.Grand_Total;
-                        $scope.Header.Item_ID = h.Item_ID;
-                        $scope.Header.Bank_Account_No = h.Bank_Account_No;
-                        $scope.IsDocumentReceived = h.Document_Received == '0' ? false : true;
-                        $scope.Header.Pending_Approver_Role_ID = h.Pending_Approver_Role_ID;
-                        $scope.Header.DIID_Invoice = h.DIID_Invoice;
-                        if ($scope.Header.Approval_Status == '5' && data.IsRequestor) {
-                            $scope.IsRequestor = true;
-                        }
-                        else {
-                            $scope.IsRequestor = false;
-                        }
-                        if ($scope.Header.Approval_Status == '5') { //Revise
-                            $scope.Val_Message = '';
-                        }
-
-                        console.log('isRequestor', data.IsRequestor);
-                        console.log('Header', $scope.Header);
-
-                        $scope.IsTaxVerifier = data.IsTaxVerifier;
-                        $scope.IsReceiverDocs = data.IsReceiverDocs;
-                        if (data.IsTaxVerifier || h.Approval_Status == '7') {
-                            $scope.showWHT = true;
-                        } else {
-                            $scope.showWHT = false;
-                        }
-
-                        $scope.ApproverLog();
-
-                        if (h.Approval_Status == '5') {
-                            $scope.CanEdit = true;
-                            $scope.DisableActivate = false;
-                        } else {
-                            $scope.CanEdit = false;
-                            $scope.DisableActivate = true;
-                        }
-
-
-                        $scope.ddlTradingPartner = data.listTradingPartner;
-                        $scope.tradingPartner = data.listTradingPartner.find(o => o.Code == h.Trading_Partner_Code);
-
-                        $scope.ddlPlant = data.listPlant;
-                        $scope.plant = data.listPlant.find(o => o.Code == h.Plant_Code);
-
-                        $scope.ddlExpenseType = data.listExpenseType;
-                        $scope.expenseType = data.listExpenseType.find(o => o.Name == h.Expense_Type_Name);
-                        $scope.ddlBussPlace = data.listBussPlace;
-                        $scope.bussPlace = data.listBussPlace.find(o => o.Code == h.Buss_Place_Code);
-                        $scope.ddlPPJK = data.listPPJK;
-                        $scope.ppjk = data.listPPJK.find(o => o.Code == h.PPJK_Code);
-
-
-                        //Details
-                        $scope.ddlVendor = data.listMasterVendor;
-                        $scope.ddlWHT = data.listWHT;
-                        $scope.ddlCondition = data.listConditionSC;
-                        $scope.ddlVAT = data.listVAT;
-
-                        for (x = 0; x < d.length; x++) {
-
-
-                            $scope.Items.push({
-                                No: d[x].No,
-                                ID: d[x].ID,
-                                Document_Date: d[x].Document_Date,
-                                Ref_No: d[x].Ref_No,
-                                Ref_Type: d[x].Ref_Type,
-                                BL_No: d[x].BL_No,
-                                FOB_No: d[x].FOB_No,
-                                ddlVendor: $scope.ddlVendor,
-                                ddlCondition: $scope.ddlCondition,
-                                Freight_Cost: addCommas(d[x].Freight_Cost),
-                                ddlWHT: $scope.ddlWHT,
-                                Vendor_No: d[x].Vendor_No,
-                                Vendor_Name: d[x].Vendor_Name,
-                                Vendor_Invoice_No: d[x].Vendor_Invoice_No,
-                                Condition_ID: d[x].Condition_ID,
-                                Condition_Code: d[x].Condition_Code,
-                                Condition_Name: d[x].Condition_Name,
-                                ddlVAT: $scope.ddlVAT,
-                                VAT_No: d[x].VAT_No,
-                                VAT_Type: d[x].VAT_Type,
-                                VAT_Percent: d[x].VAT_Percent,
-                                VAT_Amount: d[x].VAT_Amount,
-                                WHT_Type_Code: d[x].WHT_Type_Code,
-                                WHT_Type_Name: d[x].WHT_Type_Name,
-                                WHT_Amount: d[x].WHT_Amount,
-                                Tax_Base_Amount: addCommas(d[x].Tax_Base_Amount),
-                                Total_Amount: d[x].Total_Amount,
-                                Text: d[x].Text,
-                                File_Name: d[x].File_Name,
-                                Attachment_URL: d[x].Attachment_URL,
-                            });
-                        }
-
-                        console.log($scope.Items, 'Get Data Items');
-
-                    }
-                });
-
-            } else {
+            const id = GetQueryString()["ID"];
+            if (!id) {
                 $scope.LoadDDL();
+                return;
             }
-
+            svc.svc_GetData(id).then(response => {
+                const data = JSON.parse(response.data.d);
+                if (!data.ProcessSuccess) return;
+                $scope.ProcessRemarks(data.remarks);
+                $scope.ProcessFlags(data);
+                $scope.ProcessHeader(data.Header);
+                $scope.ProcessDropDownValues(data);
+                $scope.ProcessDetails(data.Details);
+            });
         } catch (e) {
             alert(e.message);
         }
     };
+
+    // $scope.GetData = function () {
+    //     try {
+    //         var id = GetQueryString()['ID']; //Nintex No
+    //         if (id != undefined) {
+    //             var proc = svc.svc_GetData(id);
+    //             proc.then(function (response) {
+    //                 var data = JSON.parse(response.data.d);
+    //                 console.log('Get data', data);
+    //                 if (data.ProcessSuccess) {
+    //                     var h = data.Header;
+    //                     var d = data.Details;
+    //                     $scope.Remarks = data.Remarks;
+
+    //                     for (var x = 0; x < data.Remarks.length; x++) {
+    //                         if (data.Remarks[x].Outcome == 'True') {
+    //                             $scope.Remarks[x].Outcome = true;
+    //                         }
+    //                     }
+    //                     $scope.IsCurrentApprover = data.IsCurrentApprover;
+    //                     console.log($scope.IsCurrentApprover, 'IsCurrentApprover');
+
+    //                     $scope.Header.OA_Summary_Attachment = h.OA_Summary_Attachment;
+    //                     $scope.Header.OA_Summary_FileName = h.OA_Summary_FileName;
+    //                     $scope.Header.ID = h.ID;
+    //                     $scope.Header.Form_No = h.Form_No;
+    //                     $scope.Header.Requester_Email = h.Requester_Email;
+    //                     $scope.Header.Requester_Name = h.Requester_Name;
+    //                     $scope.Header.Approval_Status = h.Approval_Status;
+    //                     $scope.Header.Approval_Status_Name = h.Approval_Status_Name;
+    //                     $scope.Header.PPJK_Category = h.PPJK_Category;
+    //                     $scope.Header.PPJK_Curr = h.PPJK_Curr;
+    //                     $scope.Header.Grand_Total = h.Grand_Total;
+    //                     $scope.Header.Item_ID = h.Item_ID;
+    //                     $scope.Header.Bank_Account_No = h.Bank_Account_No;
+    //                     $scope.IsDocumentReceived = h.Document_Received == '0' ? false : true;
+    //                     $scope.Header.Pending_Approver_Role_ID = h.Pending_Approver_Role_ID;
+    //                     $scope.Header.DIID_Invoice = h.DIID_Invoice;
+    //                     if ($scope.Header.Approval_Status == '5' && data.IsRequestor) {
+    //                         $scope.IsRequestor = true;
+    //                     }
+    //                     else {
+    //                         $scope.IsRequestor = false;
+    //                     }
+    //                     if ($scope.Header.Approval_Status == '5') { //Revise
+    //                         $scope.Val_Message = '';
+    //                     }
+
+    //                     console.log('isRequestor', data.IsRequestor);
+    //                     console.log('Header', $scope.Header);
+
+    //                     $scope.IsTaxVerifier = data.IsTaxVerifier;
+    //                     $scope.IsReceiverDocs = data.IsReceiverDocs;
+    //                     if (data.IsTaxVerifier || h.Approval_Status == '7') {
+    //                         $scope.showWHT = true;
+    //                     } else {
+    //                         $scope.showWHT = false;
+    //                     }
+
+    //                     $scope.ApproverLog();
+
+    //                     if (h.Approval_Status == '5') {
+    //                         $scope.CanEdit = true;
+    //                         $scope.DisableActivate = false;
+    //                     } else {
+    //                         $scope.CanEdit = false;
+    //                         $scope.DisableActivate = true;
+    //                     }
+
+
+    //                     $scope.ddlTradingPartner = data.listTradingPartner;
+    //                     $scope.tradingPartner = data.listTradingPartner.find(o => o.Code == h.Trading_Partner_Code);
+
+    //                     $scope.ddlPlant = data.listPlant;
+    //                     $scope.plant = data.listPlant.find(o => o.Code == h.Plant_Code);
+
+    //                     $scope.ddlExpenseType = data.listExpenseType;
+    //                     $scope.expenseType = data.listExpenseType.find(o => o.Name == h.Expense_Type_Name);
+    //                     $scope.ddlBussPlace = data.listBussPlace;
+    //                     $scope.bussPlace = data.listBussPlace.find(o => o.Code == h.Buss_Place_Code);
+    //                     $scope.ddlPPJK = data.listPPJK;
+    //                     $scope.ppjk = data.listPPJK.find(o => o.Code == h.PPJK_Code);
+
+
+    //                     //Details
+    //                     $scope.ddlVendor = data.listMasterVendor;
+    //                     $scope.ddlWHT = data.listWHT;
+    //                     $scope.ddlCondition = data.listConditionSC;
+    //                     $scope.ddlVAT = data.listVAT;
+
+    //                     for (x = 0; x < d.length; x++) {
+
+
+    //                         $scope.Items.push({
+    //                             No: d[x].No,
+    //                             ID: d[x].ID,
+    //                             Document_Date: d[x].Document_Date,
+    //                             Ref_No: d[x].Ref_No,
+    //                             Ref_Type: d[x].Ref_Type,
+    //                             BL_No: d[x].BL_No,
+    //                             FOB_No: d[x].FOB_No,
+    //                             ddlVendor: $scope.ddlVendor,
+    //                             ddlCondition: $scope.ddlCondition,
+    //                             Freight_Cost: addCommas(d[x].Freight_Cost),
+    //                             ddlWHT: $scope.ddlWHT,
+    //                             Vendor_No: d[x].Vendor_No,
+    //                             Vendor_Name: d[x].Vendor_Name,
+    //                             Vendor_Invoice_No: d[x].Vendor_Invoice_No,
+    //                             Condition_ID: d[x].Condition_ID,
+    //                             Condition_Code: d[x].Condition_Code,
+    //                             Condition_Name: d[x].Condition_Name,
+    //                             ddlVAT: $scope.ddlVAT,
+    //                             VAT_No: d[x].VAT_No,
+    //                             VAT_Type: d[x].VAT_Type,
+    //                             VAT_Percent: d[x].VAT_Percent,
+    //                             VAT_Amount: d[x].VAT_Amount,
+    //                             WHT_Type_Code: d[x].WHT_Type_Code,
+    //                             WHT_Type_Name: d[x].WHT_Type_Name,
+    //                             WHT_Amount: d[x].WHT_Amount,
+    //                             Tax_Base_Amount: addCommas(d[x].Tax_Base_Amount),
+    //                             Total_Amount: d[x].Total_Amount,
+    //                             Text: d[x].Text,
+    //                             File_Name: d[x].File_Name,
+    //                             Attachment_URL: d[x].Attachment_URL,
+    //                         });
+    //                     }
+
+    //                     console.log($scope.Items, 'Get Data Items');
+
+    //                 }
+    //             });
+
+    //         } else {
+    //             $scope.LoadDDL();
+    //         }
+
+    //     } catch (e) {
+    //         alert(e.message);
+    //     }
+    // };
 
     $scope.Close = function () {
         location.href = 'List.aspx';
