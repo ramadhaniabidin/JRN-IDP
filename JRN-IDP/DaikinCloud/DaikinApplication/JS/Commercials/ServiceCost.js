@@ -431,6 +431,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.Submit = function (st) {
         try {
+            const validationHeaderResult = $scope.ValidationHeader();
+            if (validationHeaderResult.anyError) {
+                alert(validationHeaderResult.warningMsg);
+                return;
+            }
             const validationDetailResult = $scope.ValidateDetail();
             if (validationDetailResult.anyError) {
                 alert(validationDetailResult.message);
@@ -568,8 +573,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             anyError = true;
             warningMsg += '\n Select the Business Place';
         }
-        if (anyError) alert(warningMsg);
-        return anyError;
+        return { anyError, warningMsg };
     };
 
     $scope.GetDataByType = function (ReferenceNo) {
@@ -724,86 +728,182 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }, 0);
     };
 
+    $scope.NormalizeFreighCost = function (item, input) {
+        if (!input.Freight_Cost || input.Freight_Cost.length === 0) {
+            item.Freight_Cost = "0";
+            return;
+        }
+        input.Freight_Cost = input.Freight_Cost.replace(/,/g, '');
+        item.Freight_Cost = addCommas(input.Freight_Cost);
+    };
+
+    $scope.NormalizeTaxBaseAmount = function (item, input) {
+        if (!input.Tax_Base_Amount || input.Tax_Base_Amount.length === 0) {
+            item.Tax_Base_Amount = '0';
+            input.Tax_Base_Amount = '0';
+            input.Total_Amount = '0';
+            return;
+        }
+
+        input.Tax_Base_Amount = input.Tax_Base_Amount.replace(/,/g, '');
+        input.Total_Amount = input.Tax_Base_Amount;
+    };
+
+    $scope.CalculateVAT = function (input, Calculate) {
+        if (input.VAT_Type === "I0") {
+            return {
+                VAT_Amount: 0,
+                VAT_Percent: 0,
+                VAT_No: '',
+                Total_Amount: addCommas(input.Tax_Base_Amount)
+            };
+        }
+        const vatData = $scope.ddlVAT.find(o => o.Code == input.VAT_Type);
+        const percent = vatData?.VAT_Percent || 0;
+        const VAT_Amount = Calculate ? percent * Number.parseFloat(input.Tax_Base_Amount) :
+            Number.parseFloat(input.VAT_Amount.replace(/,/g, ''));
+        return {
+            VAT_Amount,
+            VAT_Percent: percent,
+            VAT_No: input.VAT_No,
+            Total_Amount: VAT_Amount + parseFloat(input.Tax_Base_Amount)
+        };
+    };
+
+    $scope.ApplyVAT = function (item, vat) {
+        item.VAT_Type = item.VAT_Type;
+        item.VAT_Percent = vat.VAT_Percent;
+        item.VAT_Amount = addCommas(vat.VAT_Amount);
+    };
+
+    $scope.CalculateWHT = function (input, Calculate) {
+        if (input.WHT_Type_Code === '00') {
+            return { WHT_Amount: 0, Name: '', Percent: 0 };
+        }
+        const whtData = $scope.ddlWHT.find(o => o.Code == input.WHT_Type_Code);
+        if (!whtData) {
+            return { WHT_Amount: 0, Name: '', Percent: 0 };
+        }
+        const WHT_Amount = Calculate
+            ? parseFloat(input.Tax_Base_Amount) * whtData.Percentage
+            : parseFloat(input.WHT_Amount.replace(/,/g, ''));
+        return {
+            WHT_Amount,
+            Name: whtData.Name,
+            Percent: whtData.Percentage
+        };
+    };
+
+    $scope.ApplyWHT = function (item, wht) {
+        item.WHT_Type_Code = item.WHT_Type_Code || '00';
+        item.WHT_Amount = addCommas(wht.WHT_Amount);
+        item.WHT_Type_Name = wht.Name;
+    };
+
+    $scope.UpdateItemTotals = function (item, vat, wht) {
+        const total = vat.Total_Amount - parseFloat(wht.WHT_Amount);
+        item.Total_Amount = total;
+    };
+
+    $scope.UpdateGrandTotal = function () {
+        let total = 0;
+        $scope.Items.forEach(x => total += parseFloat(x.Total_Amount));
+        $scope.Header.Grand_Total = total;
+    };
+
     $scope.OnChangeDDLVAT = function (i, Calculate) {
         try {
-
-            const objIndex = $scope.Items.findIndex(o => o.No == i.No);
-            if ($scope.Items[objIndex].Freight_Cost.length <= 0) {
-                $scope.Items[objIndex].Freight_Cost = '0';
-            } else {
-                i.Freight_Cost = i.Freight_Cost.replace(/,/g, '');
-                $scope.Items[objIndex].Freight_Cost = addCommas(i.Freight_Cost);
-            }
-
-            if ($scope.Items[objIndex].Tax_Base_Amount.length <= 0) {
-                $scope.Items[objIndex].Tax_Base_Amount = '0';
-                i.Tax_Base_Amount = '0';
-            } else {
-                i.Tax_Base_Amount = i.Tax_Base_Amount.replace(/,/g, '');
-                i.Total_Amount = i.Tax_Base_Amount;
-            }
-            console.log(parseFloat(i.Tax_Base_Amount), 'parse float tax base amount')
-            console.log(i.Tax_Base_Amount * 0.1, 'Testing')
-            var VAT_Amount = 0;
-            var Tax_Base_Amount = 0;
-            var Total = i.Total_Amount.replace(/,/g, '');
-
-            if (i.VAT_Type == 'I0') {
-                $scope.Items[objIndex].VAT_Amount = '0';
-                $scope.Items[objIndex].VAT_Percent = '0';
-                $scope.Items[objIndex].VAT_No = '';
-
-                $scope.Items[objIndex].Total_Amount = addCommas(i.Tax_Base_Amount);
-
-            } else {
-                var Percent = $scope.ddlVAT.find(o => o.Code == i.VAT_Type).VAT_Percent;
-                if (Calculate) {
-                    VAT_Amount = Percent * parseFloat(i.Tax_Base_Amount);
-                } else {
-                    VAT_Amount = i.VAT_Amount.replace(/,/g, '');
-                }
-
-
-                $scope.Items[objIndex].VAT_Percent = Percent;
-                Tax_Base_Amount = parseFloat(i.Tax_Base_Amount);
-
-                Total = parseFloat(VAT_Amount) + Tax_Base_Amount;
-            }
-            $scope.Items[objIndex].VAT_Type = i.VAT_Type;
-
-            var WHT_Amount = 0;
-            var WHT_Name = '';
-            if (i.WHT_Type_Code !== '00') {
-                var WHT_Percent = $scope.ddlWHT.find(o => o.Code == i.WHT_Type_Code);
-                if (WHT_Percent !== undefined) {
-                    if (Calculate) {
-                        WHT_Amount = i.Tax_Base_Amount * WHT_Percent.Percentage;
-                    } else {
-                        WHT_Amount = i.WHT_Amount.replace(/,/g, '');
-                    }
-                    WHT_Name = WHT_Percent.Name;
-                }
-            }
-            $scope.Items[objIndex].VAT_Amount = addCommas(VAT_Amount);
-            $scope.Items[objIndex].Tax_Base_Amount = addCommas(i.Tax_Base_Amount);
-            $scope.Items[objIndex].Total_Amount = Total - parseFloat(WHT_Amount);
-            $scope.Items[objIndex].WHT_Type_Code = i.WHT_Type_Code.length <= 0 ? '00' : i.WHT_Type_Code;
-            $scope.Items[objIndex].WHT_Amount = addCommas(WHT_Amount);
-            $scope.Items[objIndex].WHT_Type_Name = WHT_Name;
-
-            Total = 0;
-            for (var x in $scope.Items) {
-                Total += parseFloat($scope.Items[x].Total_Amount);
-            }
-            $scope.Header.Grand_Total = Total;
-
-            console.log($scope.Items, 'OnChangeDDLVAT');
-
+            const objIndex = $scope.items.findIndex(o => o.No == i.No);
+            const item = $scope.items[objIndex];
+            $scope.NormalizeFreighCost(item, i);
+            $scope.NormalizeTaxBaseAmount(item, i);
+            const vat = $scope.CalculateVAT(i, Calculate);
+            $scope.ApplyVAT(item, vat);
+            const wht = $scope.CalculateWHT(i, Calculate);
+            $scope.ApplyWHT(item, wht);
+            $scope.UpdateItemTotals(item, vat, wht);
+            $scope.UpdateGrandTotal();
         } catch (e) {
             console.log(e.message);
         }
-
     };
+
+
+    // $scope.OnChangeDDLVAT = function (i, Calculate) {
+    //     try {
+    //         const objIndex = $scope.Items.findIndex(o => o.No == i.No);
+    //         if ($scope.Items[objIndex].Freight_Cost.length <= 0) {
+    //             $scope.Items[objIndex].Freight_Cost = '0';
+    //         } else {
+    //             i.Freight_Cost = i.Freight_Cost.replace(/,/g, '');
+    //             $scope.Items[objIndex].Freight_Cost = addCommas(i.Freight_Cost);
+    //         }
+
+    //         if ($scope.Items[objIndex].Tax_Base_Amount.length <= 0) {
+    //             $scope.Items[objIndex].Tax_Base_Amount = '0';
+    //             i.Tax_Base_Amount = '0';
+    //         } else {
+    //             i.Tax_Base_Amount = i.Tax_Base_Amount.replace(/,/g, '');
+    //             i.Total_Amount = i.Tax_Base_Amount;
+    //         }
+
+    //         var VAT_Amount = 0;
+    //         var Tax_Base_Amount = 0;
+    //         var Total = i.Total_Amount.replace(/,/g, '');
+
+    //         if (i.VAT_Type == 'I0') {
+    //             $scope.Items[objIndex].VAT_Amount = '0';
+    //             $scope.Items[objIndex].VAT_Percent = '0';
+    //             $scope.Items[objIndex].VAT_No = '';
+
+    //             $scope.Items[objIndex].Total_Amount = addCommas(i.Tax_Base_Amount);
+
+    //         } else {
+    //             var Percent = $scope.ddlVAT.find(o => o.Code == i.VAT_Type).VAT_Percent;
+    //             if (Calculate) {
+    //                 VAT_Amount = Percent * parseFloat(i.Tax_Base_Amount);
+    //             } else {
+    //                 VAT_Amount = i.VAT_Amount.replace(/,/g, '');
+    //             }
+
+
+    //             $scope.Items[objIndex].VAT_Percent = Percent;
+    //             Tax_Base_Amount = parseFloat(i.Tax_Base_Amount);
+
+    //             Total = parseFloat(VAT_Amount) + Tax_Base_Amount;
+    //         }
+    //         $scope.Items[objIndex].VAT_Type = i.VAT_Type;
+
+    //         var WHT_Amount = 0;
+    //         var WHT_Name = '';
+    //         if (i.WHT_Type_Code !== '00') {
+    //             var WHT_Percent = $scope.ddlWHT.find(o => o.Code == i.WHT_Type_Code);
+    //             if (WHT_Percent !== undefined) {
+    //                 if (Calculate) {
+    //                     WHT_Amount = i.Tax_Base_Amount * WHT_Percent.Percentage;
+    //                 } else {
+    //                     WHT_Amount = i.WHT_Amount.replace(/,/g, '');
+    //                 }
+    //                 WHT_Name = WHT_Percent.Name;
+    //             }
+    //         }
+    //         $scope.Items[objIndex].VAT_Amount = addCommas(VAT_Amount);
+    //         $scope.Items[objIndex].Tax_Base_Amount = addCommas(i.Tax_Base_Amount);
+    //         $scope.Items[objIndex].Total_Amount = Total - parseFloat(WHT_Amount);
+    //         $scope.Items[objIndex].WHT_Type_Code = i.WHT_Type_Code.length <= 0 ? '00' : i.WHT_Type_Code;
+    //         $scope.Items[objIndex].WHT_Amount = addCommas(WHT_Amount);
+    //         $scope.Items[objIndex].WHT_Type_Name = WHT_Name;
+
+    //         Total = 0;
+    //         for (var x in $scope.Items) {
+    //             Total += parseFloat($scope.Items[x].Total_Amount);
+    //         }
+    //         $scope.Header.Grand_Total = Total;
+    //     } catch (e) {
+    //         console.log(e.message);
+    //     }
+
+    // };
 
     $scope.OnChangeDDLPPJK = function () {
         try {
