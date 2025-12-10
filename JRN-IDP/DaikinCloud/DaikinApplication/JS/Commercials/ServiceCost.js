@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -12,17 +12,18 @@ app.directive('button', function () {
         }
     };
 });
+
 app.directive("datepicker", function () {
     return {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -32,6 +33,7 @@ app.directive("datepicker", function () {
         }
     }
 });
+
 app.directive('loading', ['$http', function ($http) {
     return {
         restrict: 'A',
@@ -54,15 +56,13 @@ app.directive('loading', ['$http', function ($http) {
 
 app.service("svc", function ($http) {
     this.svc_ListLog = function (Form_No, Transaction_ID) {
-        var param = {
+        const param = {
             Form_No: Form_No,
             Module_Code: 'M011',
             Transaction_ID: Transaction_ID
         };
 
-        console.log(param);
-
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -72,7 +72,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_LoadDDL = function () {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/LoadDDL",
             data: {},
@@ -82,27 +82,29 @@ app.service("svc", function ($http) {
     };
 
     this.svc_GetData = function (ID) {
-        var param = {
+        const param = {
             Form_No: ID,
         };
-        var response = $http({
+
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/GetDataSC",
             data: JSON.stringify(param),
             dataType: "json"
         });
+
         return response;
     };
 
     this.svc_GetDataByType = function (ReferenceNo, ReferenceType, TradingPartnerCode, PPJKCode) {
-        var param = {
+        const param = {
             ReferenceNo: ReferenceNo,
             ReferenceType: ReferenceType,
             TradingPartnerCode: TradingPartnerCode,
             PPJKCode: PPJKCode,
         };
-        console.log(param);
-        var response = $http({
+
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/GetDataByType",
             data: JSON.stringify(param),
@@ -112,11 +114,11 @@ app.service("svc", function ($http) {
     };
 
     this.svc_SaveUpdate = function (h, listDetail) {
-        var param = {
+        const param = {
             h: h,
             listDetail: listDetail,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/SaveSC",
             data: JSON.stringify(param),
@@ -127,12 +129,13 @@ app.service("svc", function ($http) {
 
 
     this.svc_PopListReference = function (Keywords, PageIndex, ReferenceType) {
-        var param = {
+        const param = {
             Keywords: Keywords,
             PageIndex: PageIndex,
             ReferenceType: ReferenceType,
         };
-        var response = $http({
+
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/PopListReference",
             data: JSON.stringify(param),
@@ -143,11 +146,12 @@ app.service("svc", function ($http) {
     };
 
     this.Approval = function (h, listDetail) {
-        var param = {
+        const param = {
             h: h,
             listDetail: listDetail,
         };
-        var response = $http({
+
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/SaveSC",
             data: JSON.stringify(param),
@@ -157,10 +161,10 @@ app.service("svc", function ($http) {
     };
 
     this.svc_LoadDDLVendorLC = function (expensetype) {
-        var param = {
+        const param = {
             expensetype: expensetype,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/LoadDDLVendorLC",
             data: JSON.stringify(param),
@@ -177,7 +181,7 @@ app.service("svc", function ($http) {
             listDetail: listDetail,
             IsDocumentReceived: IsDocumentReceived,
         };
-        console.log(param, 'svc_Approval');
+
         const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/SC_Approval",
@@ -303,134 +307,143 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
     };
 
+    $scope.SubmitGenerateHeader = function (st) {
+        const header = {
+            ID: $scope.Header.ID,
+            Form_No: $scope.Header.Form_No,
+            Requester_Name: $scope.Header.Requester_Name,
+            Requester_Email: $scope.Header.Requester_Email,
+            Trading_Partner_Code: $scope.tradingPartner.Code,
+            Trading_Partner_Name: $scope.tradingPartner.Name,
+            Plant_Code: $scope.plant.Code,
+            Plant_Name: $scope.plant.Name,
+            PPJK_Code: $scope.ppjk.Code,
+            PPJK_Name: $scope.ppjk.Name,
+            PPJK_Curr: $scope.ppjk.Curr,
+            PPJK_Category: $scope.ppjk.Category,
+            Bank_Key_ID: $scope.ppjk.Bank_Key,
+            Bank_Account_No: $scope.ppjk.Bank_Account_No,
+            Vendor_Code: $scope.ppjk.Code,
+            Buss_Place_Code: $scope.bussPlace.Code,
+            Buss_Place_Name: $scope.bussPlace.Name,
+            Item_ID: $scope.Header.Item_ID,
+            Expense_Type_Code: $scope.expenseType.Code,
+            Expense_Type_Name: $scope.expenseType.Name,
+            Approval_Status: st,
+            OA_Summary_FileName: $scope.Header.OA_Summary_FileName,
+            OA_Summary_Attachment: $scope.Header.OA_Summary_Attachment,
+            DIID_Invoice: $scope.Header.DIID_Invoice
+        };
+
+        return header;
+    };
+
+    $scope.ValidateDetail = function () {
+        let msg = "Please complete this below fields: ";
+        let result = { anyError: false, message: "" };
+        if ($scope.Items.length <= 0) {
+            result = { anyError: true, message: "Please insert details" };
+            return result;
+        }
+        $scope.Items.forEach(item => {
+            if (item.Document_Date.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Document Date" };
+                return;
+            }
+
+            if (item.Vendor_No.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Vendor No" };
+                return;
+            }
+
+            if (item.Vendor_Invoice_No.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Vendor Invoice No" };
+                return;
+            }
+
+            if (item.Condition_Code.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Condition" };
+                return;
+            } else {
+                if (item.Condition_Code.includes("ZF") && item.Freight_Cost <= 0) {
+                    result = { anyError: true, message: msg + "\n - Freight Cost" };
+                    return;
+                }
+            }
+
+            if (item.VAT_Type !== 'I0' && item.VAT_No.length <= 0) {
+                result = { anyError: true, message: msg + "\n - VAT No." };
+                return;
+            }
+
+            if (item.Tax_Base_Amount.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Tax Base Amount" };
+                return;
+            }
+
+            if (item.File_Name.length <= 0) {
+                result = { anyError: true, message: msg + "\n - Attachment" };
+                return;
+            }
+
+        });
+
+        return result;
+    };
+
+    $scope.SubmitGenerateDetail = function () {
+        let detail = [];
+        $scope.Items.forEach(it => {
+            detail.push({
+                No: it.No,
+                ID: it.ID,
+                Document_Date: it.Document_Date,
+                Ref_No: it.Ref_No,
+                Ref_Type: it.Ref_Type,
+                BL_No: it.BL_No,
+                FOB_No: it.FOB_No,
+                Freight_Cost: it.Freight_Cost.replace(/,/g, ''),
+                Vendor_No: it.Vendor_No,
+                Vendor_Name: it.Vendor_Name,
+                Vendor_Invoice_No: it.Vendor_Invoice_No,
+                Condition_ID: it.Condition_ID,
+                Condition_Code: it.Condition_Code,
+                Condition_Name: it.Condition_Name,
+                VAT_No: it.VAT_No,
+                VAT_Percent: it.VAT_Percent,
+                VAT_Amount: it.VAT_Amount.toString().replace(/,/g, ''),
+                VAT_Type: it.VAT_Type,
+                WHT_Type_Code: it.WHT_Type_Code,
+                WHT_Type_Name: it.WHT_Type_Name,
+                WHT_Amount: it.WHT_Amount.toString().replace(/,/g, ''),
+                Tax_Base_Amount: it.Tax_Base_Amount.replace(/,/g, ''),
+                Total_Amount: it.Total_Amount.toString(),
+                Text: it.Text,
+                File_Name: it.File_Name,
+                Attachment_URL: it.Attachment_URL,
+                Currency: $scope.Header.PPJK_Curr,
+                Business_Place_Code: $scope.bussPlace.Code,
+                Assignment: it.FOB_No,
+            });
+        });
+        return detail;
+    };
+
     $scope.Submit = function (st) {
         try {
-            console.log('Submit : ', st);
-            var msg = 'Please complete this below fields: ';
-            var warningMsg = '';
-            var anyError = false;
-
-            var header = {
-                ID: $scope.Header.ID,
-                Form_No: $scope.Header.Form_No,
-                Requester_Name: $scope.Header.Requester_Name,
-                Requester_Email: $scope.Header.Requester_Email,
-                Trading_Partner_Code: $scope.tradingPartner.Code,
-                Trading_Partner_Name: $scope.tradingPartner.Name,
-                Plant_Code: $scope.plant.Code,
-                Plant_Name: $scope.plant.Name,
-                PPJK_Code: $scope.ppjk.Code,
-                PPJK_Name: $scope.ppjk.Name,
-                PPJK_Curr: $scope.ppjk.Curr,
-                PPJK_Category: $scope.ppjk.Category,
-                Bank_Key_ID: $scope.ppjk.Bank_Key,
-                Bank_Account_No: $scope.ppjk.Bank_Account_No,
-                Vendor_Code: $scope.ppjk.Code,
-                Buss_Place_Code: $scope.bussPlace.Code,
-                Buss_Place_Name: $scope.bussPlace.Name,
-                Item_ID: $scope.Header.Item_ID,
-                Expense_Type_Code: $scope.expenseType.Code,
-                Expense_Type_Name: $scope.expenseType.Name,
-                Approval_Status: st,
-                OA_Summary_FileName: $scope.Header.OA_Summary_FileName,
-                OA_Summary_Attachment: $scope.Header.OA_Summary_Attachment,
-                DIID_Invoice: $scope.Header.DIID_Invoice
-            };
-
-            var detail = [];
-
-            console.log('Detail', $scope.Items);
-
-            if ($scope.Items.length <= 0) {
-                alert('Please insert details');
+            const validationDetailResult = $scope.ValidateDetail();
+            if (validationDetailResult.anyError) {
+                alert(validationDetailResult.message);
                 return;
             }
-            for (var j = 0; j < $scope.Items.length; j++) {
-                var it = $scope.Items[j];
-                warningMsg += '\n ----------------' + it.No + '-----------------';
+            const header = $scope.SubmitGenerateHeader(st);
+            const detail = $scope.SubmitGenerateDetail();
 
-                if (it.Document_Date.length <= 0) {
-                    warningMsg += '\n Document Date';
-                    anyError = true;
-                }
-                if (it.Vendor_No.length <= 0) {
-                    warningMsg += '\n - Vendor No';
-                    anyError = true;
-                }
-                if (it.Vendor_Invoice_No.length <= 0) {
-                    warningMsg += '\n - Vendor Invoice No';
-                    anyError = true;
-                }
-                if (it.Condition_Code.length <= 0) {
-                    warningMsg += '\n - Condition';
-                    anyError = true;
-                } else {
-                    if (it.Condition_Code.includes('ZF') && it.Freight_Cost <= 0) {
-                        anyError = true;
-                        warningMsg += '\n - Freight Cost';
-                    }
-                }
-
-                if (it.VAT_Type !== 'I0') {
-                    if (it.VAT_No.length <= 0) {
-                        anyError = true;
-                        warningMsg += '\n - VAT No.';
-                    }
-                }
-
-                if (it.Tax_Base_Amount.length <= 0) {
-                    anyError = true;
-                    warningMsg += '\n - Tax Base Amount';
-                }
-                if (it.File_Name.length <= 0) {
-                    anyError = true;
-                    warningMsg += '\n - Attachment';
-                }
-
-
-                detail.push({
-                    No: it.No,
-                    ID: it.ID,
-                    Document_Date: it.Document_Date,
-                    Ref_No: it.Ref_No,
-                    Ref_Type: it.Ref_Type,
-                    BL_No: it.BL_No,
-                    FOB_No: it.FOB_No,
-                    Freight_Cost: it.Freight_Cost.replace(/,/g, ''),
-                    Vendor_No: it.Vendor_No,
-                    Vendor_Name: it.Vendor_Name,
-                    Vendor_Invoice_No: it.Vendor_Invoice_No,
-                    Condition_ID: it.Condition_ID,
-                    Condition_Code: it.Condition_Code,
-                    Condition_Name: it.Condition_Name,
-                    VAT_No: it.VAT_No,
-                    VAT_Percent: it.VAT_Percent,
-                    VAT_Amount: it.VAT_Amount.toString().replace(/,/g, ''),
-                    VAT_Type: it.VAT_Type,
-                    WHT_Type_Code: it.WHT_Type_Code,
-                    WHT_Type_Name: it.WHT_Type_Name,
-                    WHT_Amount: it.WHT_Amount.toString().replace(/,/g, ''),
-                    Tax_Base_Amount: it.Tax_Base_Amount.replace(/,/g, ''),
-                    Total_Amount: it.Total_Amount.toString(),
-                    Text: it.Text,
-                    File_Name: it.File_Name,
-                    Attachment_URL: it.Attachment_URL,
-                    Currency: $scope.Header.PPJK_Curr,
-                    Business_Place_Code: $scope.bussPlace.Code,
-                    Assignment: it.FOB_No,
-                });
-            }
-            if (anyError) {
-                alert(msg + warningMsg);
-                return;
-            }
-
-            var confirmMsg = confirm('Submit ?');
+            const confirmMsg = confirm('Submit ?');
             if (confirmMsg) {
-                var proc = svc.svc_SaveUpdate(header, detail);
+                const proc = svc.svc_SaveUpdate(header, detail);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
-                    console.log("Save SC: ", data);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         alert('Submitted Successfully!');
                         location.href = 'ServiceCost.aspx?ID=' + data.ID;
