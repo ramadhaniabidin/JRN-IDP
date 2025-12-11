@@ -771,7 +771,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ApplyVAT = function (item, vat) {
-        item.VAT_Type = item.VAT_Type;
         item.VAT_Percent = vat.VAT_Percent;
         item.VAT_Amount = addCommas(vat.VAT_Amount);
     };
