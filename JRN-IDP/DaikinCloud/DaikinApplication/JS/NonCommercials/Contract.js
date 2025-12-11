@@ -55,7 +55,7 @@ app.directive("monthyears", function () {
                 changeYear: true,
                 dateInput: false,
                 dateFormat: 'M yy',
-                onClose: function(dateText, inst) { 
+                onClose: function (dateText, inst) {
                     $(this).datepicker('setDate', new Date(inst.selectedYear, inst.selectedMonth, 1));
                 },
                 onSelect: function (dateText) {
@@ -114,8 +114,8 @@ app.directive('format', ['$filter', function ($filter) {
                 // return elem.val('')
             });
 
-            ctrl.$parsers.unshift( function (viewValue) {
-                var plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g,'')
+            ctrl.$parsers.unshift(function (viewValue) {
+                var plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, '')
                 elem.val($filter(attrs.format)(plainNumber))
                 return plainNumber
             })
@@ -228,7 +228,7 @@ app.service("svc", function ($http) {
         return response;
     }
 
-    this.svc_GetMaterialAnaplans = function(){
+    this.svc_GetMaterialAnaplans = function () {
         var response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetMaterialAnaplans",
@@ -238,7 +238,7 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_GetMaterialAnaplansByID = function(ID){
+    this.svc_GetMaterialAnaplansByID = function (ID) {
         var param = {
             Form_No: ID
         };
@@ -251,7 +251,7 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_ContractApprovalSubmit = function(approvalValue, ListName, ListItemID, HeaderID, Comment){
+    this.svc_ContractApprovalSubmit = function (approvalValue, ListName, ListItemID, HeaderID, Comment) {
         var param = {
             approvalValue: approvalValue,
             ListName: ListName,
@@ -269,8 +269,8 @@ app.service("svc", function ($http) {
 
         return response;
     };
-    
-    this.svc_PopUpVendor_GetData = function(SearchTable, PageIndex, SearchBy, Keywords){
+
+    this.svc_PopUpVendor_GetData = function (SearchTable, PageIndex, SearchBy, Keywords) {
         var param = {
             input: {
                 searchTabl: SearchTable,
@@ -295,7 +295,7 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_PopUpList = function(SearchTable, PageIndex, SearchBy, Keywords){
+    this.svc_PopUpList = function (SearchTable, PageIndex, SearchBy, Keywords) {
         var param = {
             input: {
                 searchTabl: SearchTable,
@@ -340,12 +340,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         Procurement_Department: '',
         Procurement_Department_Code: '',
         Procurement_Department_Code_PO: '',
-        Internal_Order_Code : '',
-        Internal_Order_Name : '',
+        Internal_Order_Code: '',
+        Internal_Order_Name: '',
         PO_Number: '',
         Contract_Status_ID: 1,
         Contract_Status_Name: '',
-        Document_Received : false,
+        Document_Received: false,
         Branch: '',
         Cost_Center: '',
         Vendor_Code: '',
@@ -354,14 +354,14 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         Contract_Type_ID: 0,
         Contract_Type_Name: '',
         Period_Start: DateFormat_ddMMMyyyy(new Date()),
-        Period_End: DateFormat_ddMMMyyyy(new Date(now.getFullYear(), now.getMonth()+1, 0)),
+        Period_End: DateFormat_ddMMMyyyy(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
         Remarks: '',
         Grand_Total: 0,
         Item_ID: 0,
         Approval_Status: 1,
-        IsShow : true,
-        IsDisabled : false,
-        IsEdited : true,
+        IsShow: true,
+        IsDisabled: false,
+        IsEdited: true,
     }
 
     $scope.ddlContractStatuses = [
@@ -376,7 +376,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     ];
 
     $scope.ContractHeader.Contract_Status_ID = $scope.ddlContractStatuses[0].Code;
-    
+
     $scope.selectedMaterial = [];
 
     $scope.ddlVendorNonCommercials = [];
@@ -397,7 +397,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.Outcome = 0;
     $scope.IsCurrentApprover = false;
-    $scope.IsReceiverDocs =  false;
+    $scope.IsReceiverDocs = false;
     $scope.IsRequestor = false;
     $scope.IsTaxVerifier = false;
     $scope.IsDocumentReceived = false;
@@ -412,7 +412,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.IsDepartment = false;
     $scope.IsBranch = false;
     $scope.IsContractTypes = false;
-    $scope.Deleted = {chd:[],cdd:[],cad:[]};
+    $scope.Deleted = { chd: [], cdd: [], cad: [] };
 
     $scope.ContractDetails = [];
     $scope.ContractDetails.Material = {
@@ -439,7 +439,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.popUpTotalPageCount = 0;
     $scope.PopUpData = [];
 
-    $scope.PopUp_SearchBy_OnChange = () =>{
+    $scope.PopUp_SearchBy_OnChange = () => {
         //console.log($scope.popUpSearchBy);
     };
 
@@ -448,22 +448,22 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.showModal = "block";
         $scope.popUpModule = module;
         $scope.popUpRowIndex = rowIndex;
-        if(module == "Vendor"){
+        if (module == "Vendor") {
             $scope.popUpSearchTable = "dbo.MasterVendorNonCommercials";
             $scope.popUpTableHeader = ["Code", "Name"];
             $scope.popUpSearchOptions = [
-                {'Text': 'Code', 'DB_Col': 'Vendor_Number'},
-                {'Text': 'Name', 'DB_Col': 'Title'},
+                { 'Text': 'Code', 'DB_Col': 'Vendor_Number' },
+                { 'Text': 'Name', 'DB_Col': 'Title' },
             ];
             $scope.popUpSearchBy = $scope.popUpSearchOptions[0].Text;
         }
-        else if(module == "Material Anaplan"){
+        else if (module == "Material Anaplan") {
             $scope.popUpSearchTable = "dbo.MasterMaterialAnaplan";
             $scope.popUpSearchOptions = [
-                {'Text': 'Kode', 'DB_Col': 'Material_Code'},
-                {'Text': 'Deskripsi', 'DB_Col': 'Material_Description'},
-                {'Text': 'GL', 'DB_Col': 'GL'},
-                {'Text': 'Deskripsi GL', 'DB_Col': 'GL_Description'},
+                { 'Text': 'Kode', 'DB_Col': 'Material_Code' },
+                { 'Text': 'Deskripsi', 'DB_Col': 'Material_Description' },
+                { 'Text': 'GL', 'DB_Col': 'GL' },
+                { 'Text': 'Deskripsi GL', 'DB_Col': 'GL_Description' },
             ];
             $scope.popUpSearchBy = $scope.popUpSearchOptions[0].Text;
         }
@@ -479,7 +479,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.PopUp_Search = () => {
         $scope.popUpCurrPageIndex = 1;
-        var searchByItem = $scope.popUpSearchOptions.find(function(opt){
+        var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
             return opt.Text == $scope.popUpSearchBy;
         });
         var searchBy = searchByItem.DB_Col;
@@ -487,9 +487,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.PopUp_Prev = () => {
-        if($scope.popUpCurrPageIndex > 1){
+        if ($scope.popUpCurrPageIndex > 1) {
             $scope.popUpCurrPageIndex -= 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function(opt){
+            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
             var searchBy = searchByItem.DB_Col;
@@ -498,9 +498,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.PopUp_Next = () => {
-        if($scope.popUpCurrPageIndex < $scope.popUpTotalPageCount){
+        if ($scope.popUpCurrPageIndex < $scope.popUpTotalPageCount) {
             $scope.popUpCurrPageIndex += 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function(opt){
+            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
             var searchBy = searchByItem.DB_Col;
@@ -509,20 +509,20 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.PopUp_List = (tableName, pageIndex, searchBy, keyWord) => {
-        if($scope.popUpModule == "Material Anaplan"){
+        if ($scope.popUpModule == "Material Anaplan") {
             searchBy += ";Procurement_Department_Title";
             keyWord += ";" + $scope.ContractHeader.Procurement_Department;
         }
         var proc = svc.svc_PopUpList(tableName, pageIndex, searchBy, keyWord);
-        proc.then(function(response){
+        proc.then(function (response) {
             var jsonData = JSON.parse(response.data.d);
             //console.log(jsonData);
-            if($scope.popUpModule == "Vendor"){
+            if ($scope.popUpModule == "Vendor") {
                 var vendorData = jsonData.Logs;
                 $scope.popUpTotalPageCount = jsonData.TotalPages;
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
-                for(let i of vendorData){
+                for (let i of vendorData) {
                     var newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Name': i.filter(x => x.Key == 'Title')[0].Value,
@@ -532,11 +532,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     $scope.PopUpData.push(newObj);
                 }
             }
-            else if($scope.popUpModule == "Material Anaplan"){
+            else if ($scope.popUpModule == "Material Anaplan") {
                 $scope.popUpTotalPageCount = jsonData.TotalPages;
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
-                for(let i of jsonData.Logs){
+                for (let i of jsonData.Logs) {
                     var newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Kode': i.filter(x => x.Key == 'Material_Code')[0].Value,
@@ -548,7 +548,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 }
             }
 
-        }).catch(function(err){
+        }).catch(function (err) {
             //console.log(err);
         });
     };
@@ -561,16 +561,16 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.PopUp_SelectItem = (id) => {
-        var selectedItem = $scope.PopUpData.find(function(item){
+        var selectedItem = $scope.PopUpData.find(function (item) {
             return item.ID == id;
         });
-        if($scope.popUpModule == "Vendor"){
+        if ($scope.popUpModule == "Vendor") {
             $scope.VendorNonCommercials.Name = selectedItem.Name;
             $scope.VendorNonCommercials.Code = selectedItem.Code;
             $scope.ContractHeader.Vendor_Code = $scope.VendorNonCommercials.Code;
             $scope.ContractHeader.Vendor_Name = $scope.VendorNonCommercials.Name;
         }
-        else if($scope.popUpModule == "Material Anaplan"){
+        else if ($scope.popUpModule == "Material Anaplan") {
             $scope.ContractDetails[$scope.popUpRowIndex].Material_Number = selectedItem.Kode;
             $scope.ContractDetails[$scope.popUpRowIndex].Material_Name = selectedItem.Kode + " - " + selectedItem.Deskripsi;
             $scope.ContractDetails[$scope.popUpRowIndex].Material = selectedItem;
@@ -580,7 +580,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
         $scope.CloseDialog();
     };
-    
+
     $scope.GetBranches = function () {
         try {
             var proc = svc.svc_GetBranches();
@@ -707,29 +707,29 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.GetMaterialAnaplans = () => {
         var promise = svc.svc_GetMaterialAnaplans();
-        promise.then(function(response){
+        promise.then(function (response) {
             var data = JSON.parse(response.data.d);
             angular.forEach(data.MaterialAnaplans, (val, ind) => {
                 $scope.ddlMaterialAnaplansTemp.push({
-                    Code : val.Code,
-                    Name : val.Code+" - "+val.Name,
-                    Short_x0020_Name : val.Short_x0020_Name
+                    Code: val.Code,
+                    Name: val.Code + " - " + val.Name,
+                    Short_x0020_Name: val.Short_x0020_Name
                 })
             })
-        }).catch(function(err){
+        }).catch(function (err) {
             //console.log(err)
         });
     };
 
     $scope.GetMaterialAnaplansByID = (ID) => {
         var promise = svc.svc_GetMaterialAnaplansByID(ID);
-        promise.then(function(response){
+        promise.then(function (response) {
             var data = JSON.parse(response.data.d);
             //console.log(data);
             //data.MaterialAnaplans.forEach((o) => {
             //    let code = o.Code;
             //    let name = o.Code +" - "+ o.Name;
-    
+
             //    $scope.MaterialAnaplans.push({
             //        Code : code,
             //        Name : name,
@@ -741,33 +741,31 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             //        Name : name,
             //        Short_x0020_Name : o.Short_x0020_Name
             //    });
-    
+
             //    const indexMaterialName = data.ContractDetail.map(function(e) {return e.Material_Number}).indexOf(o.Code);
             //    if(indexMaterialName != -1) data.ContractDetail[indexMaterialName].Material_Name = name;
             //});
 
             $scope.contractGetContracMaterialName_New();
-        }).catch(function(err){
+        }).catch(function (err) {
             //console.log(err)
         });
     };
 
     $scope.contractProcurementDepartmentOnChange = () => {
         //console.log($scope.ContractDetails);
-        $scope.ContractDetails.map(function(e) { 
-            if(e.ID > 0) {
+        $scope.ContractDetails.map(function (e) {
+            if (e.ID > 0) {
                 $scope.Deleted.cdd.push(e.ID);
                 return e.ID;
             }
         });
 
         $scope.ContractHeader.Procurement_Department = ''
-        if($scope.ProcDeptType.Code != '' || $scope.ProcDeptType.Code == null)
-        {
+        if ($scope.ProcDeptType.Code != '' || $scope.ProcDeptType.Code == null) {
             $scope.ContractHeader.Procurement_Department = $scope.ProcDeptType.Name;
         }
-        if($scope.ContractHeader.Procurement_Department != 'Marketing Digital' || $scope.ContractHeader.Procurement_Department != 'Marketing Trade')
-        {
+        if ($scope.ContractHeader.Procurement_Department != 'Marketing Digital' || $scope.ContractHeader.Procurement_Department != 'Marketing Trade') {
             $scope.ContractHeader.Internal_Order_Code = "";
             $scope.ContractHeader.Internal_Order_Name = "";
             $scope.InternalOrder = $scope.InternalOrders[0];
@@ -777,8 +775,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.MaterialAnaplans = [];
 
         //console.log("ddl Material Anaplans Temp ", $scope.ddlMaterialAnaplansTemp);
-        
-        angular.forEach($scope.ddlMaterialAnaplansTemp, (val) =>{
+
+        angular.forEach($scope.ddlMaterialAnaplansTemp, (val) => {
             let Code = val.Code;
             var str = $scope.ProcDeptType.Procurement_Department_Code;
             //var str = $scope.ProcDeptType.Name;
@@ -786,11 +784,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             ////console.log("Code : ", Code);
             ////console.log("str : ", str);   
 
-            if(Code.includes(str)){
+            if (Code.includes(str)) {
                 $scope.MaterialAnaplans.push({
-                    Code : val.Code,
-                    Name : val.Name,
-                    Short_x0020_Name : val.Short_x0020_Name
+                    Code: val.Code,
+                    Name: val.Name,
+                    Short_x0020_Name: val.Short_x0020_Name
                 })
             }
 
@@ -801,17 +799,16 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             //})
         });
         ////console.log("Material Anaplans : ", $scope.MaterialAnaplans);
-        
+
         $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
 
         $scope.contractAddContractDetail();
     }
 
     $scope.ContractInternalOrderOnChange = () => {
-        const {Code,Name} = $scope.InternalOrder;
+        const { Code, Name } = $scope.InternalOrder;
 
-        if(Name !== "Please Select")
-        {
+        if (Name !== "Please Select") {
             $scope.ContractHeader.Internal_Order_Code = Code;
             $scope.ContractHeader.Internal_Order_Name = Name;
         }
@@ -833,50 +830,39 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.contractBranchOnChange = function () {
         $scope.ContractHeader.Branch = $scope.Branch.Name;
     }
-    
+
     $scope.isUploadFile = false;
     $scope.contractUploadingFile = function () {
         var msg = 'The attachments below already exist: ';
-        
+
         const IsUpload = () => {
             var warningMsg = '';
             var anyError = false;
 
             angular.forEach($scope.uploadFiles, function (file, key) {
-                //console.log("File : ", file);
-                // let indexObj = $scope.ContractUploaded.indexOf(file)
-                var indexObj = $scope.ContractUploaded.map(function(e) { return e.name; }).indexOf(file.name);
-                if(indexObj == -1 || $scope.ContractUploaded.length == 0) {
-                    ////console.log(file);
-    
+                var indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
+                if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
                     var input = file;
                     var formdata = false;
                     if (window.FormData) {
                         formdata = new FormData();
                     }
-                    else{
-                        //alert("Not support for ajax uploading technology (FormData). Try using latest firefox / chrome browser.");
-                        //console.log("Not support for ajax uploading technology (FormData). Try using latest firefox / chrome browser.");
+                    else {
                         $scope.isUploadFile = false;
                     }
 
                     if (window.FileReader) {
                         let reader = new FileReader();
                         reader.onloadend = function (e) {
-                            //showUploadedItem(e.target.result);
                         };
                         reader.readAsDataURL(input);
                     }
-                    else{
-                        //alert("Not support for ajax uploading technology (FileReader). Try using latest firefox / chrome browser.");
-                        //console.log("Not support for ajax uploading technology (FileReader). Try using latest firefox / chrome browser.");
+                    else {
                         $scope.isUploadFile = false;
                     }
 
                     if (formdata) {
                         formdata.append("file", input);
-                        //console.log("Formdata", formdata);
-                        //console.log("input", input);
                         $.ajax({
                             url: "/_layouts/15/Daikin.Application/Handler/PostUploadHandler.ashx",
                             type: "POST",
@@ -886,37 +872,27 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                             async: false,
                             dataType: "JSON",
                             success: function (result) {
-                                //console.log(result);
-
-                                const {PostedFile} = result;
-
+                                const { PostedFile } = result;
                                 const myFile = new File([input], PostedFile.name);
-
                                 $scope.isUploadFile = false;
-                     
-
                                 $scope.ContractUploaded.push(myFile);
-
                                 $scope.ContractAttachments.push({
                                     Id: 0,
                                     Attachment_FileName: PostedFile.name,
                                     Size: PostedFile.size,
-                                    Header_ID:$scope.ContractHeader.ID?$scope.ContractHeader.ID:0,
+                                    Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
                                 });
                             },
-                            error : function (err) { 
-                                //console.log(err.statusText);
-                                //alert(err.statusText); 
+                            error: function (err) {
+                                console.log(err.statusText);
                             },
                         });
                     }
-                    else{
-                        //alert("Not support for ajax uploading technology (FormData). Try using firefox browser.");
-                        //console.log("Not support for ajax uploading technology (FormData). Try using firefox browser.");
+                    else {
                         $scope.isUploadFile = false;
                     }
                 }
-                else{
+                else {
                     warningMsg += `\n----- ${file.name} -----`;
                     anyError = true;
                     return
@@ -928,9 +904,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 warningMsg: warningMsg,
             };
         }
-        
-        
-        const {anyError, warningMsg} = IsUpload();
+
+
+        const { anyError, warningMsg } = IsUpload();
 
         if (anyError) {
             alert(msg + warningMsg);
@@ -941,7 +917,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.contractDeletingFile = function (index) {
-        if($scope.ContractAttachments[index].ID){
+        if ($scope.ContractAttachments[index].ID) {
             $scope.Deleted.cad.push($scope.ContractAttachments[index].ID);
         }
 
@@ -951,11 +927,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.contractAddContractDetail = function () {
         const NewDetail = {
-            ID:0,
+            ID: 0,
             Material: "",
             No: No++,
             Material_Number: "",
-            Material_Name:"",
+            Material_Name: "",
             Material_Description: "",
             Contract_Amount: 0,
             Variable_Amount: false,
@@ -965,7 +941,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
         $scope.contractContractDetailMaterialAmountOnChangeCalculateGrandTotal();
     };
-  
+
     $scope.contractContractDetailVariableAmountOnCheck = function (index, value) {
         let check = true;
         if (!value.Variable_Amount) {
@@ -987,10 +963,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.contractContractDetailMaterialAmountOnBlur = function (index, value) {
-        if(!value.Contract_Amount || value.Contract_Amount == undefined) 
+        if (!value.Contract_Amount || value.Contract_Amount == undefined)
             value.Contract_Amount = 0
         $scope.ContractDetails[index].Contract_Amount = value.Contract_Amount;
-        
+
         $scope.contractContractDetailMaterialAmountOnChangeCalculateGrandTotal();
     };
 
@@ -1002,102 +978,99 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
     };
 
+
+    $scope.contractSubmit_ValidateHeader = function () {
+        let error = false;
+        let message = "";
+        const date_Start = new Date($scope.ContractHeader.Period_Start);
+        const date_End = new Date($scope.ContractHeader.Period_End);
+        if ($scope.ContractHeader.Procurement_Department.length <= 0) {
+            message = 'Please choose procurement department';
+            error = true;
+        }
+        if ($scope.ContractHeader.Contract_No.length <= 0) {
+            message = 'Please insert contract no';
+            error = true;
+        }
+        if ($scope.ContractHeader.Vendor_Name.length <= 0) {
+            message = 'Please choose vendor name';
+            error = true;
+        }
+        if ($scope.ContractHeader.Contract_Type_Name.length <= 0) {
+            message = 'Please choose contract type';
+            error = true;
+        }
+        if ($scope.ContractHeader.Period_Start.length <= 0) {
+            message = 'Please insert periode start';
+            error = true;
+        }
+        if ($scope.ContractHeader.Period_End.length <= 0) {
+            message = 'Please insert periode end';
+            error = true;
+        }
+        if ($scope.ContractHeader.Branch.length <= 0) {
+            message = 'Please choose branch';
+            error = true;
+        }
+        if ($scope.ContractHeader.Remarks.length <= 0) {
+            message = 'Please insert Remarks';
+            error = true;
+        }
+        if (date_Start > date_End) {
+            message = 'Start Period not allowed to be more larger than End Period';
+            error = true;
+        }
+        if ($scope.ContractAttachments.length <= 0) {
+            message = 'Please add attachment';
+            error = true;
+        }
+        if (['Marketing Trade', 'Marketing Digital'].indexOf($scope.ContractHeader.Procurement_Department) >= 0 && !$scope.ContractHeader.Internal_Order_Code) {
+            message = 'Please choose internal order';
+            error = true;
+        }
+        return { error, message };
+    };
+
+    $scope.contractSubmit_ValidateDetails = function () {
+        const arr = $scope.ContractDetails;
+        let error = false;
+        let message = "Please complete the column in the table";
+
+        for (const cd of arr) {
+            if (!cd.Material_Number) {
+                error = true;
+                break;
+            }
+            if (!cd.Contract_Amount || Number(cd.Contract_Amount) <= 0) {
+                error = true;
+                break;
+            }
+        }
+
+        return { error, message: error ? message : "" };
+    };
+
+
+
     $scope.contractSubmitCheck = function () {
         try {
-            var anyError = false;
-            //console.log($scope.ContractHeader.Period_Start, $scope.ContractHeader.Period_End);
-
-
-            var date_Start = new Date($scope.ContractHeader.Period_Start);
-            var date_End = new Date($scope.ContractHeader.Period_End);
-
-            //console.log(date_Start, date_End);
-            //console.log("Header", $scope.ContractHeader);
-
-            //if ($scope.ContractHeader.Period_Start > $scope.ContractHeader.Period_End) {
-            //    alert('Start Period not allowed to be more larger than End Period');
-            //    return;
-            //}
-
-            if ($scope.ContractHeader.Procurement_Department.length <= 0) {
-                alert('Please choose procurement department');
+            const validationHeader = $scope.contractSubmit_ValidateHeader();
+            if (validationHeader.error) {
+                alert(validationHeader.message);
                 return;
             }
-            if ($scope.ContractHeader.Contract_No.length <= 0) {
-                alert('Please insert contract no');
+            const validationDetail = $scope.contractSubmit_ValidateDetails();
+            if(validationDetail.error){
+                alert(validationDetail.message);
                 return;
             }
-            if ($scope.ContractHeader.Vendor_Name.length <= 0) {
-                alert('Please choose vendor name');
-                return;
-            }
-            if ($scope.ContractHeader.Contract_Type_Name.length <= 0) {
-                alert('Please choose contract type');
-                return;
-            }
-            if ($scope.ContractHeader.Period_Start.length <= 0) {
-                alert('Please insert periode start');
-                return;
-            }
-            if ($scope.ContractHeader.Period_End.length <= 0) {
-                alert('Please insert periode end');
-                return;
-            }
-            if ($scope.ContractHeader.Branch.length <= 0) {
-                alert('Please choose branch');
-                return;
-            }
-            if (date_Start > date_End){
-                alert('Start Period not allowed to be more larger than End Period');
-                return;
-            }
-
-
-            if ($scope.ContractHeader.Remarks.length <= 0) {
-                alert('Please insert Remarks');
-                return;
-            }
-            if ($scope.ContractAttachments.length <= 0) {
-                alert('Please add attachment');
-                return;
-            }
-            if (['Marketing Trade','Marketing Digital'].indexOf($scope.ContractHeader.Procurement_Department) >= 0 && !$scope.ContractHeader.Internal_Order_Code) {
-                alert('Please choose internal order');
-                return;
-            }
-
-            var msg = 'Please complete the column in the table';
-            for (var j = 0; j < $scope.ContractDetails.length; j++) {
-                var cd = $scope.ContractDetails[j];
-
-                if (cd.Material_Number.length <= 0) {
-                    anyError = true;
-                }
-
-                // if (cd.Material_Description.length <= 0) {
-                //     anyError = true;
-                // }
-
-                if (cd.Contract_Amount.length <= 0 || cd.Contract_Amount <= 0) {
-                    anyError = true;
-                }
-            }
-
-            if (anyError) {
-                alert(msg);
-                return;
-            }
-
-            var confirmMsg = confirm('Submit ?');
+            let confirmMsg = confirm('Submit ?');
             if (confirmMsg) {
-                var proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments,$scope.Deleted);
+                var proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
                 proc.then(function (response) {
                     var data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         alert('Submitted Successfully!');
-                        // location.href = 'Contract.aspx?ID=' + data.ContractHeader.Form_No;
-                        //console.log(data);
-
                         location.href = 'List.aspx';
                     } else {
                         alert(data.InfoMessage);
@@ -1114,7 +1087,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     }
 
     $scope.ContractContractDetailOnDelete = function (index) {
-        if($scope.ContractDetails[index].ID){
+        if ($scope.ContractDetails[index].ID) {
             $scope.Deleted.cdd.push($scope.ContractDetails[index].ID);
         }
         $scope.ContractDetails.splice(index, 1);
@@ -1131,7 +1104,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.contractGetContracMaterialName_New = () => {
-        angular.forEach($scope.ContractDetails, function(v, i){
+        angular.forEach($scope.ContractDetails, function (v, i) {
             var material = {
                 Name: v.Material_Name,
                 Code: v.Material_Number
@@ -1159,10 +1132,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     if (data.ProcessSuccess) {
                         ////console.log(data);
 
-                        for (let i in data.ContractHeader){
-                            if(i.startsWith('Period')) data.ContractHeader[i] = $scope.ConvertJSONDate(data.ContractHeader[i]);
+                        for (let i in data.ContractHeader) {
+                            if (i.startsWith('Period')) data.ContractHeader[i] = $scope.ConvertJSONDate(data.ContractHeader[i]);
                             else if (i.endsWith('Date')) data.ContractHeader[i] = $scope.ConvertJSONDate(data.ContractHeader[i]);
-                        } 
+                        }
 
                         for (let i in data.ContractDetail) {
                             for (let j in data.ContractDetail[i]) {
@@ -1180,22 +1153,22 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                             }
                         }
 
-                        const indexVendor = $scope.ddlVendorNonCommercials.map(function(e) {return e.Code}).indexOf(data.ContractHeader.Vendor_Code);
+                        const indexVendor = $scope.ddlVendorNonCommercials.map(function (e) { return e.Code }).indexOf(data.ContractHeader.Vendor_Code);
                         $scope.VendorNonCommercials = $scope.ddlVendorNonCommercials[indexVendor];
 
                         $scope.IsBranch = false;
-                        const indexBranch = $scope.ddlBranches.map(function(e) {return e.Name}).indexOf(data.ContractHeader.Branch);
+                        const indexBranch = $scope.ddlBranches.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Branch);
                         $scope.Branch = $scope.ddlBranches[indexBranch];
-                        if(indexBranch != -1) $scope.IsBranch = true;
+                        if (indexBranch != -1) $scope.IsBranch = true;
 
                         $scope.IsContractTypes = false;
                         $scope.ddlMasterContractTypes = data.ContractTypes;
-                        const indexContractType = data.ContractTypes.map(function(e) {return e.Name}).indexOf(data.ContractHeader.Contract_Type_Name);
+                        const indexContractType = data.ContractTypes.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Contract_Type_Name);
                         $scope.MasterContractType = data.ContractTypes[indexContractType];
-                        if(indexContractType != -1) $scope.IsContractTypes = true;
-                        
+                        if (indexContractType != -1) $scope.IsContractTypes = true;
+
                         $scope.InternalOrders = data.InternalOrders;
-                        const indexIntOrd = $scope.InternalOrders.map((o) => { return o.Code }).indexOf( data.ContractHeader.Internal_Order_Code);
+                        const indexIntOrd = $scope.InternalOrders.map((o) => { return o.Code }).indexOf(data.ContractHeader.Internal_Order_Code);
                         $scope.InternalOrder = $scope.InternalOrders[indexIntOrd];
 
                         $scope.GetMaterialAnaplansByID(id);
@@ -1204,9 +1177,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
                         $scope.IsDepartment = false;
                         $scope.ProcDeptTypes = data.UserDepartment;
-                        const indexProcDept = $scope.ProcDeptTypes.map(function(e) { return e.Name; }).indexOf( data.ContractHeader.Procurement_Department);
+                        const indexProcDept = $scope.ProcDeptTypes.map(function (e) { return e.Name; }).indexOf(data.ContractHeader.Procurement_Department);
                         $scope.ProcDeptType = $scope.ProcDeptTypes[indexProcDept];
-                        if(indexProcDept != -1) $scope.IsDepartment = true;
+                        if (indexProcDept != -1) $scope.IsDepartment = true;
 
                         data.ContractAttachment.forEach(o => {
                             $scope.ContractUploaded.push({
@@ -1215,16 +1188,16 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                             });
                         });
 
-                        if(['4','5','6','7','8'].indexOf(data.ContractHeader.Approval_Status) >= 0){
-                            data.ContractHeader.IsShow = true; 
+                        if (['4', '5', '6', '7', '8'].indexOf(data.ContractHeader.Approval_Status) >= 0) {
+                            data.ContractHeader.IsShow = true;
                             data.ContractHeader.IsDisabled = true;
-                            data.ContractHeader.IsEdited = false; 
+                            data.ContractHeader.IsEdited = false;
                         }
-                        else{
-                            data.ContractHeader.IsShow = true; 
+                        else {
+                            data.ContractHeader.IsShow = true;
                             data.ContractHeader.IsDisabled = false;
                             data.ContractHeader.IsEdited = true;
-                            if(indexProcDept == -1){
+                            if (indexProcDept == -1) {
                                 data.ContractHeader.IsShow = false;
                                 data.ContractHeader.IsDisabled = true;
                                 data.ContractHeader.IsEdited = false;
@@ -1233,14 +1206,14 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
                         data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
                         const Contract = $scope.ContractHeader;
-                        $scope.ContractHeader = {...Contract,...data.ContractHeader};
-                        $scope.ContractDetails = data.ContractDetail;   
+                        $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
+                        $scope.ContractDetails = data.ContractDetail;
                         $scope.ContractAttachments = data.ContractAttachment;
 
                         $scope.IsCurrentApprover = data.IsCurrentApprover;
                         $scope.IsReceiverDocs = data.IsReceiverDocs;
                         $scope.IsRequestor = data.IsRequestor;
-                        $scope.IsTaxVerifier = data.IsTaxVerifier;                        
+                        $scope.IsTaxVerifier = data.IsTaxVerifier;
                         $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
                     }
                     else {
@@ -1268,7 +1241,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
             if (id != undefined) {
                 var proc = svc.svc_ContractGetApproverLogByID(id);
-                
+
                 proc.then(function (response) {
                     var data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
@@ -1350,51 +1323,50 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         location.href = 'List.aspx';
     }
 
-    $scope.ConvertJSONDate = function (x,format) {
-        if(format == undefined) format = '{dd}-{mmm}-{yyyy}';
+    $scope.ConvertJSONDate = function (x, format) {
+        if (format == undefined) format = '{dd}-{mmm}-{yyyy}';
         if (x == null)
             return x;
         var re = /\/Date\(([0-9]*)\)\//;
         var m = x.match(re);
         var jsondate = "";
-        if (m)
-        {
+        if (m) {
             jsondate = new Date(parseInt(m[1]));
             var date = new Date(jsondate);
             let year = date.getFullYear();
-    
+
             let month = date.getMonth();
             let months = {
-                mmmm: new Array("January","February","March","April","May","June","July","August","September","October","November","December"),
+                mmmm: new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
                 mmm: new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
                 mm: new Array('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'),
                 m: new Array('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12')
             };
-    
+
             let d = date.getDate();
             let dd;
             if (d < 10) dd = "0" + d;
             else dd = d;
-    
+
             let day = date.getDay();
             let days = new Array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
             //days = new Array('Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu');
-    
+
             let H = date.getHours();
             let HH;
             if (H < 10) HH = "0" + H;
             else HH = H;
-    
+
             let M = date.getMinutes();
             let MM;
             if (M < 10) MM = "0" + M;
             else MM = M;
-    
+
             let S = date.getSeconds();
             let SS;
             if (S < 10) SS = "0" + S;
             else SS = S;
-    
+
             format = format.replace("{yyyy}", year);
             format = format.replace("{mmmm}", months["mmmm"][month]);
             format = format.replace("{mmm}", months["mmm"][month]);
@@ -1402,21 +1374,21 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             format = format.replace("{m}", months["m"][month]);
             format = format.replace("{dd}", dd);
             format = format.replace("{d}", d);
-    
+
             format = format.replace("{HH}", HH);
             format = format.replace("{H}", H);
             format = format.replace("{MM}", MM);
             format = format.replace("{M}", M);
             format = format.replace("{SS}", SS);
             format = format.replace("{S}", S);
-    
+
             format = format.replace("{day}", days[day]);
-    
+
             return format;
         }
         else
             return null;
-        
+
     }
 
     $scope.ContractGetContractByID();
