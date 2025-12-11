@@ -121,51 +121,18 @@ function onSuccessGetWorkflowHistoryLog(response) {
 };
 
 function PartnerBankCheck() {
-    var ceklist = NWF$("#" + chkPartnerBank);
-    var ceklistAccountNoInvalid = NWF$("#" + chkAccountNoInvalid);
-    var ceklistAccountNameInvalid = NWF$("#" + chkAccountNameInvalid);
-    var ceklistBankKeyInvalid = NWF$("#" + chkBankKeyInvalid);
-    var ceklistBankNameInvalid = NWF$("#" + chkBankNameInvalid);
-    ceklist.click(function () {
-        var isChecked = ceklist.prop('checked');
-        if (isChecked == true && ceklistAccountNoInvalid.prop("checked") == false) {
-            NWF$("#" + chkAccountNoInvalid).click();
-            ceklistAccountNoInvalid.prop("disabled", true);
-        } else if (isChecked == false && ceklistAccountNoInvalid.prop("checked", true)) {
-            ceklistAccountNoInvalid.click();
-            ceklistAccountNoInvalid.prop("disabled", false);
-        } else if (isChecked == true && ceklistAccountNoInvalid.prop("checked", true)) {
-            ceklistAccountNoInvalid.prop("disabled", true);
-        }
-
-        if (isChecked == true && ceklistAccountNameInvalid.prop("checked") == false) {
-            ceklistAccountNameInvalid.click();
-            ceklistAccountNameInvalid.prop("disabled", true);
-        } else if (isChecked == false && ceklistAccountNameInvalid.prop("checked") == true) {
-            ceklistAccountNameInvalid.click();
-            ceklistAccountNameInvalid.prop("disabled", false);
-        } else if (isChecked == true && ceklistAccountNameInvalid.prop("checked") == true) {
-            ceklistAccountNameInvalid.prop("disabled", true);
-        }
-
-        if (isChecked == true && ceklistBankKeyInvalid.prop("checked") == false) {
-            ceklistBankKeyInvalid.click();
-            ceklistBankKeyInvalid.prop("disabled", true);
-        } else if (isChecked == false && ceklistBankKeyInvalid.prop("checked") == true) {
-            ceklistBankKeyInvalid.click();
-            ceklistBankKeyInvalid.prop("disabled", false);
-        } else if (isChecked == true && ceklistBankKeyInvalid.prop("checked") == true) {
-            ceklistBankKeyInvalid.prop("disabled", true);
-        }
-
-        if (isChecked == true && ceklistBankNameInvalid.prop("checked") == false) {
-            ceklistBankNameInvalid.click();
-            ceklistBankNameInvalid.prop("disabled", true);
-        } else if (isChecked == false && ceklistBankNameInvalid.prop("checked") == true) {
-            ceklistBankNameInvalid.click();
-            ceklistBankNameInvalid.prop("disabled", false);
-        } else if (isChecked == true && ceklistBankNameInvalid.prop("checked") == true) {
-            ceklistBankNameInvalid.prop("disabled", true);
-        }
+    const main = NWF$("#" + chkPartnerBank);
+    const children = [
+        NWF$("#" + chkAccountNoInvalid),
+        NWF$("#" + chkAccountNameInvalid),
+        NWF$("#" + chkBankKeyInvalid),
+        NWF$("#" + chkBankNameInvalid)
+    ];
+    main.click(() => {
+        const isChecked = main.prop("checked");
+        children.forEach(cb => {
+            cb.prop("checked", isChecked);
+            cb.prop("disabled", isChecked);
+        });
     });
 };
