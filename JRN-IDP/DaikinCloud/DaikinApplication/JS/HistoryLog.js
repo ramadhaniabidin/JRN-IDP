@@ -1,95 +1,66 @@
 ﻿
+function HideAttachmentControl() {
+    $(".nf-attachmentsLink").css("display", "none");
+    $(".propertysheet").css("display", "none");
+};
+
+function ShowAttachmentControl() {
+    $(".nf-attachmentsLink").css("display", "block");
+    $(".propertysheet").css("display", "block");
+};
+
+function AttachmentOpenNewTab() {
+    $(".nf-attachmentsRow a").attr("target", "_blank");
+};
+
+const statusRules = {
+    "M017": ["Revise", "Start"],
+    "M016": ["", "Revise", "Draft"],
+    "M018": ["", "Revise", "Draft", "Start"]
+};
 
 NWF.FormFiller.Events.RegisterAfterReady(function () {
-    if ((window.location.href.indexOf("NewForm") > -1)) {
-        console.log('NewForm');
+    const moduleCategory = NWF$("#" + cvModuleCategory).val();
+    const moduleCode = NWF$("#" + cvModuleCode).val();
+    const formStatus = NWF$("#" + cvFormStatus).val();
+    GetWorkflowHistoryList();
+    if (moduleCategory === "Non Commercial") {
+        if (statusRules[moduleCode] && !statusRules[moduleCode].includes(formStatus)) {
+            HideAttachmentControl();
+            AttachmentOpenNewTab();
+        }
+    }
+    else if (moduleCategory === "PO Subcon") {
+        NWF$('#' + Comment).val("");
     } else {
-        console.log("Form No: ", NWF$(".form_no input").val());
-        GetWorkflowHistoryList();
-        if (NWF$('#' + cvModuleCategory).val() == 'Non Commercial') {
-            if (NWF$('#' + cvModuleCode).val() == 'M017') {
-                if (NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Start') {
-                    console.log('non com m017 not revise')
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                }
-            } else if (NWF$('#' + cvModuleCode).val() == 'M016') {
-                if (NWF$('#' + cvFormStatus).val() != '' && NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Draft') {
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                }
-            } else if (NWF$("#" + cvModuleCode).val() == "M018") {
-                //PartnerBankCheck();
-                if (NWF$('#' + cvFormStatus).val() != '' && NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Draft' && NWF$('#' + cvFormStatus).val() != 'Start') {
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                    //$(".nf-repeater-deleterow-image").css("display", "none");
-                    //$(".nf-repeater-deleterow-image").css("display", "none");
-                }
-            }
-        }
-        else if (NWF$('#' + cvModuleCategory).val() == 'PO Subcon') {
-            NWF$('#' + Comment).val("");
-        }
-        else {
-            if (NWF$('#' + cvFormStatus).val() == '' || NWF$('#' + cvFormStatus).val() == 'Revise' || NWF$('#' + cvFormStatus).val() == 'Draft') {
-                $(".nf-attachmentsLink").css("display", "block");
-                $(".propertysheet").css("display", "block");
-            } else {
-                $(".nf-attachmentsLink").css("display", "none");
-                $(".propertysheet").css("display", "none");
-                $(".nf-attachmentsRow a").attr("target", "_blank");
-            }
+        if (["", "Revise", "Draft"].includes(formStatus)) {
+            ShowAttachmentControl();
+        } else {
+            HideAttachmentControl();
+            AttachmentOpenNewTab();
         }
     }
 });
 
 NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
-    if ((window.location.href.indexOf("NewForm") > -1)) {
-        console.log('NewForm');
+    const moduleCategory = NWF$("#" + cvModuleCategory).val();
+    const moduleCode = NWF$("#" + cvModuleCode).val();
+    const formStatus = NWF$("#" + cvFormStatus).val();
+    GetWorkflowHistoryList();
+    if (moduleCategory === "Non Commercial") {
+        if (statusRules[moduleCode] && !statusRules[moduleCode].includes(formStatus)) {
+            HideAttachmentControl();
+            AttachmentOpenNewTab();
+        }
+    }
+    else if (moduleCategory === "PO Subcon") {
+        NWF$('#' + Comment).val("");
     } else {
-        console.log("Form No: ", NWF$(".form_no input").val());
-        GetWorkflowHistoryList();
-        if (NWF$('#' + cvModuleCategory).val() == 'Non Commercial') {
-            if (NWF$('#' + cvModuleCode).val() == 'M017') {
-                if (NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Start') {
-                    console.log('non com m017 not revise')
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                }
-            } else if (NWF$('#' + cvModuleCode).val() == 'M016') {
-                if (NWF$('#' + cvFormStatus).val() != '' && NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Draft') {
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                }
-            } else if (NWF$("#" + cvModuleCode).val() == "M018") {
-                //PartnerBankCheck();
-                if (NWF$('#' + cvFormStatus).val() != '' && NWF$('#' + cvFormStatus).val() != 'Revise' && NWF$('#' + cvFormStatus).val() != 'Draft' && NWF$('#' + cvFormStatus).val() != 'Start') {
-                    $(".nf-attachmentsLink").css("display", "none");
-                    $(".propertysheet").css("display", "none");
-                    $(".nf-attachmentsRow a").attr("target", "_blank");
-                    //$(".nf-repeater-deleterow-image").css("display", "none");
-                    //$(".nf-repeater-deleterow-image").css("display", "none");
-                }
-            }
-        }
-        else if (NWF$('#' + cvModuleCategory).val() == 'PO Subcon') {
-            NWF$('#' + Comment).val("");
-        }
-        else {
-            if (NWF$('#' + cvFormStatus).val() == '' || NWF$('#' + cvFormStatus).val() == 'Revise' || NWF$('#' + cvFormStatus).val() == 'Draft') {
-                $(".nf-attachmentsLink").css("display", "block");
-                $(".propertysheet").css("display", "block");
-            } else {
-                $(".nf-attachmentsLink").css("display", "none");
-                $(".propertysheet").css("display", "none");
-                $(".nf-attachmentsRow a").attr("target", "_blank");
-            }
+        if (["", "Revise", "Draft"].includes(formStatus)) {
+            ShowAttachmentControl();
+        } else {
+            HideAttachmentControl();
+            AttachmentOpenNewTab();
         }
     }
 });
