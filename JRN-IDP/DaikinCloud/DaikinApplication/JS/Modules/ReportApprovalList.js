@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -17,12 +17,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -52,9 +52,9 @@ app.directive('loading', ['$http', function ($http) {
 
 }]);
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -62,10 +62,10 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_GetOptions = function (ListName) {
-        var param = {
+        const param = {
             ListName: ListName
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/ModuleOptions",
             data: JSON.stringify(param),
@@ -74,13 +74,10 @@ app.service("svc", function ($http) {
         return response;
     }
     this.svc_ListData = function (model) {
-
-        var param = {
+        const param = {
             model: model
-        }
-
-        console.log('param svc_ListData', param);
-        var response = $http({
+        };
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ListData",
             data: JSON.stringify(param),
@@ -89,13 +86,10 @@ app.service("svc", function ($http) {
         return response;
     }
     this.svc_ListDataNonCommercials = function (model) {
-
-        var param = {
+        const param = {
             model: model
-        }
-
-        console.log('param svc_ListData', param);
-        var response = $http({
+        };
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ListDataNonCommercials",
             data: JSON.stringify(param),
@@ -104,13 +98,10 @@ app.service("svc", function ($http) {
         return response;
     }
     this.svc_ListDataCommercials = function (model) {
-
-        var param = {
+        const param = {
             model: model
-        }
-
-        console.log('param svc_ListData', param);
-        var response = $http({
+        };
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ListDataCommercials",
             data: JSON.stringify(param),
@@ -118,13 +109,10 @@ app.service("svc", function ($http) {
         });
         return response;
     };
-
     this.svc_SPDEV_ListDataApproval = function (model) {
         const param = {
             model: model
         };
-
-        console.log('param svc_ListData', param);
         const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/SPDEV_ListDataApproval",
@@ -133,39 +121,14 @@ app.service("svc", function ($http) {
         });
         return response;
     };
-    
 });
 
 app.controller('ctrl', function ($scope, svc) {
     $scope.Branch = {};
-
-
-    $scope.ConvertJSONDate = function (x) {
-        if (x == null)
-            return x;
-
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
-        if (m)
-            return new Date(parseInt(m[1]));
-        else
-            return null;
-    }
-    $scope.ddlModuleCategory = [
-        { Name: 'Claim Reimbursement' },
-        { Name: 'Non Commercials' },
-        { Name : 'Commercials' }
-    ]
-    $scope.ModuleCategory = $scope.ddlModuleCategory[0]
-    $scope.onChangeModuleCategory = function () {
-        console.log($scope.ModuleCategory);
-        $scope.Items = [];
-        $scope.GetModuleOptions();
-    }
-
+    $scope.ddlModuleCategory = [{ Name: 'Claim Reimbursement' }, { Name: 'Non Commercials' }, { Name: 'Commercials' }];
+    $scope.ModuleCategory = $scope.ddlModuleCategory[0];
     $scope.Module = {};
     $scope.ddlModule = [];
-
     $scope.ddlProcDepartments = [
         { Code: '', Name: 'All' },
         { Code: '4', Name: 'Service' },
@@ -180,55 +143,40 @@ app.controller('ctrl', function ($scope, svc) {
         { Code: '25', Name: 'General Affair (GA)' },
     ];
     $scope.Department = $scope.ddlProcDepartments[0];
+    $scope.tableHead = [];
+
+
+
+    $scope.ConvertJSONDate = function (x) {
+        if (x == null) return x;
+        const re = /\/Date\(([0-9]*)\)\//;
+        const m = x.match(re);
+        return m ? new Date(Number.parseInt(m[1])) : null;
+    };
+    $scope.onChangeModuleCategory = function () {
+        $scope.Items = [];
+        $scope.GetModuleOptions();
+    };
     $scope.GetModuleOptions = function (x) {
-        var proc = svc.svc_GetOptions($scope.ModuleCategory.Name);
+        const proc = svc.svc_GetOptions($scope.ModuleCategory.Name);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
-            console.log(data);
-            if (data.ProcessSuccess) {
-                if ($scope.ModuleCategory.Name == 'Claim Reimbursement') {
-                    $scope.ddlModule = [{ Name: 'All', List_Name: 'All', }, ...data.Items];
-                } else {
-                    $scope.ddlModule = [...data.Items];
-                }
-                //$scope.Module = $scope.ddlModule[0];
-                var module_code = GetQueryString()['module'];
-
-                $scope.ddlBranch = data.listBranch;
-                console.log('GetModuleOptions - Branch: ', data.Branch);
-                var br = data.Branch;
-
-                if (data.Branch == undefined) {
-                    br = '';
-                } else if (data.Branch == '') {
-                    br = '';
-                }
-
-                if (br == '') {
-                    $scope.Branch = data.listBranch[0];
-                } else {
-                    $scope.Branch = data.listBranch.find(o => o.Name == data.Branch);
-                }
-                console.log($scope.Branch, '$scope.Branch');
-
-                if (module_code == undefined) {
-                    $scope.Module = $scope.ddlModule[0];
-                } else {
-                    $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
-                }
-                $scope.OnChangeModule()
-                //if (!!x)
-                //x();
-            }
+            const data = JSON.parse(response.data.d);
+            if (!data.ProcessSuccess) return;
+            const module_code = GetQueryString()['module'];
+            const newModule = { Name: 'All', List_Name: 'All' };
+            $scope.ddlModule = $scope.ModuleCategory.Name === "Claim Reimbursement" ? [newModule, ...data.Items] : [...data.Items];
+            $scope.ddlBranch = data.listBranch;
+            $scope.Branch = (!data.Branch) ? data.listBranch[0] : data.listBranch.find(o => o.Name === data.Branch);
+            $scope.Module = (!module_code) ? $scope.ddlModule[0] : $scope.ddlModule.find(o => o.Code === module_code);
         }, function (data, status) {
             console.log(data.statusText + ' - ' + data.data.Message);
         });
     };
 
-    $scope.tableHead = []
+
     $scope.OnChangeModule = function () {
         $scope.Items = [];
-        if($scope.ModuleCategory.Name == 'Claim Reimbursement'){
+        if ($scope.ModuleCategory.Name == 'Claim Reimbursement') {
             $scope.tableHead = [
                 { Name: 'Direct Head' },
                 { Name: 'Receiver Document' },
@@ -323,7 +271,7 @@ app.controller('ctrl', function ($scope, svc) {
         Start: DateFormat_ddMMMyyyy(new Date(new Date().setDate(1))),
         End: DateFormat_ddMMMyyyy(new Date())
     };
-    
+
     $scope.ListData = function () {
         var ModuleCategory = $scope.ModuleCategory.Name;
         var Module = $scope.Module.Name;
@@ -372,7 +320,7 @@ app.controller('ctrl', function ($scope, svc) {
         }
         if (Module == 'All') {
             Module = '';
-        }        
+        }
         if (ProcDept == 'All') {
             ProcDept = '';
         }
@@ -448,44 +396,43 @@ app.controller('ctrl', function ($scope, svc) {
         }
     };
 
-    $scope.Export = () => {
-        if($scope.ModuleCategory.Name == 'Claim Reimbursement' ){
-            $("#tblReportsClaimReimbursement").table2excel({
-                filename: "ReportTables.xls"
-            });
-        }
-        else if (($scope.ModuleCategory.Name == 'Non Commercials' && $scope.Module.Code == 'M016') || ($scope.ModuleCategory.Name == 'Non Commercials' && $scope.Module.Code == 'M014')) {
-            $("#tblReportsPROrContract").table2excel({
-                filename: "ReportTables.xls"
-            }); 
-        }
-        else if (($scope.ModuleCategory.Name == 'Non Commercials' && $scope.Module.Code == 'M017') || ($scope.ModuleCategory.Name == 'Commercials' && $scope.Module.Code == 'M011') || ($scope.ModuleCategory.Name == 'Commercials' && $scope.Module.Code == 'M010')) {
-            $("#tblReportsQCForServistCostorFOB").table2excel({
-                filename: "ReportTables.xls"
-            }); 
-        }
-        else if ($scope.ModuleCategory.Name == 'Non Commercials' && $scope.Module.Code == 'M018') {
-            $("#tblReportsPORelease").table2excel({
-                filename: "ReportTables.xls"
-            });
-        }
-        else if ($scope.ModuleCategory.Name == 'Non Commercials' && $scope.Module.Code == 'M020') {
-            $("#tblReportsPOContract").table2excel({
-                filename: "ReportTables.xls"
-            });
-        }
-        else if ($scope.ModuleCategory.Name == 'Commercials' && $scope.Module.Code == 'M019') {
-            $("#tblReportsPOSubcon").table2excel({
-                filename: "ReportTables.xls"
-            });
-        }
+    $scope.GetTableMap = function () {
+        const tableMap = {
+            "Claim Reimbursement": {
+                "*": "tblReportsClaimReimbursement"
+            },
 
-        else if ($scope.ModuleCategory.Name == 'Commercials' && $scope.Module.Code == 'M025') {
-            $("#tblReportsPIB").table2excel({
-                filename: "ReportTables.xls"
-            });
-        } 
-    }
+            "Non Commercials": {
+                "M016": "tblReportsPROrContract",
+                "M014": "tblReportsPROrContract",
+                "M017": "tblReportsQCForServistCostorFOB",
+                "M018": "tblReportsPORelease",
+                "M020": "tblReportsPOContract"
+            },
+
+            "Commercials": {
+                "M011": "tblReportsQCForServistCostorFOB",
+                "M010": "tblReportsQCForServistCostorFOB",
+                "M019": "tblReportsPOSubcon",
+                "M025": "tblReportsPIB"
+            }
+        };
+        return tableMap;
+    };
+
+    $scope.Export = () => {
+        const category = $scope.ModuleCategory.Name;
+        const code = $scope.Module.Code;
+        const tableMap = $scope.GetTableMap();
+
+        const mapping = tableMap[category];
+        if (!mapping) return;
+
+        const tableID = mapping[code] || mapping["*"];
+        if (!tableID) return;
+
+        $("#" + tableID).table2excel({ filename: "ReportTables.xls" });
+    };
 
 
     //$scope.onChangeDDLPostingStatus = function () {
