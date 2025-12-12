@@ -239,10 +239,10 @@ app.service("svc", function ($http) {
     };
 
     this.svc_GetMaterialAnaplansByID = function (ID) {
-        var param = {
+        const param = {
             Form_No: ID
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetMaterialAnaplanByID",
             data: JSON.stringify(param),
@@ -319,6 +319,7 @@ app.service("svc", function ($http) {
         return response;
     };
 });
+
 
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
@@ -605,9 +606,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.GetVendors = function () {
         try {
-            var proc = svc.svc_GetVendors();
+            const proc = svc.svc_GetVendors();
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     //console.log(data);
                     $scope.ddlVendorNonCommercials = data.Vendors;
@@ -624,7 +625,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         } catch (e) {
             alert(e.message);
         }
-    }
+    };
 
     $scope.GetDepartments = function () {
         try {
@@ -725,30 +726,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         var promise = svc.svc_GetMaterialAnaplansByID(ID);
         promise.then(function (response) {
             var data = JSON.parse(response.data.d);
-            //console.log(data);
-            //data.MaterialAnaplans.forEach((o) => {
-            //    let code = o.Code;
-            //    let name = o.Code +" - "+ o.Name;
-
-            //    $scope.MaterialAnaplans.push({
-            //        Code : code,
-            //        Name : name,
-            //        Short_x0020_Name : o.Short_x0020_Name
-            //    });
-
-            //    $scope.ddlMaterialAnaplansTemp.push({
-            //        Code : code,
-            //        Name : name,
-            //        Short_x0020_Name : o.Short_x0020_Name
-            //    });
-
-            //    const indexMaterialName = data.ContractDetail.map(function(e) {return e.Material_Number}).indexOf(o.Code);
-            //    if(indexMaterialName != -1) data.ContractDetail[indexMaterialName].Material_Name = name;
-            //});
-
             $scope.contractGetContracMaterialName_New();
         }).catch(function (err) {
-            //console.log(err)
+            console.log(err)
         });
     };
 
@@ -1060,7 +1040,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 return;
             }
             const validationDetail = $scope.contractSubmit_ValidateDetails();
-            if(validationDetail.error){
+            if (validationDetail.error) {
                 alert(validationDetail.message);
                 return;
             }
@@ -1084,7 +1064,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         } catch (e) {
             alert(e.message);
         }
-    }
+    };
 
     $scope.ContractContractDetailOnDelete = function (index) {
         if ($scope.ContractDetails[index].ID) {
@@ -1105,14 +1085,83 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.contractGetContracMaterialName_New = () => {
         angular.forEach($scope.ContractDetails, function (v, i) {
-            var material = {
+            const material = {
                 Name: v.Material_Name,
                 Code: v.Material_Number
-            }
+            };
             $scope.ContractDetails[i].Material = material;
-
         });
-        ////console.log($scope.ContractDetails);
+    };
+
+    $scope.VendorField = function (val) {
+        $scope.VendorNonCommercials = displayVendorNonCommercial($scope.ddlVendorNonCommercials, val);
+    };
+
+    $scope.BranchField = function (sourceArray, val) {
+        const idx = findIndexByField(sourceArray, "Name", val);
+        $scope.Branch = sourceArray[idx];
+        $scope.IsBranch = idx !== -1;
+    };
+
+    $scope.ContractTypeField = function (sourceArray, comparingValue) {
+        // $scope.ddlMasterContractTypes = data.ContractTypes;
+        // const indexContractType = data.ContractTypes.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Contract_Type_Name);
+        // $scope.MasterContractType = data.ContractTypes[indexContractType];
+        // $scope.IsContractTypes = indexContractType !== -1;
+
+
+        const idx = findIndexByField(sourceArray, "Name", comparingValue);
+        $scope.ddlMasterContractTypes = sourceArray;
+        $scope.MasterContractType = sourceArray[idx];
+        $scope.IsContractTypes = idx !== -1;
+    };
+
+    $scope.InternalOrderField = function (sourceArray, comparingValue) {
+        // $scope.InternalOrders = data.InternalOrders;
+        // const indexIntOrd = $scope.InternalOrders.map((o) => { return o.Code }).indexOf(data.ContractHeader.Internal_Order_Code);
+        // $scope.InternalOrder = $scope.InternalOrders[indexIntOrd];
+
+        const idx = findIndexByField(sourceArray, "Code", comparingValue);
+        $scope.InternalOrders = sourceArray;
+        $scope.InternalOrder = sourceArray[idx];
+    };
+
+    $scope.DepartmentField = function (sourceArray, comparingValue) {
+        // $scope.ProcDeptTypes = data.UserDepartment;
+        // const indexProcDept = $scope.ProcDeptTypes.map(function (e) { return e.Name; }).indexOf(data.ContractHeader.Procurement_Department);
+        // $scope.ProcDeptType = $scope.ProcDeptTypes[indexProcDept];
+        // $scope.IsDepartment = indexProcDept !== -1;
+
+        const idx = findIndexByField(sourceArray, "Name", comparingValue);
+        $scope.ProcDeptTypes = sourceArray;
+        $scope.ProcDeptType = $scope.ProcDeptTypes[idx];
+        $scope.IsDepartment = idx !== -1;
+    };
+
+    $scope.ContractProcessData = function (data) {
+        // data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
+        // const Contract = $scope.ContractHeader;
+        // $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
+        // $scope.ContractDetails = data.ContractDetail;
+        // $scope.ContractAttachments = data.ContractAttachment;
+
+        // $scope.IsCurrentApprover = data.IsCurrentApprover;
+        // $scope.IsReceiverDocs = data.IsReceiverDocs;
+        // $scope.IsRequestor = data.IsRequestor;
+        // $scope.IsTaxVerifier = data.IsTaxVerifier;
+        // $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
+
+
+        data.ContractHeader.Document_Received = !(data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received);
+        $scope.ContractHeader = { ...$scope.ContractHeader, ...data.ContractHeader };
+        $scope.ContractDetails = data.ContractDetail;
+        $scope.ContractAttachments = data.ContractAttachment;
+
+        $scope.IsCurrentApprover = data.IsCurrentApprover;
+        $scope.IsReceiverDocs = data.IsReceiverDocs;
+        $scope.IsRequestor = data.IsRequestor;
+        $scope.IsTaxVerifier = data.IsTaxVerifier;
+        $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
     };
 
     $scope.ContractGetContractByID = function () {
@@ -1126,101 +1175,51 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
                 $scope.ContractAttachments = [];
                 $scope.ContractUploaded = [];
-                var proc = svc.svc_ContractGetContractByID(id);
+                const proc = svc.svc_ContractGetContractByID(id);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        ////console.log(data);
+                    const data = JSON.parse(response.data.d);
+                    if (!data.ProcessSuccess) return;
+                    convertDates(data, $scope.ConvertJSONDate);
+                    // convertDatesInObject(data.ContractHeader, $scope.ConvertJSONDate);
+                    // convertDatesInArray(data.ContractDetail, $scope.ConvertJSONDate);
+                    // convertDatesInArray(data.ContractAttachment, $scope.ConvertJSONDate);
 
-                        for (let i in data.ContractHeader) {
-                            if (i.startsWith('Period')) data.ContractHeader[i] = $scope.ConvertJSONDate(data.ContractHeader[i]);
-                            else if (i.endsWith('Date')) data.ContractHeader[i] = $scope.ConvertJSONDate(data.ContractHeader[i]);
-                        }
+                    // Vendor
+                    $scope.VendorField(data.ContractHeader.Vendor_Code);
 
-                        for (let i in data.ContractDetail) {
-                            for (let j in data.ContractDetail[i]) {
-                                if (j.endsWith('Date')) {
-                                    data.ContractDetail[i][j] = $scope.ConvertJSONDate(data.ContractDetail[i][j]);
-                                }
-                            }
-                        }
+                    // Branch
+                    $scope.BranchField($scope.ddlBranches, data.ContractHeader.Branch);
 
-                        for (let i in data.ContractAttachment) {
-                            for (let j in data.ContractAttachment[i]) {
-                                if (j.endsWith('Date')) {
-                                    data.ContractAttachment[i][j] = $scope.ConvertJSONDate(data.ContractAttachment[i][j]);
-                                }
-                            }
-                        }
+                    // Contract Type
+                    $scope.ContractTypeField(data.ContractTypes, data.ContractHeader.Contract_Type_Name);
 
-                        const indexVendor = $scope.ddlVendorNonCommercials.map(function (e) { return e.Code }).indexOf(data.ContractHeader.Vendor_Code);
-                        $scope.VendorNonCommercials = $scope.ddlVendorNonCommercials[indexVendor];
+                    // Internal Order
+                    $scope.InternalOrderField(data.InternalOrders, data.ContractHeader.Internal_Order_Code);
 
-                        $scope.IsBranch = false;
-                        const indexBranch = $scope.ddlBranches.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Branch);
-                        $scope.Branch = $scope.ddlBranches[indexBranch];
-                        if (indexBranch != -1) $scope.IsBranch = true;
+                    // Material Anaplan
+                    $scope.GetMaterialAnaplansByID(id);
+                    $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
 
-                        $scope.IsContractTypes = false;
-                        $scope.ddlMasterContractTypes = data.ContractTypes;
-                        const indexContractType = data.ContractTypes.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Contract_Type_Name);
-                        $scope.MasterContractType = data.ContractTypes[indexContractType];
-                        if (indexContractType != -1) $scope.IsContractTypes = true;
+                    // Procurement department
+                    $scope.DepartmentField(data.UserDepartment, data.ContractHeader.Procurement_Department);
+                    $scope.ContractUploaded = mapAttachmentFiles(data.ContractAttachment);
+                    const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
+                    setApprovalUIState(data.ContractHeader, indexProcDept);
 
-                        $scope.InternalOrders = data.InternalOrders;
-                        const indexIntOrd = $scope.InternalOrders.map((o) => { return o.Code }).indexOf(data.ContractHeader.Internal_Order_Code);
-                        $scope.InternalOrder = $scope.InternalOrders[indexIntOrd];
+                    $scope.ContractProcessData(data);
+                    // data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
+                    // const Contract = $scope.ContractHeader;
+                    // $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
+                    // $scope.ContractDetails = data.ContractDetail;
+                    // $scope.ContractAttachments = data.ContractAttachment;
+                    // $scope.IsCurrentApprover = data.IsCurrentApprover;
+                    // $scope.IsReceiverDocs = data.IsReceiverDocs;
+                    // $scope.IsRequestor = data.IsRequestor;
+                    // $scope.IsTaxVerifier = data.IsTaxVerifier;
+                    // $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
 
-                        $scope.GetMaterialAnaplansByID(id);
-
-                        $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
-
-                        $scope.IsDepartment = false;
-                        $scope.ProcDeptTypes = data.UserDepartment;
-                        const indexProcDept = $scope.ProcDeptTypes.map(function (e) { return e.Name; }).indexOf(data.ContractHeader.Procurement_Department);
-                        $scope.ProcDeptType = $scope.ProcDeptTypes[indexProcDept];
-                        if (indexProcDept != -1) $scope.IsDepartment = true;
-
-                        data.ContractAttachment.forEach(o => {
-                            $scope.ContractUploaded.push({
-                                name: o.Attachment_FileName,
-                                type: "application/xml"
-                            });
-                        });
-
-                        if (['4', '5', '6', '7', '8'].indexOf(data.ContractHeader.Approval_Status) >= 0) {
-                            data.ContractHeader.IsShow = true;
-                            data.ContractHeader.IsDisabled = true;
-                            data.ContractHeader.IsEdited = false;
-                        }
-                        else {
-                            data.ContractHeader.IsShow = true;
-                            data.ContractHeader.IsDisabled = false;
-                            data.ContractHeader.IsEdited = true;
-                            if (indexProcDept == -1) {
-                                data.ContractHeader.IsShow = false;
-                                data.ContractHeader.IsDisabled = true;
-                                data.ContractHeader.IsEdited = false;
-                            }
-                        }
-
-                        data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
-                        const Contract = $scope.ContractHeader;
-                        $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
-                        $scope.ContractDetails = data.ContractDetail;
-                        $scope.ContractAttachments = data.ContractAttachment;
-
-                        $scope.IsCurrentApprover = data.IsCurrentApprover;
-                        $scope.IsReceiverDocs = data.IsReceiverDocs;
-                        $scope.IsRequestor = data.IsRequestor;
-                        $scope.IsTaxVerifier = data.IsTaxVerifier;
-                        $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
-                    }
-                    else {
-                        //console.log(data);
-                    }
                 }, function (data, status) {
-                    //console.log(data);
+                    console.log(data);
 
                     //console.log(data.statusText + ' - ' + data.data.Message);
                 });
@@ -1233,7 +1232,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         } catch (e) {
             //console.log(e.message);
         }
-    }
+    };
 
     $scope.ContractGetApproverLogByID = function () {
         try {
@@ -1321,7 +1320,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.contractClose = function () {
         location.href = 'List.aspx';
-    }
+    };
 
     $scope.ConvertJSONDate = function (x, format) {
         if (format == undefined) format = '{dd}-{mmm}-{yyyy}';
@@ -1389,9 +1388,60 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         else
             return null;
 
-    }
+    };
 
     $scope.ContractGetContractByID();
     $scope.ContractGetApproverLogByID();
     //$scope.GetMaterialAnaplans();
 });
+
+function displayVendorNonCommercial(listVendors, value) {
+    const idx = findIndexByField(listVendors, "Code", value);
+    return listVendors[idx];
+};
+
+function convertDates(data, convertFunction) {
+    convertDatesInObject(data.ContractHeader, convertFunction);
+    convertDatesInArray(data.ContractDetail, convertFunction);
+    convertDatesInArray(data.ContractAttachment, convertFunction);
+};
+
+function convertDatesInObject(obj, convertFunction) {
+    for (let key in obj) {
+        if (key.startsWith('Period') || key.endsWith('Date')) {
+            obj[key] = convertFunction(obj[key]);
+        }
+    }
+};
+
+function convertDatesInArray(arr, convertFunction) {
+    arr.forEach(item => convertDatesInObject(item, convertFunction));
+};
+
+function findItemByField(arr, field, value) {
+    return arr.find(x => x[field] === value);
+};
+
+function findIndexByField(arr, field, value) {
+    return arr.map(x => x[field]).indexOf(value);
+};
+
+function mapAttachmentFiles(arr) {
+    return arr.map(o => ({
+        name: o.Attachment_FileName,
+        type: "application/xml"
+    }));
+};
+
+function setApprovalUIState(header, indexProcDept) {
+    const lockedStatuses = ['4', '5', '6', '7', '8'];
+    if (lockedStatuses.includes(header.Approval_Status)) {
+        header.IsShow = true;
+        header.IsDisabled = true;
+        header.IsEdited = false;
+        return;
+    }
+    header.IsShow = indexProcDept !== -1;
+    header.IsDisabled = indexProcDept === -1;
+    header.IsEdited = indexProcDept !== -1;
+};
