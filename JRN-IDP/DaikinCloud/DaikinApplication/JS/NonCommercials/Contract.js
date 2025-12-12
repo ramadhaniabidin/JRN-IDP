@@ -1352,7 +1352,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         return map;
     };
 
-    $scope.ConvertJSONDate = function (x, format = "{dd}-{mmm}-{yyyy}") {
+    $scope.ConvertJSONDate = function (x, format) {
+        if (!format) format = "{dd}-{mmm}-{yyyy}";
         if (!x) return x;
         const match = x.match(/\/Date\(([0-9]*)\)\//);
         if (!match) return null;
