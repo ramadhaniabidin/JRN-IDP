@@ -46,15 +46,16 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 #endregion
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
+                //Master.Model.OptionModel data = new Master.Model.OptionModel();
 
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new Master.Model.OptionModel();
-                        data.Name = row["Procurement_Department"].ToString();
-                        listOption.Add(data);
+                        listOption.Add(new Master.Model.OptionModel
+                        {
+                            Name = row["Procurement_Department"].ToString()
+                        });
                     }
                     listOption = listOption.OrderBy(o => o.Name).ToList();
                 }
@@ -511,6 +512,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = @vendor_code AND Branch = @branch AND Procurement_Department = @proc_dept";
                 db.cmd.CommandType = CommandType.Text;
                 db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, "vendor_code", Vendor_Code);
+                db.AddInParameter(db.cmd, "branch", Branch);
+                db.AddInParameter(db.cmd, "proc_dept", Procurement_Department);
 
                 reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
