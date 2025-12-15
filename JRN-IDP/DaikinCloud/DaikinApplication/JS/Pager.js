@@ -1,59 +1,46 @@
-﻿function ASPSnippetsPager(a, b) {
-    //console.log(a, b, 'Pager');
-    var c = '<a style = "cursor:pointer; padding:5px;" class="page" page = "{1}">{0}</a>';
-    var d = "<span>{0}</span>";
-    var e, f, g;
-    var g = 10;
-    var TotalPage = Math.ceil(b.RecordCount / b.PageSize);
-    //console.log('TotalPage', TotalPage);
-    //console.log('b.PageIndex', b.PageIndex);
-    if (b.PageIndex > TotalPage) {
-        b.PageIndex = TotalPage
+﻿function ASPSnippetsPager($container, pagerData) {
+    const linkTemplate = (text, page) =>
+        `<a style="cursor:pointer; padding:5px;" class="page" page="${page}">${text}</a>`
+    const currentPageTemplate = (text) => `<span>${text}</span>`;
+    const totalPage = Math.ceil(pagerData.RecordCount / pagerData.PageSize);
+    let pageIndex = Math.min(pagerData.PageIndex, totalPage);
+
+    if (totalPage <= 1) {
+        $container.html('');
+        return;
     }
-    var i = "";
-    if (TotalPage > 1) {
-        f = TotalPage > g ? g : TotalPage;
-        e = b.PageIndex > 1 && b.PageIndex + g - 1 < g ? b.PageIndex : 1;
-        if (b.PageIndex > g % 2) {
-            if (b.PageIndex == 2) f = 5;
-            else f = b.PageIndex + 2
-        } else {
-            f = g - b.PageIndex + 1
-        }
-        if (f - (g - 1) > e) {
-            e = f - (g - 1)
-        }
-        if (f > TotalPage) {
-            f = TotalPage;
-            e = f - g + 1 > 0 ? f - g + 1 : 1
-        }
-        var j = (b.PageIndex - 1) * b.PageSize + 1;
-        var k = j + b.PageSize - 1;
-        if (k > b.RecordCount) {
-            k = b.RecordCount
-        }
-        i = "<b>Records " + (j == 0 ? 1 : j) + " - " + k + " of " + b.RecordCount + "</b> ";
-        if (b.PageIndex > 1) {
-            i += c.replace("{0}", "<<").replace("{1}", "1");
-            i += c.replace("{0}", "<").replace("{1}", b.PageIndex - 1)
-        }
-        for (var l = e; l <= f; l++) {
-            if (l == b.PageIndex) {
-                i += d.replace("{0}", l)
-            } else {
-                i += c.replace("{0}", l).replace("{1}", l)
-            }
-        }
-        if (b.PageIndex < TotalPage) {
-            i += c.replace("{0}", ">").replace("{1}", b.PageIndex + 1);
-            i += c.replace("{0}", ">>").replace("{1}", TotalPage)
-        }
+
+    const maxPagesToShow = 10;
+    let startPage = Math.max(1, pageIndex - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPage, startPage + maxPagesToShow + 1);
+
+    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+
+    const startRecord = (pageIndex - 1) * pagerData.PageSize + 1;
+    const endRecord = Math.min(pageIndex * pagerData.PageSize, pagerData.RecordCount);
+    let html = `<b>Records ${startRecord} - ${endRecord} of ${pagerData.RecordCount}</b> `;
+
+    if (pageIndex > 1) {
+        html += linkTemplate("<<", 1);
+        html += linkTemplate("<", pageIndex - 1);
     }
-    a.html(i);
+
+    for (let p = startPage; p <= endPage; p++) {
+        html += p === pageIndex ? currentPageTemplate(p) : linkTemplate(p, p);
+    }
+
+    if (pageIndex < totalPage) {
+        html += linkTemplate(">", pageIndex + 1);
+        html += linkTemplate(">>", totalPage);
+    }
+
+    $container.html(html);
     try {
-        a[0].disabled = false
-    } catch (m) { }
-} (function (a) {
+        $container[0].disabled = false;
+    } catch (e) { }
+};
+
+(function (a) {
     a.fn.ASPSnippets_Pager = function (b) {
         var c = {};
         var b = a.extend(c, b);
@@ -62,3 +49,44 @@
         })
     }
 })(jQuery);
+
+
+// -------------------- Helper Functions --------------------
+function calculatePageRange(current, total, maxPages) {
+    let start = Math.max(1, current - Math.floor(maxPages / 2));
+    let end = Math.min(total, start + maxPages - 1);
+    start = Math.max(1, end - maxPages + 1);
+    return { startPage: start, endPage: end };
+};
+
+function calculateRecordRange(pageIndex, pageSize, recordCount) {
+    const startRecord = (pageIndex - 1) * pageSize + 1;
+    const endRecord = Math.min(pageIndex * pageSize, recordCount);
+    return { startRecord, endRecord };
+};
+
+function renderNavigationButtons(pageIndex, totalPage) {
+    if (pageIndex <= 1) return '';
+    return link("<<", 1) + link("<", pageIndex - 1);
+};
+
+function renderNextButtons(pageIndex, totalPage) {
+    if (pageIndex >= totalPage) return '';
+    return link(">", pageIndex + 1) + link(">>", totalPage);
+};
+
+function renderPageLinks(start, end, current) {
+    let html = '';
+    for (let p = start; p <= end; p++) {
+        html += p === current ? currentPage(p) : link(p, p);
+    }
+    return html;
+};
+
+function link(text, page) {
+    return `<a style="cursor:pointer; padding:5px;" class="page" page="${page}">${text}</a>`;
+};
+
+function currentPage(text) {
+    return `<span>${text}</span>`;
+};
