@@ -834,10 +834,10 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.POWithContractSubmit = (statusWF) => {
         try {
-            if(!validateHeader($scope.Header)) return;
-            if(!validateDetails($scope.Header.Detail)) return;
+            if (!validateHeader($scope.Header)) return;
+            if (!validateDetails($scope.Header.Detail)) return;
             const submitInfo = getSubmitMessage(statusWF);
-            if(!confirm(submitInfo.confirm)) return;
+            if (!confirm(submitInfo.confirm)) return;
 
             const header = buildHeaderPayload($scope.Header);
             const detail = buildDetailPayload($scope.Header.Detail);
@@ -1454,25 +1454,12 @@ function validateHeader(header) {
 };
 
 function validateDetails(details) {
-    if (!details || details.length === 0) {
+    if (isEmpty(details)) {
         alert("Please add contract");
         return false;
     }
     for (const detail of details) {
-        if (!detail.Create_PO_From_Period || !detail.Create_PO_To_Period) {
-            alert("Please complete the column in the table");
-            return false;
-        }
-        if (!detail.Materials || detail.Materials.length === 0) {
-            alert("Please choose contract remarks");
-            return false;
-        }
-        for (const cm of detail.Materials) {
-            if (!cm.Contract_Amount || cm.Contract_Amount <= 0) return alertAndFail();
-            if (!cm.Cost_Center) return alertAndFail();
-            if (!cm.Text) return alertAndFail();
-            if (cm.Qty <= 0) return alertAndFail();
-        }
+        if (!isValidContract(detail)) return false;
     }
     return true;
 };
@@ -1587,3 +1574,57 @@ function getSubmitMessage(statusWF) {
         success: "Success Save as Draft!"
     };
 };
+
+function isValidContract(detail) {
+    if (!hasValidPeriod(detail)) {
+        alert("Please complete the column in the table");
+        return false;
+    }
+
+    if (!hasMaterials(detail)) {
+        alert("Please choose contract remarks");
+        return false;
+    }
+
+    return areMaterialsValid(detail.Materials);
+};
+
+function areMaterialsValid(materials) {
+    for (const cm of materials) {
+        if (!isValidMaterial(cm)) {
+            alert("Please complete the column in the table");
+            return false;
+        }
+    }
+    return true;
+};
+
+function isValidMaterial(cm) {
+    return (
+        isPositive(cm.Contract_Amount) &&
+        isPresent(cm.Cost_Center) &&
+        isPresent(cm.Text) &&
+        isPositive(cm.Qty)
+    );
+};
+
+function hasValidPeriod(detail) {
+    return detail.Create_PO_From_Period && detail.Create_PO_To_Period;
+};
+
+function hasMaterials(detail) {
+    return detail.Materials && detail.Materials.length > 0;
+};
+
+function isPositive(value) {
+    return value > 0;
+};
+
+function isPresent(value) {
+    return !!value;
+};
+
+function isEmpty(arr) {
+    return !arr || arr.length === 0;
+};
+
