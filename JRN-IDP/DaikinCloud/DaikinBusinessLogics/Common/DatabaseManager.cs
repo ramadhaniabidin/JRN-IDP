@@ -147,7 +147,7 @@ namespace Daikin.BusinessLogics.Common
                     command.Parameters.Add(new SqlParameter { ParameterName = "FieldCriteria", Value = fieldCriteria, Direction = ParameterDirection.Input });
                     command.Parameters.Add(new SqlParameter { ParameterName = "ValueCriteria", Value = valueCriteria, Direction = ParameterDirection.Input });
                     command.Parameters.Add(new SqlParameter { ParameterName = "LengthOfString", Value = LengthOfString, Direction = ParameterDirection.Input });
-                    autoCode = cmd.ExecuteScalar().ToString();
+                    autoCode = command.ExecuteScalar().ToString();
                     return autoCode;
                 }
             }
