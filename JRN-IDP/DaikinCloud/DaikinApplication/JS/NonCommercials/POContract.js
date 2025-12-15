@@ -128,13 +128,13 @@ app.filter("FormatDate", () => {
 
 app.service("svc", function ($http) {
     this.svc_ListLog = function (Form_No) {
-        var param = {
+        const param = {
             Form_No: Form_No,
             Module_Code: "M020",
             Transaction_ID: 0
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -144,11 +144,10 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractGetDataById = function (ID) {
-        var param = {
+        const param = {
             Form_No: ID,
         };
-        console.log(param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetDataById",
             data: JSON.stringify(param),
@@ -158,7 +157,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractGetData = () => {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetData",
             data: {},
@@ -168,11 +167,10 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractGetVendor = (ProcurementDepartment) => {
-        var param = {
+        const param = {
             ProcurementDepartment: ProcurementDepartment,
         };
-        console.log('Param for get Vendor ', param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetVendor",
             data: JSON.stringify(param),
@@ -182,7 +180,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractGetMarketingCategory = () => {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetMarketingCategory",
             data: {},
@@ -191,15 +189,12 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_POWithContractGetBranches = function (
-        VendorCode,
-        ProcurementDepartment
-    ) {
-        var param = {
+    this.svc_POWithContractGetBranches = function (VendorCode, ProcurementDepartment) {
+        const param = {
             VendorCode: VendorCode,
             ProcurementDepartment: ProcurementDepartment,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetBranches",
             data: JSON.stringify(param),
@@ -208,13 +203,8 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_POWithContractGetRemarks = function (
-        Vendor_Code,
-        Branch,
-        Procurement_Department
-    ) {
-        console.log(`Vendor Code : ${Vendor_Code}; Branch : ${Branch}; Procurement Dept : ${Procurement_Department}.`)
-        var response = $http({
+    this.svc_POWithContractGetRemarks = function (Vendor_Code, Branch, Procurement_Department) {
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetRemarks",
             data: {
@@ -224,7 +214,6 @@ app.service("svc", function ($http) {
             },
             dataType: "json",
         });
-        console.log("Response :", response);
         return response;
     };
 
@@ -252,15 +241,13 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractSubmit = function (header, detail, Form_Status, notes) {
-        var param = {
+        const param = {
             h: header,
             d: detail,
             Form_Status: Form_Status,
             Notes: notes
         };
-
-        console.log(param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractSubmit",
             data: JSON.stringify(param),
@@ -846,226 +833,18 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractSubmit = (statusWF) => {
-        console.log("Header", $scope.Header);
         try {
-            var anyError = false;
-            if ($scope.Header.Procurement_Department.length == 0 || $scope.Header.Procurement_Department == "Please Select") {
-                alert("Please select Procurement Department");
-                return;
-            }
+            if(!validateHeader($scope.Header)) return;
+            if(!validateDetails($scope.Header.Detail)) return;
+            const submitInfo = getSubmitMessage(statusWF);
+            if(!confirm(submitInfo.confirm)) return;
 
-            if ($scope.Header.Vendor_Code == null || $scope.Header.Vendor_Code == undefined || $scope.Header.Vendor_Code.length <= 0) {
-                alert("Please choose vendor name");
-                return;
-            }
+            const header = buildHeaderPayload($scope.Header);
+            const detail = buildDetailPayload($scope.Header.Detail);
+            const formStatus = getFormStatus(statusWF);
 
-            if ($scope.Header.Branch == null || $scope.Header.Branch == undefined || $scope.Header.Branch.length <= 0) {
-                alert("Please choose branch");
-                return;
-            }
-
-            if (
-                $scope.Header.Marketing_Category_ID <= 0 && ['Marketing Trade', 'Marketing Digital'].indexOf($scope.Header.Procurement_Department) >= 0
-            ) {
-                alert("Please choose marketing category");
-                return;
-            }
-
-            var msg = "Please complete the column in the table";
-
-            //console.log("Call Details Here :", $scope.Header.Detail);
-
-            if ($scope.Header.Detail.length > 0) {
-                for (var j = 0; j < $scope.Header.Detail.length; j++) {
-                    var ch = $scope.Header.Detail[j];
-
-                    if (ch.Create_PO_To_Period.length <= 0) {
-                        anyError = true;
-                    }
-
-                    if (ch.Create_PO_From_Period.length <= 0) {
-                        anyError = true;
-                    }
-
-                    if (ch.Materials.length > 0) {
-                        for (var i = 0; i < ch.Materials.length; i++) {
-                            var cm = ch.Materials[i];
-                            if (cm.Contract_Amount.length <= 0 || cm.Contract_Amount <= 0) {
-                                anyError = true;
-                            }
-
-                            if (!cm.Cost_Center || cm.Cost_Center == undefined) {
-                                anyError = true;
-                            }
-
-                            if (!cm.Text || cm.Text == undefined) {
-                                anyError = true;
-                            }
-
-                            if (cm.Qty <= 0) {
-                                anyError = true;
-                            }
-                        }
-                    } else {
-                        alert("Please choose contract remarks");
-                        return;
-                    }
-                }
-            } else {
-                alert("Please add contract");
-                return;
-            }
-
-            if (anyError) {
-                alert(msg);
-                return;
-            }
-
-            var submitMessage = "";
-            var responseSubmitMessage = "";
-            if (statusWF == 1 || statusWF == 19) {
-                submitMessage = "Submit ?";
-                responseSubmitMessage = "Submit Successfully!";
-            } else if (statusWF == 0) {
-                submitMessage = "Save as Draft ?";
-                responseSubmitMessage = "Success Save as Draft!";
-            }
-
-            var confirmMsg = confirm(submitMessage);
-            if (!confirmMsg) {
-                return;
-            }
-            // console.log($scope.Header);
-            const header = {
-                Actual_Payment_Date: angular.copy($scope.Header.Actual_Payment_Date),
-                Approval_Date: angular.copy($scope.Header.Approval_Date),
-                Approval_Status: angular.copy($scope.Header.Approval_Status),
-                Branch: angular.copy($scope.Header.Branch),
-                Cost_Center: angular.copy($scope.Header.Cost_Center),
-                Created_Date: angular.copy($scope.Header.Created_Date),
-                Current_Index_Approver: angular.copy(
-                    $scope.Header.Current_Index_Approver
-                ),
-                Document_Received: angular.copy($scope.Header.Document_Received),
-                Form_No: angular.copy($scope.Header.Form_No),
-                Grand_Total: angular.copy($scope.Header.Grand_Total),
-                ID: angular.copy($scope.Header.ID),
-                Item_ID: angular.copy($scope.Header.Item_ID),
-                Last_Action_By: angular.copy($scope.Header.Last_Action_By),
-                Last_Action_Date: angular.copy($scope.Header.Last_Action_Date),
-                Last_Action_Name: angular.copy($scope.Header.Last_Action_Name),
-                Marketing_Category_ID: angular.copy(
-                    $scope.Header.Marketing_Category_ID
-                ),
-                Marketing_Category_Name: angular.copy(
-                    $scope.Header.Marketing_Category_Name
-                ),
-                PIC_Team: angular.copy($scope.Header.PIC_Team),
-                Pending_Approver_Name: angular.copy(
-                    $scope.Header.Pending_Approver_Name
-                ),
-                Pending_Approver_Role: angular.copy(
-                    $scope.Header.Pending_Approver_Role
-                ),
-                Pending_Approver_Role_ID: angular.copy(
-                    $scope.Header.Pending_Approver_Role_ID
-                ),
-                Posting_Date: angular.copy($scope.Header.Posting_Date),
-                Procurement_Department: angular.copy(
-                    $scope.Header.Procurement_Department
-                ),
-                Received_Date: angular.copy($scope.Header.Received_Date),
-                Requester_Department: angular.copy($scope.Header.Requester_Department),
-                Requester_Email: angular.copy($scope.Header.Requester_Email),
-                Requester_Name: angular.copy($scope.Header.Requester_Name),
-                Scheduled_Payment_Date: angular.copy(
-                    $scope.Header.Scheduled_Payment_Date
-                ),
-                Vendor_Code: angular.copy($scope.Header.Vendor_Code),
-                Vendor_Name: angular.copy($scope.Header.Vendor_Name),
-            };
-
-            // console.log(header);
-
-            let detail = [];
-            $scope.Header.Detail.forEach(function (value, index) {
-                const materials = value.Materials.map((o) => {
-                    return {
-                        Contract_Amount: angular.copy(o.Contract_Amount),
-                        Contract_Detail_Id: angular.copy(o.Contract_Detail_Id),
-                        Contract_ID: angular.copy(o.Contract_ID),
-                        Contract_No: angular.copy(o.Contract_No),
-                        Cost_Center: angular.copy(o.Cost_Center),
-                        Form_No: angular.copy(o.Form_No),
-                        GL: angular.copy(o.GL),
-                        GL_Description: angular.copy(o.GL_Description),
-                        Header_ID: angular.copy(o.Header_ID),
-                        ID: angular.copy(o.ID),
-                        Material_Description: angular.copy(o.Material_Description),
-                        Material_Name: angular.copy(o.Material_Name),
-                        Material_Number: angular.copy(o.Material_Number),
-                        No: angular.copy(o.No),
-                        Qty: angular.copy(o.Qty),
-                        Remarks_Contract: angular.copy(o.Remarks_Contract),
-                        Text: angular.copy(o.Text),
-                        Variable_Amount: angular.copy(o.Variable_Amount),
-                        WHT: angular.copy(o.WHT),
-                    };
-                });
-
-                detail[index] = {
-                    Contract_ID: angular.copy(value.Contract_ID),
-                    Contract_No: angular.copy(value.Contract_No),
-                    Create_PO_From_Period: angular.copy(value.Create_PO_From_Period),
-                    Create_PO_To_Period: angular.copy(value.Create_PO_To_Period),
-                    Created_Date: angular.copy(value.Created_Date),
-                    Form_No: angular.copy(value.Form_No),
-                    Grand_Total: angular.copy(value.Grand_Total),
-                    Header_ID: angular.copy(value.Header_ID),
-                    ID: angular.copy(value.ID),
-                    Internal_Order_Code: angular.copy(value.Internal_Order_Code),
-                    Internal_Order_Name: angular.copy(value.Internal_Order_Name),
-                    No: angular.copy(value.No),
-                    Period_End: angular.copy(value.Period_End),
-                    Period_Start: angular.copy(value.Period_Start),
-                    Remarks_Contract: angular.copy(value.Remarks_Contract),
-                    Materials: materials,
-                };
-            });
-            console.log("Details :", detail);
-
-            // const TempAttachment = $scope.Header.Detail.map(v => {if(v.Attachments) return v.Attachments;});
-            //let Form_Status = statusWF ? "1": "-";//trigger wf
-            let Form_Status = "";
-            if (statusWF == "1") {
-                Form_Status = "1";
-            } else if (statusWF == "19") {
-                Form_Status = "19";
-            } else {
-                Form_Status = "-";
-            }
-
-            var proc = svc.svc_POWithContractSubmit(header, detail, Form_Status, $scope.Revise_Notes);
-            proc.then(
-                function (response) {
-                    var data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        console.log(data);
-                        alert(responseSubmitMessage);
-                        location.href = "List.aspx";
-                        //location.href = 'POContract.aspx?ID=' + data.Header.Form_No;
-                    } else {
-                        alert(data.InfoMessage);
-                        // console.log(data);
-                    }
-                },
-                function (err) {
-                    alert(err.statusText + " - " + err.data.Message);
-                    console.log(err.statusText + " - " + err.data.Message);
-                }
-            );
+            $scope.SubmitPO(header, detail, formStatus, submitInfo.success);
         } catch (e) {
-            alert(e.message);
             console.log("Message :", e.message);
         }
     };
@@ -1634,5 +1413,177 @@ app.controller("ctrl", function ($scope, svc) {
         }
     };
 
+    $scope.SubmitPO = function (header, detail, formStatus, successMessage) {
+        const proc = svc.svc_POWithContractSubmit(header, detail, formStatus, successMessage);
+        proc.then(function (response) {
+            const data = JSON.parse(response.data.d);
+            if (!data.ProcessSuccess) {
+                alert(data.InfoMessage);
+                return;
+            }
+            alert(successMessage);
+            location.href = "List.aspx";
+        }).catch(function (err) {
+            console.log(err.statusText + " - " + err.data.Message);
+        });
+    };
+
     $scope.POWithContractGetDataById();
 });
+
+
+function validateHeader(header) {
+    const procDeptMarketing = ["Marketing Trade", "Marketing Digital"];
+    if (!header.Procurement_Department || header.Procurement_Department === "Please Select") {
+        alert("Please select Procurement Department");
+        return false;
+    }
+    if (!header.Vendor_Code) {
+        alert("Please choose vendor name");
+        return false;
+    }
+    if (!header.Branch) {
+        alert("Please choos branch");
+        return false;
+    }
+    if (header.Marketing_Category_ID <= 0 && procDeptMarketing.indexOf(header.Procurement_Department) >= 0) {
+        alert("Please choose marketing category");
+        return false;
+    }
+    return true;
+};
+
+function validateDetails(details) {
+    if (!details || details.length === 0) {
+        alert("Please add contract");
+        return false;
+    }
+    for (const detail of details) {
+        if (!detail.Create_PO_From_Period || !detail.Create_PO_To_Period) {
+            alert("Please complete the column in the table");
+            return false;
+        }
+        if (!detail.Materials || detail.Materials.length === 0) {
+            alert("Please choose contract remarks");
+            return false;
+        }
+        for (const cm of detail.Materials) {
+            if (!cm.Contract_Amount || cm.Contract_Amount <= 0) return alertAndFail();
+            if (!cm.Cost_Center) return alertAndFail();
+            if (!cm.Text) return alertAndFail();
+            if (cm.Qty <= 0) return alertAndFail();
+        }
+    }
+    return true;
+};
+
+function alertAndFail() {
+    alert("Please complete the column in the table");
+    return false;
+};
+
+function getFormStatus(statusWF) {
+    if (statusWF == "1") return "1";
+    if (statusWF == "19") return "19";
+    return "-";
+}
+
+function buildDetailPayload(details) {
+    const detail = [];
+    details.forEach(function (value, index) {
+        const materials = value.Materials.map(function (o) {
+            return {
+                Contract_Amount: o.Contract_Amount,
+                Contract_Detail_Id: o.Contract_Detail_Id,
+                Contract_ID: o.Contract_ID,
+                Contract_No: o.Contract_No,
+                Cost_Center: o.Cost_Center,
+                Form_No: o.Form_No,
+                GL: o.GL,
+                GL_Description: o.GL_Description,
+                Header_ID: o.Header_ID,
+                ID: o.ID,
+                Material_Description: o.Material_Description,
+                Material_Name: o.Material_Name,
+                Material_Number: o.Material_Number,
+                No: o.No,
+                Qty: o.Qty,
+                Remarks_Contract: o.Remarks_Contract,
+                Text: o.Text,
+                Variable_Amount: o.Variable_Amount,
+                WHT: o.WHT
+            };
+        });
+
+        detail[index] = {
+            Contract_ID: value.Contract_ID,
+            Contract_No: value.Contract_No,
+            Create_PO_From_Period: value.Create_PO_From_Period,
+            Create_PO_To_Period: value.Create_PO_To_Period,
+            Created_Date: value.Created_Date,
+            Form_No: value.Form_No,
+            Grand_Total: value.Grand_Total,
+            Header_ID: value.Header_ID,
+            ID: value.ID,
+            Internal_Order_Code: value.Internal_Order_Code,
+            Internal_Order_Name: value.Internal_Order_Name,
+            No: value.No,
+            Period_End: value.Period_End,
+            Period_Start: value.Period_Start,
+            Remarks_Contract: value.Remarks_Contract,
+            Materials: materials
+        };
+    });
+    return detail;
+};
+
+function buildHeaderPayload(header) {
+    const h = angular.copy(header);
+
+    return {
+        Actual_Payment_Date: h.Actual_Payment_Date,
+        Approval_Date: h.Approval_Date,
+        Approval_Status: h.Approval_Status,
+        Branch: h.Branch,
+        Cost_Center: h.Cost_Center,
+        Created_Date: h.Created_Date,
+        Current_Index_Approver: h.Current_Index_Approver,
+        Document_Received: h.Document_Received,
+        Form_No: h.Form_No,
+        Grand_Total: h.Grand_Total,
+        ID: h.ID,
+        Item_ID: h.Item_ID,
+        Last_Action_By: h.Last_Action_By,
+        Last_Action_Date: h.Last_Action_Date,
+        Last_Action_Name: h.Last_Action_Name,
+        Marketing_Category_ID: h.Marketing_Category_ID,
+        Marketing_Category_Name: h.Marketing_Category_Name,
+        PIC_Team: h.PIC_Team,
+        Pending_Approver_Name: h.Pending_Approver_Name,
+        Pending_Approver_Role: h.Pending_Approver_Role,
+        Pending_Approver_Role_ID: h.Pending_Approver_Role_ID,
+        Posting_Date: h.Posting_Date,
+        Procurement_Department: h.Procurement_Department,
+        Received_Date: h.Received_Date,
+        Requester_Department: h.Requester_Department,
+        Requester_Email: h.Requester_Email,
+        Requester_Name: h.Requester_Name,
+        Scheduled_Payment_Date: h.Scheduled_Payment_Date,
+        Vendor_Code: h.Vendor_Code,
+        Vendor_Name: h.Vendor_Name
+    };
+};
+
+function getSubmitMessage(statusWF) {
+    if (statusWF == 1 || statusWF == 19) {
+        return {
+            confirm: "Submit ?",
+            success: "Submit Successfully!"
+        };
+    }
+
+    return {
+        confirm: "Save as Draft ?",
+        success: "Success Save as Draft!"
+    };
+};
