@@ -480,6 +480,73 @@ app.controller("ctrl", function ($scope, svc) {
         return true;
     };
 
+    function handleAllRemarksSelected() {
+        alert("All contract data has been selected");
+        $scope.POWithContractCheckStyle();
+    };
+
+    function afterRemarksMerged() {
+        $scope.POWithContractAddContractHeader();
+        $scope.POWithContractCheckStyle();
+    };
+
+    function remarkExists(remark) {
+        return $scope.Remarks.findIndex(x => x.Name === remark.Name) !== -1;
+    };
+
+    function mergeNewRemarks(serverRemarks) {
+        serverRemarks.forEach(function (remark) {
+            if (!remarkExists(remark)) $scope.Remarks.push(remark);
+        });
+    };
+
+    function areAllRemarksSelected(serverRemarks) {
+        return $scope.RemarkSelected.length >= serverRemarks.length;
+    };
+
+    function handleRemarksSuccess(response) {
+        const data = JSON.parse(response.data.d);
+        if (!data.ProcessSuccess) {
+            alert(data.InfoMessage);
+            return;
+        }
+        if (areAllRemarksSelected(data.Remarks)) {
+            handleAllRemarksSelected();
+            return;
+        }
+        mergeNewRemarks(data.Remarks);
+        afterRemarksMerged();
+    };
+
+    function fetchRemarks() {
+        const proc = svc.svc_POWithContractGetRemarks($scope.Vendor.Code, $scope.Branch.Code, $scope.Header.Procurement_Department);
+        proc.then(response => handleRemarksSuccess(response), handleServiceError);
+    };
+
+    function validateRemarkPrerequisites() {
+        if (!$scope.Header.Procurement_Department) {
+            alert("Please Choose Procurement Department");
+            return false;
+        }
+
+        if (!$scope.Vendor.Code) {
+            alert("Please Choose Vendor");
+            return false;
+        }
+
+        if (!$scope.Branch.Code) {
+            alert("Please Choose Branch");
+            return false;
+        }
+
+        return true;
+    };
+
+
+
+
+
+
     $scope.PopUpDialog = (module, indexDetail, indexMaterial) => {
         $scope.showModal = "block";
         $scope.popUpModule = module;
@@ -1011,8 +1078,8 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetContract = (valDetail, indDetail) => {
-        if(!getContractValidateHeader()) return;
-        if(isRemarkAlreadySelected(valDetail)){
+        if (!getContractValidateHeader()) return;
+        if (isRemarkAlreadySelected(valDetail)) {
             handleDuplicateRemark(indDetail);
             return;
         }
@@ -1144,52 +1211,54 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetRemarks = () => {
-        if (!$scope.Header.Procurement_Department) {
-            alert("Please Choose Procurement Department");
-            return;
-        } else if (!$scope.Vendor.Code) {
-            alert("Please Choose Vendor");
-            return;
-        } else if (!$scope.Branch.Code) {
-            alert("Please Choose Branch");
-            return;
-        } else {
-            var proc = svc.svc_POWithContractGetRemarks(
-                $scope.Vendor.Code,
-                $scope.Branch.Code,
-                $scope.Header.Procurement_Department
-            );
-            proc.then(
-                function (response) {
-                    var data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        console.log(data);
-                        if ($scope.RemarkSelected.length < data.Remarks.length) {
-                            data.Remarks.forEach(function (value, index) {
-                                var index = $scope.Remarks.findIndex(
-                                    (x) => x.Name == value.Name
-                                );
+        if(!validateRemarkPrerequisites()) return;
+        fetchRemarks();
+        // if (!$scope.Header.Procurement_Department) {
+        //     alert("Please Choose Procurement Department");
+        //     return;
+        // } else if (!$scope.Vendor.Code) {
+        //     alert("Please Choose Vendor");
+        //     return;
+        // } else if (!$scope.Branch.Code) {
+        //     alert("Please Choose Branch");
+        //     return;
+        // } else {
+        //     var proc = svc.svc_POWithContractGetRemarks(
+        //         $scope.Vendor.Code,
+        //         $scope.Branch.Code,
+        //         $scope.Header.Procurement_Department
+        //     );
+        //     proc.then(
+        //         function (response) {
+        //             var data = JSON.parse(response.data.d);
+        //             if (data.ProcessSuccess) {
+        //                 console.log(data);
+        //                 if ($scope.RemarkSelected.length < data.Remarks.length) {
+        //                     data.Remarks.forEach(function (value, index) {
+        //                         var index = $scope.Remarks.findIndex(
+        //                             (x) => x.Name == value.Name
+        //                         );
 
-                                if (index === -1) {
-                                    $scope.Remarks.push(value);
-                                }
-                            });
-                            $scope.POWithContractAddContractHeader();
-                            $scope.POWithContractCheckStyle();
-                        } else {
-                            alert("All contract data has been selected");
-                            $scope.POWithContractCheckStyle();
-                            return;
-                        }
-                    } else {
-                        alert(data.InfoMessage);
-                    }
-                },
-                function (data, status) {
-                    console.log(data.statusText + " - " + data.data.Message);
-                }
-            );
-        }
+        //                         if (index === -1) {
+        //                             $scope.Remarks.push(value);
+        //                         }
+        //                     });
+        //                     $scope.POWithContractAddContractHeader();
+        //                     $scope.POWithContractCheckStyle();
+        //                 } else {
+        //                     alert("All contract data has been selected");
+        //                     $scope.POWithContractCheckStyle();
+        //                     return;
+        //                 }
+        //             } else {
+        //                 alert(data.InfoMessage);
+        //             }
+        //         },
+        //         function (data, status) {
+        //             console.log(data.statusText + " - " + data.data.Message);
+        //         }
+        //     );
+        // }
     };
 
     $scope.POWithContractBranchChangeResetTable = () => {
