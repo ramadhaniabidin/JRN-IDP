@@ -26,16 +26,37 @@ var targetCol_Detail = [];
 let itemsRS_currSelected;
 let totalItemCnt;
 
-//var isAvail_momentJs = false;
-//try {
-//    if (moment) {
-//        isAvail_momentJs = true;
-//    }
-//}
-//catch (error) {
-//    console.log("BuktiTerimaBarang.js | " + error.name + ", " + error.message);
-//    console.log(error.stack);
-//}
+const PopUp_ColumnMapping = {
+    "UnloadingFee": {
+        tableName: "MasterVendorUnloadingFee",
+        targetColumns: ["Vendor_Name", "Title", "Bank_Account", "Account_Holder", "Payment_ID", "Bank_Key"],
+        // targetID: [VendorName, VendorNumber, BankKey, BankAccountNo, BankAccountName, BankName, PartnerBank]
+        targetID: []
+    },
+    "": {}
+};
+
+const PopUp_TableHeadersMapping = {
+    "UnloadingFee": [
+        { name: "Vendor Name", db_col: "Vendor_Name" },
+        { name: "Vendor Number", db_col: "Title" },
+        { name: "Payment ID", db_col: "Payment_ID" },
+        { name: "Bank Account Number", db_col: "Bank_Account" },
+        { name: "Bank Account Name", db_col: "Account_Holder" },
+    ],
+    "": []
+};
+
+const PopUp_OptionsMapping = {
+    "UnloadingFee": [
+        { value: "Vendor_Name", text: "Vendor Name" },
+        { value: "Title", text: "Vendor Number" },
+        { value: "Bank_Account", text: "Bank Account Number" },
+        { value: "Account_Holder", text: "Bank Account Name" },
+        { value: "Payment_ID", text: "Payment ID" },
+    ],
+    "": []
+};
 
 NWF.FormFiller.Events.RegisterAfterReady(function () {
 
@@ -58,222 +79,232 @@ NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
 
 });
 
-function PopUp_ShowDialog(shownPopup, module, currentRow) {
-    popUpDialog = $("#PopUp_Dialog").dialog({
-        height: 450,
-        width: 850,
-        title: "Select : " + module
-    });
+function PopUp_GetTargetTablenColumns(module) {
+    const key = module ? module : "";
+    const mapping = PopUp_ColumnMapping[key];
+    tblName = mapping["tableName"];
+    trgtCol = mapping["targetColumns"];
+    trgtID = mapping["targetID"];
+    moduleName = module;
+};
 
-    if (module == "UnloadingFee") {
-        tblName = "dbo.MasterVendorUnloadingFee"
-        moduleName = module;
-        options = [
-            { value: "Vendor_Name", text: "Vendor Name" },
-            { value: "Title", text: "Vendor Number" },
-            { value: "Bank_Account", text: "Bank Account Number" },
-            { value: "Account_Holder", text: "Bank Account Name" },
-            { value: "Payment_ID", text: "Payment ID" },
-        ];
-        tblHeaders = [
-            { name: "Vendor Name", db_col: "Vendor_Name" },
-            { name: "Vendor Number", db_col: "Title" },
-            { name: "Payment ID", db_col: "Payment_ID" },
-            { name: "Bank Account Number", db_col: "Bank_Account" },
-            { name: "Bank Account Name", db_col: "Account_Holder" },
-        ];
+function PopUp_GenerateTableHeaders(module) {
+    const key = module ? module : "";
+    tblHeaders = PopUp_TableHeadersMapping[key];
+};
 
+function PopUp_GenerateOptions(module) {
+    const key = module ? module : "";
+    options = PopUp_OptionsMapping[key];
+};
+
+function PopUp_GetTargetID(module) {
+    if (module === "UnloadingFee") {
         trgtID = [VendorName, VendorNumber, AccountNumber, AccountName, PaymentID, BankKeyID];
-        trgtCol = ["Vendor_Name", "Title", "Bank_Account", "Account_Holder", "Payment_ID", "Bank_Key"];
-
     }
+};
 
-    console.log("Pop up Module: " + module);
+function PopUp_PopulateOptions() {
     $('#PopUp_Dropdown').val('');
     $('#PopUp_Keyword').val('');
-
-    if (currentRow != null) {
-        itemsRS_currSelected = currentRow;
-    }
-
     $('#PopUp_Dropdown').html('');
+    $('#PopUp_TableBody').html('');
     $.each(options, function (i, option) {
-        $('#PopUp_Dropdown').append($('<option>', {
+        $("#PopUp_Dropdown").append($("<option>", {
             text: option.text,
             value: option.value
-        }));
+        }))
     });
+};
 
+function PopUp_PopulateTableHeaders() {
     $('#PopUp_TblHeader').html('');
     $.each(tblHeaders, function (i, header) {
-        $('#PopUp_TblHeader').append($('<th>', {
+        $("#PopUp_TblHeader").append($("<th>", {
             scope: "col",
-            style: "text-align: center; color: white;",
+            style: "text-align: center; color: white; background-color: #0072c6; padding: 10px;",
             text: header.name,
             colspan: 3
         }));
     });
     $('#PopUp_TblHeader').append($('<th>', {
         scope: "col",
-        style: "text-align: center; color: white;",
-        text: "",
+        style: "text-align: center; color: white; background-color: #0072c6; padding: 10px;",
+        name: "",
         colspan: 2
     }));
+};
 
+function PopUp_ValidateKeywords(keywords, moduleName) {
+    if ((keywords === null) || (keywords === undefined)) {
+        keywords = "";
+    }
+    if (moduleName === "ANC Vendor Bank" || moduleName === "ANC Vendor Bank RS") {
+        keywords += ";bea cukai;1";
+    }
+    if (moduleName === "Cost Center") {
+        keywords += ";" + $(".branch").find("label").html();
+    }
+    if (moduleName == "Material Anaplan") {
+        keywords += ";" + $(".proc_dept").find('input').val();
+    }
+    if (moduleName === "Supplier") {
+        keywords += ";Supplier";
+    }
+    return keywords;
+};
+
+function PopUp_ValidateSearchBy(searchBy, moduleName) {
+    if (searchBy === null || searchBy === undefined) {
+        searchBy = "";
+    }
+    if (moduleName === "ANC Vendor Bank" || moduleName === "ANC Vendor Bank RS") {
+        searchBy += ";Vendor_Name;Active";
+    }
+    if (moduleName === "Material Anaplan") {
+        searchBy += ";Procurement_Department_Title";
+    }
+    if (moduleName === "Cost Center") {
+        searchBy += ";Branch";
+    }
+    if (moduleName === "Supplier") {
+        searchBy += ";business_partner_category_name";
+    }
+    return searchBy;
+};
+
+function PopUp_ShowDialog(shownPopup, module, currentRow) {
+    popUpDialog = $("#PopUp_Dialog").dialog({
+        height: 650,
+        width: 1000,
+        title: "Select : " + module
+    });
+
+    PopUp_GetTargetTablenColumns(module);
+    PopUp_GetTargetID(module);
+    PopUp_GenerateTableHeaders(module);
+    PopUp_GenerateOptions(module);
+    PopUp_PopulateOptions();
+    PopUp_PopulateTableHeaders();
+    if (currentRow != null) itemsRS_currSelected = currentRow;
     PopUp_Search();
 };
 
 function PopUp_Search() {
     page_CurrIdx = 1;
     PopUp_List(page_CurrIdx, $('#PopUp_Dropdown').val(), $('#PopUp_Keyword').val(), selectedItem);
-}
+};
 
 function PopUp_Prev() {
     if (page_CurrIdx > 1) {
         page_CurrIdx = page_CurrIdx - 1;
         PopUp_List(page_CurrIdx, $('#PopUp_Dropdown').val(), $('#PopUp_Keyword').val(), selectedItem);
     }
-}
+};
 
 function PopUp_Next() {
     if (page_CurrIdx < page_count) {
         page_CurrIdx++;
         PopUp_List(page_CurrIdx, $('#PopUp_Dropdown').val(), $('#PopUp_Keyword').val(), selectedItem);
     }
-}
+};
 
-function PopUp_List(PageIndex, SearchBy, Keywords, SelectedItem) {
-    try {
-        console.log('Selected item : ', SelectedItem);
-        $('#PopUp_TableBody').html('');
-        if ((Keywords != undefined) || (Keywords != '')) {
-            Keywords = $('#PopUp_Keyword').val();
-        }
-        else {
-            Keywords = '';
-        }
-
-        if ((SearchBy != undefined) || (SearchBy != '')) {
-            SearchBy = $('#PopUp_Dropdown').val();
-        }
-        else {
-            SearchBy = '';
-        }
-
-        if (moduleName == "Supplier") {
-            SearchBy += ";business_partner_category_name";
-            Keywords += ";Supplier";
-        }
-
-        else if (moduleName == "Product") {
-            SearchBy += ";[site]";
-            Keywords += ";" + companyAbbr;
-        }
-    }
-    catch (err) {
-        console.log("PopUp Error: PopUp_List() \n" + err);
-    }
-
-    var param = {
+function PopUp_GenerateParam(tableName, searchBy, keywords, pageIndex) {
+    const param = {
         input: {
-            searchTabl: tblName,
-            searchCol: SearchBy,
-            searchVal: Keywords,
+            searchTabl: tableName,
+            searchCol: searchBy,
+            searchVal: keywords,
             searchLike: 1,
-            pageIndx: PageIndex,
+            pageIndx: pageIndex,
             pageSize: 10,
         },
-
         output: {
             RecordCount: 0,
         }
     };
-    console.log('Parameters: ', param);
 
-    $.ajax({
-        type: "POST",
-        contentType: "application/json; charset=utf-8",
-        url: "_layouts/15/Daikin.Application/WebServices/PopList.asmx/PopUpListData",
-        data: JSON.stringify(param),
-        dataType: "json",
-        async: true,
-        success: function (data) {
-            const tBodyHTML = document.getElementById("PopUp_TableBody");
-            //while (tBodyHTML.firstChild) {
-            //    tBodyHTML.removeChild(tBodyHTML.lastChild);
-            //}
-            $('#PopUp_TableBody').html('');
+    return param;
+};
 
-            var jsonData = JSON.parse(data.d);
-            console.log('JSON data : ', jsonData);
-
-            dataResult = jsonData.Logs;
-
-            var i = 0;
-            $.each(jsonData.Logs, function (key, values) {
-                var dataRow = document.createElement("tr");
-                var dataCol = document.createElement("td");
-
-                $.each(tblHeaders, function (HeaderID, data) {
-                    dataCol = document.createElement("td");
-                    dataCol.setAttribute("colspan", 3);
-                    dataCol.setAttribute("style", "text-align:center");
-
-                    var value = values.filter(e => e.Key == data.db_col)[0].Value;
-                    if (typeof value === 'string' && value.indexOf("/Date(") >= 0) {
-                        value = value.substring(6, 19);
-
-                        //if (isAvail_momentJs) {
-                        //    var formattedDate = moment(parseInt(value)).format("YYYY-MM-DD hh:mm:ss");
-                        //    dataCol.innerHTML = formattedDate;
-                        //} else if (isBase) {
-                        //    var formattedDate = UNIXTimeStampeToSQLDate(parseInt(value));
-                        //    dataCol.innerHTML = formattedDate;
-                        //}
-                    } else {
-                        dataCol.innerHTML = value;
-                    }
-
-                    dataRow.appendChild(dataCol);
-                    //console.log("data: " + data.db_col)
-                });
-
-                var colFour = document.createElement("td");
-                colFour.setAttribute("colspan", 2);
-                colFour.setAttribute("style", "text-align:center;cursor:pointer;color: blue;");
-                colFour.innerHTML = "<a class=\"action-text\" onclick=\"PopUp_SelectItem(" + i + ")\">SELECT<\/a>";
-
-                dataRow.appendChild(colFour);
-
-
-
-                tBodyHTML.appendChild(dataRow);
-
-
-                console.log('dataRow : ', tBodyHTML.rows[i]);
-
-                i++;
-            });
-            console.log('tBodyHTML : ', tBodyHTML);
-            if (parseInt(jsonData.TotalRecords) >= 0) {
-                totalItemCnt = parseInt(jsonData.TotalRecords);
-            }
-            else {
-                totalItemCnt = 0;
-            }
-
-            page_count = Math.ceil(totalItemCnt / param.input.pageSize);
-
-            $('#info-paging_items').html('Page : ' + PageIndex.toString() + ' of ' + page_count.toString() + ' | ' + totalItemCnt.toString() + ' Results');
-            i++
-        },
-        error: function (xhr) {
-            alert(xhr.responseText);
+async function LoadPopUpData(param) {
+    const tBodyHTML = document.getElementById("PopUp_TableBody");
+    try {
+        const response = await fetch("_layouts/15/Daikin.Application/WebServices/PopList.asmx/PopUpListData", {
+            method: "POST",
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify(param)
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        HandlePopUpSuccess(data, param, tBodyHTML);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+function FormatValue(value) {
+    if (typeof value === "string" && value.includes("/Date(")) {
+        const timestamp = parseInt(value.substring(6, 19), 10);
+        return new Date(timestamp).toLocaleString();
+    }
+    if (typeof value === "string") {
+        return value.trim();
+    }
+    return value;
+};
+
+function HandlePopUpSuccess(data, param, tBodyHTML) {
+    tBodyHTML.innerHTML = "";
+    const jsonData = JSON.parse(data.d);
+    const logs = jsonData.Logs || [];
+    dataResult = logs;
+    logs.forEach((rowValues, index) => {
+        const dataRow = document.createElement("tr");
+        tblHeaders.forEach((header, _) => {
+            const valueObj = rowValues.filter(x => x.Key === header.db_col)[0];
+            const value = FormatValue(valueObj ? valueObj.Value : "");
+            const dataCol = GenerateDataColumn(value);
+            dataRow.appendChild(dataCol);
+        });
+        GenerateSelectColumn(dataRow, index, tBodyHTML);
     });
+    DisplayPagination(parseInt(jsonData.TotalRecords || 0), param);
+};
 
+function GenerateDataColumn(value) {
+    let dataCol = document.createElement("td");
+    dataCol.setAttribute("colspan", 3);
+    dataCol.setAttribute("style", "text-align:center");
+    dataCol.innerHTML = value;
+    return dataCol;
+};
 
-}
+function DisplayPagination(totalItems, param) {
+    const pageCount = Math.ceil(totalItems / param.input.pageSize);
+    page_count = pageCount;
+    $("#info-paging_items").html(
+        `Page: ${param.input.pageIndx} of ${pageCount} | ${totalItems} Results`
+    );
+};
+
+function GenerateSelectColumn(dataRow, index, tBody) {
+    let colSelect = document.createElement("td");
+    colSelect.setAttribute("colspan", 2);
+    colSelect.setAttribute("style", "text-align:center;cursor:pointer;");
+    colSelect.innerHTML = `<a style="color:blue;" class="action-name" onclick="PopUp_SelectItem(${index})">SELECT</a>`;
+    dataRow.appendChild(colSelect);
+    tBody.appendChild(dataRow);
+};
+
+function PopUp_List(PageIndex, SearchBy, Keywords, SelectedItem) {
+    Keywords = PopUp_ValidateKeywords(Keywords, moduleName);
+    SearchBy = PopUp_ValidateSearchBy(SearchBy, moduleName);
+    const param = PopUp_GenerateParam(tblName, SearchBy, Keywords, PageIndex);
+    LoadPopUpData(param);
+};
 
 function PopUp_SelectItem(id) {
     console.log(id + " module name: " + moduleName)
