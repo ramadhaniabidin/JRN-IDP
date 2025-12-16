@@ -217,15 +217,8 @@ app.service("svc", function ($http) {
         return response;
     };
 
-    this.svc_POWithContractGetContract = function (
-        Vendor_Code,
-        Branch,
-        Contract_No,
-        Remarks_Contract,
-        ProcurementDepartment
-    ) {
-        console.log('Branch', Branch);
-        var response = $http({
+    this.svc_POWithContractGetContract = function (Vendor_Code, Branch, Contract_No, Remarks_Contract, ProcurementDepartment) {
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetContract",
             data: {
@@ -257,23 +250,14 @@ app.service("svc", function ($http) {
     };
 
     this.svc_POWithContractGetApproval = function (approvalValue, ListName, ListItemID, HeaderID, Comment) {
-        var param = {
+        const param = {
             approvalValue: approvalValue,
             ListName: ListName,
             ListItemID: ListItemID,
             HeaderID: HeaderID,
             comments: Comment,
-        }; /* function (ntx, IsDocumentReceived) {
-        var param = {
-            ntx: ntx,
-            IsDocumentReceived: IsDocumentReceived,
-        }; */
-
-        console.log("Approval Param :", param);
-
-
-
-        var response = $http({
+        };
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ApproveRequestNonCom",
             //url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/POWithContractGetApproval",
@@ -284,7 +268,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_PopUpList = function (SearchTable, PageIndex, SearchBy, Keywords) {
-        var param = {
+        const param = {
             input: {
                 searchTabl: SearchTable,
                 searchCol: SearchBy,
@@ -298,8 +282,7 @@ app.service("svc", function ($http) {
                 RecordCount: 0,
             }
         };
-        console.log("Param for pop up", param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/PopList.asmx/PopUpListData",
             data: JSON.stringify(param),
@@ -406,6 +389,96 @@ app.controller("ctrl", function ($scope, svc) {
     $scope.popUpTotalRecords = 0;
     $scope.popUpTotalPageCount = 0;
     $scope.PopUpData = [];
+
+    function handleServiceError(err) {
+        console.log(err.statusText + " - " + err.data.Message);
+    };
+
+    function recalculateContract() {
+        $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
+        $scope.POWithContractCheckStyle();
+    };
+
+    function resetRemarkSelected() {
+        $scope.RemarkSelected = $scope.Header.Detail.map(o => o.Remark);
+    };
+
+    function handleDuplicateRemark(indexDetail) {
+        alert("This remark already selected");
+        $scope.Header.Detail.splice(indexDetail, 1);
+        resetRemarkSelected();
+        recalculateContract();
+    };
+
+    function applyContractResult(detail, indexDetail) {
+        $scope.Header.Detail[indexDetail] = detail;
+        resetRemarkSelected();
+        recalculateContract();
+    };
+
+    function normalizeProperty(obj, prop) {
+        if (prop.includes("Create_PO_From_Period")) {
+            obj[prop] = DateFormat_ddMMMyyyy(new Date(new Date().setDate(1)));
+        } else if (prop.includes("Create_PO_To_Period")) {
+            obj[prop] = DateFormat_ddMMMyyyy(new Date());
+        } else if (prop.includes("Period") || prop.includes("Date")) {
+            obj[prop] = $scope.ConvertJSONDate(obj[prop]);
+        }
+    };
+
+    function normalizeObjectRecursively(target) {
+        if (Array.isArray(target)) {
+            target.forEach(item => normalizeObjectRecursively(item));
+            return target;
+        }
+        for (let prop in target) {
+            normalizeProperty(target, prop);
+            if (Array.isArray(target[prop])) {
+                normalizeObjectRecursively(target[prop]);
+            }
+        }
+        return target;
+    };
+
+    function normalizeContractDetail(detail) {
+        return normalizeObjectRecursively(detail);
+    };
+
+    function handleServiceSuccess(response, valDetail, indexDetail) {
+        const data = JSON.parse(response.data.d);
+        if (!data.ProcessSuccess) {
+            alert(data.InfoMessage);
+            return;
+        }
+        data.Detail.Remark = valDetail;
+        const normalizedDetail = normalizeContractDetail(data.Detail);
+        applyContractResult(normalizedDetail, indexDetail);
+    };
+
+    function fetchContract(valDetail, indexDetail) {
+        const proc = svc.svc_POWithContractGetContract($scope.Vendor.Code, $scope.Branch.Code, valDetail.Code,
+            $scope.Header.Detail[0].Remark.Name, $scope.ProcurementDepartment.Name,
+            $scope.ProcurementDepartment.ID
+        );
+        proc.then(response => handleServiceSuccess(response, valDetail, indexDetail),
+            handleServiceError);
+    };
+
+    function isRemarkAlreadySelected(valDetail) {
+        return $scope.RemarkSelected.findIndex(o => o.Name === valDetail.Name) !== -1;
+    };
+
+    function getContractValidateHeader() {
+        if (!$scope.Vendor.Code) {
+            alert("Please Choose Vendor");
+            return false;
+        }
+        if (!$scope.Branch.Code) {
+            alert("Please Choose Branch");
+            return false;
+        }
+        return true;
+    };
 
     $scope.PopUpDialog = (module, indexDetail, indexMaterial) => {
         $scope.showModal = "block";
@@ -938,99 +1011,107 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetContract = (valDetail, indDetail) => {
-        console.log('POWithContractGetContract');
-        if (!$scope.Vendor.Code) {
-            alert("Please Choose Vendor");
+        if(!getContractValidateHeader()) return;
+        if(isRemarkAlreadySelected(valDetail)){
+            handleDuplicateRemark(indDetail);
             return;
-        } else if (!$scope.Branch.Code) {
-            alert("Please Choose Branch");
-            return;
-        } else {
-            var indexRemark = $scope.RemarkSelected.findIndex(
-                (o) => o.Name == valDetail.Name
-            );
-            if (indexRemark == -1) {
-                console.log('$scope.Header.Detail[0].Remark: ', $scope.Header.Detail[0].Remark);
-                var proc = svc.svc_POWithContractGetContract(
-                    $scope.Vendor.Code,
-                    $scope.Branch.Code,
-                    valDetail.Code,
-                    $scope.Header.Detail[0].Remark.Name,
-                    $scope.ProcurementDepartment.Name,
-                    $scope.ProcurementDepartment.ID
-                );
-                proc.then(
-                    function (response) {
-                        var data = JSON.parse(response.data.d);
-                        console.log(data);
-                        if (data.ProcessSuccess) {
-                            data.Detail.Remark = valDetail;
-                            const checkData = (datas) => {
-                                if (Array.isArray(datas)) {
-                                    datas.forEach((obj) => {
-                                        for (let objProp in obj) {
-
-                                            if (objProp.match("Create_PO_From_Period"))
-                                                obj[objProp] = DateFormat_ddMMMyyyy(
-                                                    new Date(new Date().setDate(1))
-                                                );
-
-                                            else if (objProp.match("Create_PO_To_Period"))
-                                                obj[objProp] = DateFormat_ddMMMyyyy(new Date());
-
-                                            else if (objProp.includes("Period"))
-                                                obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
-
-                                            else if (objProp.includes("Date"))
-                                                obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
-
-                                            if (Array.isArray(obj[objProp]))
-                                                checkData(obj[objProp]);
-                                        }
-                                    });
-                                } else {
-                                    for (let objProp in datas) {
-                                        if (objProp.match("Create_PO_From_Period"))
-                                            datas[objProp] = DateFormat_ddMMMyyyy(
-                                                new Date(new Date().setDate(1))
-                                            );
-                                        else if (objProp.match("Create_PO_To_Period"))
-                                            datas[objProp] = DateFormat_ddMMMyyyy(new Date());
-                                        else if (objProp.includes("Period"))
-                                            datas[objProp] = $scope.ConvertJSONDate(datas[objProp]);
-                                        else if (objProp.includes("Date"))
-                                            datas[objProp] = $scope.ConvertJSONDate(datas[objProp]);
-
-                                        if (Array.isArray(datas[objProp]))
-                                            checkData(datas[objProp]);
-                                    }
-                                }
-                                return datas;
-                            };
-
-                            const Detail = checkData(data.Detail);
-
-                            $scope.Header.Detail[indDetail] = Detail;
-
-                            $scope.RemarkSelected = $scope.Header.Detail.map((o) => o.Remark); //reset remark selected
-
-                            $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
-                            $scope.POWithContractCheckStyle();
-                        } else {
-                            alert(data.InfoMessage);
-                        }
-                    },
-                    function (data, status) {
-                        console.log(data.statusText + " - " + data.data.Message);
-                    }
-                );
-            } else {
-                alert("This remark already selected");
-                $scope.Header.Detail.splice(indDetail, 1);
-                $scope.RemarkSelected = $scope.Header.Detail.map((o) => o.Remark); //reset remark selected
-                $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
-            }
         }
+        fetchContract(valDetail, indDetail);
+
+
+        // console.log('POWithContractGetContract');
+        // if (!$scope.Vendor.Code) {
+        //     alert("Please Choose Vendor");
+        //     return;
+        // } else if (!$scope.Branch.Code) {
+        //     alert("Please Choose Branch");
+        //     return;
+        // } else {
+        //     var indexRemark = $scope.RemarkSelected.findIndex(
+        //         (o) => o.Name == valDetail.Name
+        //     );
+        //     if (indexRemark == -1) {
+        //         console.log('$scope.Header.Detail[0].Remark: ', $scope.Header.Detail[0].Remark);
+        //         var proc = svc.svc_POWithContractGetContract(
+        //             $scope.Vendor.Code,
+        //             $scope.Branch.Code,
+        //             valDetail.Code,
+        //             $scope.Header.Detail[0].Remark.Name,
+        //             $scope.ProcurementDepartment.Name,
+        //             $scope.ProcurementDepartment.ID
+        //         );
+        //         proc.then(
+        //             function (response) {
+        //                 var data = JSON.parse(response.data.d);
+        //                 console.log(data);
+        //                 if (data.ProcessSuccess) {
+        //                     data.Detail.Remark = valDetail;
+        //                     const checkData = (datas) => {
+        //                         if (Array.isArray(datas)) {
+        //                             datas.forEach((obj) => {
+        //                                 for (let objProp in obj) {
+
+        //                                     if (objProp.match("Create_PO_From_Period"))
+        //                                         obj[objProp] = DateFormat_ddMMMyyyy(
+        //                                             new Date(new Date().setDate(1))
+        //                                         );
+
+        //                                     else if (objProp.match("Create_PO_To_Period"))
+        //                                         obj[objProp] = DateFormat_ddMMMyyyy(new Date());
+
+        //                                     else if (objProp.includes("Period"))
+        //                                         obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
+
+        //                                     else if (objProp.includes("Date"))
+        //                                         obj[objProp] = $scope.ConvertJSONDate(obj[objProp]);
+
+        //                                     if (Array.isArray(obj[objProp]))
+        //                                         checkData(obj[objProp]);
+        //                                 }
+        //                             });
+        //                         } else {
+        //                             for (let objProp in datas) {
+        //                                 if (objProp.match("Create_PO_From_Period"))
+        //                                     datas[objProp] = DateFormat_ddMMMyyyy(
+        //                                         new Date(new Date().setDate(1))
+        //                                     );
+        //                                 else if (objProp.match("Create_PO_To_Period"))
+        //                                     datas[objProp] = DateFormat_ddMMMyyyy(new Date());
+        //                                 else if (objProp.includes("Period"))
+        //                                     datas[objProp] = $scope.ConvertJSONDate(datas[objProp]);
+        //                                 else if (objProp.includes("Date"))
+        //                                     datas[objProp] = $scope.ConvertJSONDate(datas[objProp]);
+
+        //                                 if (Array.isArray(datas[objProp]))
+        //                                     checkData(datas[objProp]);
+        //                             }
+        //                         }
+        //                         return datas;
+        //                     };
+
+        //                     const Detail = checkData(data.Detail);
+
+        //                     $scope.Header.Detail[indDetail] = Detail;
+
+        //                     $scope.RemarkSelected = $scope.Header.Detail.map((o) => o.Remark); //reset remark selected
+
+        //                     $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
+        //                     $scope.POWithContractCheckStyle();
+        //                 } else {
+        //                     alert(data.InfoMessage);
+        //                 }
+        //             },
+        //             function (data, status) {
+        //                 console.log(data.statusText + " - " + data.data.Message);
+        //             }
+        //         );
+        //     } else {
+        //         alert("This remark already selected");
+        //         $scope.Header.Detail.splice(indDetail, 1);
+        //         $scope.RemarkSelected = $scope.Header.Detail.map((o) => o.Remark); //reset remark selected
+        //         $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
+        //     }
+        // }
     };
 
     $scope.POWithContractAddContractHeader = () => {
