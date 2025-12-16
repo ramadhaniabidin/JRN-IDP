@@ -809,91 +809,177 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.contractBranchOnChange = function () {
         $scope.ContractHeader.Branch = $scope.Branch.Name;
-    }
+    };
+
+    $scope.ResetFileInput = function () {
+        const inputs = document.querySelectorAll("input[type=file]");
+        if (inputs.length > 0) inputs[0].Value = null;
+    };
+
+    $scope.HandleUploadSuccess = function (result, inputFile) {
+        const { PostedFile } = result;
+        const myFile = new File([inputFile], PostedFile.name);
+        $scope.isUploadFile = false;
+        $scope.ContractUploaded.push(myFile);
+        $scope.ContractAttachments.push({
+            Id: 0,
+            Attachment_FileName: PostedFile.name,
+            Size: PostedFile.size,
+            Header_ID: $scope.ContractHeader.ID || 0
+        });
+    };
+
+    $scope.SendUploadRequest = function (formData, inputFile) {
+        $.ajax({
+            url: "/_layouts/15/Daikin.Application/Handler/PostUploadHandler.ashx",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            async: false,
+            dataType: "JSON",
+            success: function (result) {
+                $scope.HandleUploadSuccess(result, inputFile);
+            },
+            error: function (err) {
+                console.log(err.statusText);
+            }
+        });
+    };
+
+    $scope.ReadFile = function (file) {
+        if (!window.FileReader) return;
+        const reader = new FileReader();
+        reader.onloadend = function () { };
+        reader.readAsDataURL(file);
+    };
+
+    $scope.CreateFormData = function (file) {
+        if (!window.FormData) return null;
+        const formData = new FormData();
+        formData.append("file", file);
+        return formData;
+    };
+
+    $scope.UploadSingleFile = function (file) {
+        const formData = $scope.CreateFormData(file);
+        if (!formData) {
+            $scope.isUploadFile = false;
+            return;
+        }
+        $scope.ReadFile(file);
+        $scope.SendUploadRequest(formData, file);
+    };
+
+    $scope.IsDuplicateFile = function (file) {
+        if ($scope.ContractUploaded.length === 0) return false;
+        return $scope.ContractUploaded.map(e => e.name).indexOf(file.name) !== -1;
+    };
+
+    $scope.UploadFiles = function (files) {
+        let warningMsg = "";
+        let anyError = false;
+        angular.forEach(files, function (file) {
+            if ($scope.IsDuplicateFile(file)) {
+                warningMsg += `\n----- ${file.name} -----`;
+                anyError = true;
+                return;
+            }
+
+            $scope.UploadSingleFile(file);
+        });
+        return { anyError, warningMsg };
+    };
 
     $scope.isUploadFile = false;
     $scope.contractUploadingFile = function () {
-        var msg = 'The attachments below already exist: ';
-
-        const IsUpload = () => {
-            var warningMsg = '';
-            var anyError = false;
-
-            angular.forEach($scope.uploadFiles, function (file, key) {
-                var indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
-                if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
-                    var input = file;
-                    var formdata = false;
-                    if (window.FormData) {
-                        formdata = new FormData();
-                    }
-                    else {
-                        $scope.isUploadFile = false;
-                    }
-
-                    if (window.FileReader) {
-                        let reader = new FileReader();
-                        reader.onloadend = function (e) {
-                        };
-                        reader.readAsDataURL(input);
-                    }
-                    else {
-                        $scope.isUploadFile = false;
-                    }
-
-                    if (formdata) {
-                        formdata.append("file", input);
-                        $.ajax({
-                            url: "/_layouts/15/Daikin.Application/Handler/PostUploadHandler.ashx",
-                            type: "POST",
-                            data: formdata,
-                            processData: false,
-                            contentType: false,
-                            async: false,
-                            dataType: "JSON",
-                            success: function (result) {
-                                const { PostedFile } = result;
-                                const myFile = new File([input], PostedFile.name);
-                                $scope.isUploadFile = false;
-                                $scope.ContractUploaded.push(myFile);
-                                $scope.ContractAttachments.push({
-                                    Id: 0,
-                                    Attachment_FileName: PostedFile.name,
-                                    Size: PostedFile.size,
-                                    Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
-                                });
-                            },
-                            error: function (err) {
-                                console.log(err.statusText);
-                            },
-                        });
-                    }
-                    else {
-                        $scope.isUploadFile = false;
-                    }
-                }
-                else {
-                    warningMsg += `\n----- ${file.name} -----`;
-                    anyError = true;
-                    return
-                }
-            });
-
-            return {
-                anyError: anyError,
-                warningMsg: warningMsg,
-            };
+        const result = $scope.UploadFiles($scope.uploadFiles);
+        if (result.anyError) {
+            alert('The attachments below already exist: ' + result.warningMsg);
+            $scope.ResetFileInput();
         }
 
 
-        const { anyError, warningMsg } = IsUpload();
+        // var msg = 'The attachments below already exist: ';
+        // const IsUpload = () => {
+        //     var warningMsg = '';
+        //     var anyError = false;
 
-        if (anyError) {
-            alert(msg + warningMsg);
-            var inputs = document.querySelectorAll("input[type=file]")
-            inputs[0].value = null;
-            return;
-        }
+        //     angular.forEach($scope.uploadFiles, function (file, key) {
+        //         var indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
+        //         if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
+        //             var input = file;
+        //             var formdata = false;
+        //             if (window.FormData) {
+        //                 formdata = new FormData();
+        //             }
+        //             else {
+        //                 $scope.isUploadFile = false;
+        //             }
+
+        //             if (window.FileReader) {
+        //                 let reader = new FileReader();
+        //                 reader.onloadend = function (e) {
+        //                 };
+        //                 reader.readAsDataURL(input);
+        //             }
+        //             else {
+        //                 $scope.isUploadFile = false;
+        //             }
+
+        //             if (formdata) {
+        //                 formdata.append("file", input);
+        //                 $.ajax({
+        //                     url: "/_layouts/15/Daikin.Application/Handler/PostUploadHandler.ashx",
+        //                     type: "POST",
+        //                     data: formdata,
+        //                     processData: false,
+        //                     contentType: false,
+        //                     async: false,
+        //                     dataType: "JSON",
+        //                     success: function (result) {
+        //                         const { PostedFile } = result;
+        //                         const myFile = new File([input], PostedFile.name);
+        //                         $scope.isUploadFile = false;
+        //                         $scope.ContractUploaded.push(myFile);
+        //                         $scope.ContractAttachments.push({
+        //                             Id: 0,
+        //                             Attachment_FileName: PostedFile.name,
+        //                             Size: PostedFile.size,
+        //                             Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
+        //                         });
+        //                     },
+        //                     error: function (err) {
+        //                         console.log(err.statusText);
+        //                     },
+        //                 });
+        //             }
+        //             else {
+        //                 $scope.isUploadFile = false;
+        //             }
+        //         }
+        //         else {
+        //             warningMsg += `\n----- ${file.name} -----`;
+        //             anyError = true;
+        //             return
+        //         }
+        //     });
+
+        //     return {
+        //         anyError: anyError,
+        //         warningMsg: warningMsg,
+        //     };
+        // }
+
+
+        // const { anyError, warningMsg } = IsUpload();
+
+        // if (anyError) {
+        //     alert(msg + warningMsg);
+        //     var inputs = document.querySelectorAll("input[type=file]")
+        //     inputs[0].value = null;
+        //     return;
+        // }
     };
 
     $scope.contractDeletingFile = function (index) {
