@@ -542,9 +542,143 @@ app.controller("ctrl", function ($scope, svc) {
         return true;
     };
 
+    function toggleInternalOrder() {
+        const name = $scope.ProcurementDepartment?.Name;
+        $scope.InternalOrderIsShow = ["Marketing Trade", "Marketing Digital"].includes(name);
+    };
 
+    function finalizeUIState(data) {
+        $scope.ApproverLog();
+        $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
+        $scope.POWithContractCheckStyle();
+        toggleInternalOrder();
+    };
 
+    function bindUserRoles(data) {
+        $scope.IsCurrentApprover = data.IsCurrentApprover;
+        $scope.IsReceiverDocs = data.IsReceiverDocs;
+        $scope.IsRequestor = data.IsRequestor;
+        $scope.IsTaxVerifier = data.IsTaxVerifier;
+        $scope.IsDocumentReceived = data.Header.Document_Received !== "0";
+    };
 
+    function bindProcurementDepartment(departments, selectedName) {
+        $scope.ProcurementDepartments = departments;
+        $scope.IsDepartment = false;
+        departments.forEach(d => {
+            if (d.Name === selectedName) {
+                $scope.ProcurementDepartment = d;
+                $scope.IsDepartment = true;
+            }
+        });
+    };
+
+    function bindMarketingCategory(categories, selectedName) {
+        $scope.MarketingCategories = categories;
+        $scope.MarketingCategory = categories.find(c => c.Name === selectedName);
+    };
+
+    function bindRemarks(remarks) {
+        $scope.Remarks = remarks;
+        remarks.forEach(r => {
+            $scope.Header.Detail.forEach(d => {
+                if (r.Name === d.Remark_Contract) {
+                    d.Remark = r;
+                }
+            });
+        });
+    };
+
+    function bindBranch(branches, branchName) {
+        $scope.Branches = branches;
+        $scope.Branch = branches.find(b => b.Name === branchName);
+    };
+
+    function bindVendor(vendors, vendorCode) {
+        $scope.Vendors = vendors;
+        $scope.Vendor = vendors.find(v => v.Code === vendorCode);
+    };
+
+    function bindLookups(data) {
+        bindVendor(data.Vendors, data.Header.Vendor_Code);
+        bindBranch(data.Branches, data.Header.Branch);
+        bindRemarks(data.Remarks);
+        bindMarketingCategory(data.MarketingCategories, data.Header.Marketing_Category_Name);
+        bindProcurementDepartment(data.UserDepartment, data.Header.Procurement_Department);
+    };
+
+    function disableLookupIcons() {
+        const icons = document.getElementsByClassName("fa");
+        for (let i = 0; i < icons.length; i++) {
+            icons[i].style.pointerEvents = "none";
+        }
+    };
+
+    function applyHeaderState(header) {
+        $scope.Header = header;
+        if ($scope.Header.ID > 0) {
+            disableLookupIcons();
+        }
+    };
+
+    function isDateField(prop) {
+        return prop.includes("Create_PO_From_Period") ||
+            prop.includes("Create_PO_To_Period") ||
+            prop.includes("Period_Start") ||
+            prop.includes("Period_End") ||
+            prop.endsWith("Date");
+    };
+
+    function normalizeDatesRecursively(value) {
+        if (Array.isArray(value)) {
+            value.forEach(v => normalizeDatesRecursively(v));
+            return;
+        }
+
+        for (let prop in value) {
+            if (isDateField(prop)) {
+                value[prop] = $scope.ConvertJSONDate(value[prop]);
+            }
+
+            if (Array.isArray(value[prop])) {
+                normalizeDatesRecursively(value[prop]);
+            }
+        }
+    };
+
+    function normalizeHeaderDates(target) {
+        normalizeDatesRecursively(target);
+    };
+
+    function handleGetByIdSuccess(response) {
+        const data = JSON.parse(response.data.d);
+        if (!data.ProcessSuccess) {
+            console.log(data);
+            return;
+        }
+        normalizeHeaderDates(data.Header);
+        applyHeaderState(data.Header);
+        bindLookups(data);
+        bindUserRoles(data);
+        finalizeUIState(data);
+    };
+
+    function fetchDataById(id) {
+        svc.svc_POWithContractGetDataById(id)
+            .then(response => handleGetByIdSuccess(response))
+            .catch(handleServiceError);
+    };
+
+    function resolveRequestId() {
+        const id = GetQueryString()["ID"];
+        if(!id){
+            $scope.POWithContractGetData();
+            return null;
+        }
+        return id;
+    };
+
+    
 
 
     $scope.PopUpDialog = (module, indexDetail, indexMaterial) => {
@@ -1211,7 +1345,7 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetRemarks = () => {
-        if(!validateRemarkPrerequisites()) return;
+        if (!validateRemarkPrerequisites()) return;
         fetchRemarks();
         // if (!$scope.Header.Procurement_Department) {
         //     alert("Please Choose Procurement Department");
@@ -1448,119 +1582,119 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.POWithContractGetDataById = () => {
         var id = GetQueryString()["ID"]; //Nintex No
-        if (id != undefined && id != null) {
-            var proc = svc.svc_POWithContractGetDataById(id);
-            $scope.showModal = "none";
-            proc.then(response => {
-                let data = JSON.parse(response.data.d);
-                console.log(data);
-                if (data.ProcessSuccess) {
-                    const formattingDate = (vals) => {
-                        if (Array.isArray(vals)) {
-                            vals.forEach((obj) => {
-                                for (let header in val) {
-                                    if (header.match("Create_PO_From_Period")) {
-                                        val[header] = $scope.ConvertJSONDate(val[header]);
-                                    } else if (header.match("Create_PO_To_Period")) {
-                                        val[header] = $scope.ConvertJSONDate(val[header]);
-                                    } else if (header.match("Period_Start")) {
-                                        val[header] = $scope.ConvertJSONDate(val[header]);
-                                    } else if (header.match("Period_End")) {
-                                        val[header] = $scope.ConvertJSONDate(val[header]);
-                                    } else if (header.endsWith("Date")) {
-                                        val[header] = $scope.ConvertJSONDate(val[header]);
-                                    }
-
-                                    if (Array.isArray(val[header])) formattingDate(val[header]);
-                                }
-                            });
-                        } else {
+        if (!id) {
+            $scope.POWithContractGetData();
+            return;
+        }
+        var proc = svc.svc_POWithContractGetDataById(id);
+        $scope.showModal = "none";
+        proc.then(response => {
+            const data = JSON.parse(response.data.d);
+            console.log(data);
+            if (data.ProcessSuccess) {
+                const formattingDate = (vals) => {
+                    if (Array.isArray(vals)) {
+                        vals.forEach((obj) => {
                             for (let header in vals) {
                                 if (header.match("Create_PO_From_Period")) {
-                                    vals[header] = $scope.ConvertJSONDate(vals[header]);
+                                    vals[header] = $scope.ConvertJSONDate(val[header]);
                                 } else if (header.match("Create_PO_To_Period")) {
-                                    vals[header] = $scope.ConvertJSONDate(vals[header]);
+                                    vals[header] = $scope.ConvertJSONDate(val[header]);
                                 } else if (header.match("Period_Start")) {
-                                    vals[header] = $scope.ConvertJSONDate(vals[header]);
+                                    vals[header] = $scope.ConvertJSONDate(val[header]);
                                 } else if (header.match("Period_End")) {
-                                    vals[header] = $scope.ConvertJSONDate(vals[header]);
+                                    vals[header] = $scope.ConvertJSONDate(val[header]);
                                 } else if (header.endsWith("Date")) {
-                                    vals[header] = $scope.ConvertJSONDate(vals[header]);
+                                    vals[header] = $scope.ConvertJSONDate(val[header]);
                                 }
 
-                                if (Array.isArray(vals[header])) formattingDate(vals[header]);
+                                if (Array.isArray(val[header])) formattingDate(val[header]);
                             }
-                        }
-                    };
-
-                    formattingDate(data.Header);
-                    $scope.Header = data.Header;
-                    if ($scope.Header.ID > 0) {
-                        console.log("Header ID > 0");
-                        var lookup_elements = document.getElementsByClassName("fa");
-                        for (var i = 0; i < lookup_elements.length; i++) {
-                            lookup_elements[i].style.pointerEvents = "none";
-                        }
-                    }
-
-                    $scope.Vendors = data.Vendors;
-                    data.Vendors.map((i) => {
-                        if (i.Code == data.Header.Vendor_Code) $scope.Vendor = i;
-                    });
-
-                    $scope.Branches = data.Branches;
-                    data.Branches.map((i) => {
-                        if (i.Name == data.Header.Branch) $scope.Branch = i;
-                    });
-
-                    $scope.Remarks = data.Remarks;
-                    data.Remarks.map((i) => {
-                        $scope.Header.Detail.map((j, k) => {
-                            if (i.Name == j.Remarks_Contract)
-                                $scope.Header.Detail[k].Remark = i;
                         });
-                    });
+                    } else {
+                        for (let header in vals) {
+                            if (header.match("Create_PO_From_Period")) {
+                                vals[header] = $scope.ConvertJSONDate(vals[header]);
+                            } else if (header.match("Create_PO_To_Period")) {
+                                vals[header] = $scope.ConvertJSONDate(vals[header]);
+                            } else if (header.match("Period_Start")) {
+                                vals[header] = $scope.ConvertJSONDate(vals[header]);
+                            } else if (header.match("Period_End")) {
+                                vals[header] = $scope.ConvertJSONDate(vals[header]);
+                            } else if (header.endsWith("Date")) {
+                                vals[header] = $scope.ConvertJSONDate(vals[header]);
+                            }
 
-                    $scope.MarketingCategories = data.MarketingCategories;
-                    data.MarketingCategories.map((i) => {
-                        if (i.Name == data.Header.Marketing_Category_Name)
-                            $scope.MarketingCategory = i;
-                    });
-
-                    $scope.ProcurementDepartments = data.UserDepartment;
-                    $scope.IsDepartment = false;
-                    data.UserDepartment.map((i) => {
-                        if (i.Name == data.Header.Procurement_Department) {
-                            $scope.ProcurementDepartment = i;
-                            $scope.IsDepartment = true;
+                            if (Array.isArray(vals[header])) formattingDate(vals[header]);
                         }
-                    });
-
-                    $scope.IsCurrentApprover = data.IsCurrentApprover;
-                    $scope.IsReceiverDocs = data.IsReceiverDocs;
-                    $scope.IsRequestor = data.IsRequestor;
-                    $scope.IsTaxVerifier = data.IsTaxVerifier;
-
-                    $scope.IsDocumentReceived =
-                        data.Header.Document_Received == "0" ? false : true;
-
-                    $scope.ApproverLog();
-                    $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
-
-                    $scope.POWithContractCheckStyle();
-
-                    if (['Marketing Trade', 'Marketing Digital'].indexOf($scope.ProcurementDepartment.Name) >= 0) {
-                        $scope.InternalOrderIsShow = true;
                     }
-                } else {
-                    console.log(data);
+                };
+
+                formattingDate(data.Header);
+                $scope.Header = data.Header;
+                if ($scope.Header.ID > 0) {
+                    console.log("Header ID > 0");
+                    var lookup_elements = document.getElementsByClassName("fa");
+                    for (var i = 0; i < lookup_elements.length; i++) {
+                        lookup_elements[i].style.pointerEvents = "none";
+                    }
                 }
-            }).catch(err => {
-                alert(err);
-            });
-        } else {
-            $scope.POWithContractGetData();
-        }
+
+                $scope.Vendors = data.Vendors;
+                data.Vendors.map((i) => {
+                    if (i.Code == data.Header.Vendor_Code) $scope.Vendor = i;
+                });
+
+                $scope.Branches = data.Branches;
+                data.Branches.map((i) => {
+                    if (i.Name == data.Header.Branch) $scope.Branch = i;
+                });
+
+                $scope.Remarks = data.Remarks;
+                data.Remarks.map((i) => {
+                    $scope.Header.Detail.map((j, k) => {
+                        if (i.Name == j.Remarks_Contract)
+                            $scope.Header.Detail[k].Remark = i;
+                    });
+                });
+
+                $scope.MarketingCategories = data.MarketingCategories;
+                data.MarketingCategories.map((i) => {
+                    if (i.Name == data.Header.Marketing_Category_Name)
+                        $scope.MarketingCategory = i;
+                });
+
+                $scope.ProcurementDepartments = data.UserDepartment;
+                $scope.IsDepartment = false;
+                data.UserDepartment.map((i) => {
+                    if (i.Name == data.Header.Procurement_Department) {
+                        $scope.ProcurementDepartment = i;
+                        $scope.IsDepartment = true;
+                    }
+                });
+
+                $scope.IsCurrentApprover = data.IsCurrentApprover;
+                $scope.IsReceiverDocs = data.IsReceiverDocs;
+                $scope.IsRequestor = data.IsRequestor;
+                $scope.IsTaxVerifier = data.IsTaxVerifier;
+
+                $scope.IsDocumentReceived =
+                    data.Header.Document_Received == "0" ? false : true;
+
+                $scope.ApproverLog();
+                $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
+
+                $scope.POWithContractCheckStyle();
+
+                if (['Marketing Trade', 'Marketing Digital'].indexOf($scope.ProcurementDepartment.Name) >= 0) {
+                    $scope.InternalOrderIsShow = true;
+                }
+            } else {
+                console.log(data);
+            }
+        }).catch(err => {
+            alert(err);
+        });
     };
 
     $scope.SubmitPO = function (header, detail, formStatus, successMessage) {
