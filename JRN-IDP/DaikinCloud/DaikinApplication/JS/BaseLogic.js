@@ -19,7 +19,7 @@ function GenerateGuid() {
 function OnlyNumberAlsoDecimals(evt) {
     let charCode = (evt.which) ? evt.which : event.keyCode;
     if (charCode != 46 && charCode > 31
-    && (charCode < 45 || charCode > 57)) {
+        && (charCode < 45 || charCode > 57)) {
         evt.preventDefault();
         return false;
     }
@@ -46,23 +46,40 @@ function IsEmpty(str) {
     return (!str || 0 === str.length);
 }
 
+// this is the old method
+//function GetQueryString() {
+//    let vars = [], hash;
+//    let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+//    for (let i = 0; i < hashes.length; i++) {
+//        hash = hashes[i].split('=');
+//        vars.push(hash[0]);
+//        vars[hash[0]] = hash[1];
+//    }
+//    console.log(vars);
+//    return vars;
+//}
+
 function GetQueryString() {
-    let vars = [], hash;
-    let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-    for (let i = 0; i < hashes.length; i++) {
-        hash = hashes[i].split('=');
-        vars.push(hash[0]);
-        vars[hash[0]] = hash[1];
-    }
-    return vars;
+    const params = {};
+    const query = window.location.search.substring(1);
+
+    if (!query) return params;
+
+    query.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        params[key] = value;
+    });
+    console.log(params);
+    return params;
 }
+
 
 function DateFormat_ddMMyyyy(date) {
     let monthNames = [
-  "01", "02", "03",
-  "04", "05", "06", "07",
-  "08", "09", "10",
-  "11", "12"
+        "01", "02", "03",
+        "04", "05", "06", "07",
+        "08", "09", "10",
+        "11", "12"
     ];
 
     let day = date.getDate();
@@ -78,10 +95,10 @@ function DateFormat_ddMMyyyy(date) {
 
 function DateFormat_ddMMyyyy2(date) {
     let monthNames = [
-  "01", "02", "03",
-  "04", "05", "06", "07",
-  "08", "09", "10",
-  "11", "12"
+        "01", "02", "03",
+        "04", "05", "06", "07",
+        "08", "09", "10",
+        "11", "12"
     ];
 
     let day = date.getDate();
@@ -102,10 +119,10 @@ function DateFormat_ddMMyyyy2(date) {
 
 function DateFormat_ddMMMyyyy(date) {
     let monthNames = [
-  "Jan", "Feb", "Mar",
-  "Apr", "May", "Jun", "Jul",
-  "Aug", "Sep", "Oct",
-  "Nov", "Dec"
+        "Jan", "Feb", "Mar",
+        "Apr", "May", "Jun", "Jul",
+        "Aug", "Sep", "Oct",
+        "Nov", "Dec"
     ];
 
     let day = date.getDate();
