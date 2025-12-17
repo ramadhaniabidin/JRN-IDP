@@ -290,8 +290,11 @@ function ListData_InvoiceNumber(PageIndex, Keywords) {
             $('#RecordCount').val(jsonData.RecordCount);
             let TotalRecords = jsonData.RecordCount;
 
-            TotalPage = TotalRecords / 5;
-            TotalPage = Math.ceil(TotalPage.toFixed(1));
+            // old logic for TotalPage
+            // TotalPage = TotalRecords / 5;
+            // TotalPage = Math.ceil(TotalPage.toFixed(1));
+
+            TotalPage = Math.ceil(TotalRecords / 5);
 
             let TotalRows = $("#tblPop tbody").find("tr").length;
             if (TotalRows > 0) {
