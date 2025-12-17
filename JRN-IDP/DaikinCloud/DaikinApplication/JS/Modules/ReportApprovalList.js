@@ -273,18 +273,18 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.ListData = function () {
-        var ModuleCategory = $scope.ModuleCategory.Name;
-        var Module = $scope.Module.Name;
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
+        const ModuleCategory = $scope.ModuleCategory.Name;
+        let Module = $scope.Module.Name;
+        const StartDate = $scope.Date.Start;
+        const EndDate = $scope.Date.End;
+        let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
         if (Branch == 'All') {
             Branch = '';
         }
         if (Module == 'All') {
             Module = '';
         }
-        var param = {
+        const param = {
             ModuleCategory: ModuleCategory,
             Module: Module,
             Branch: Branch,
@@ -294,10 +294,10 @@ app.controller('ctrl', function ($scope, svc) {
 
 
         if (ModuleCategory != undefined) {
-            //var proc = svc.svc_ListData(param);
+            //const proc = svc.svc_ListData(param);
             const proc = svc.svc_SPDEV_ListDataApproval(param);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 console.log(data);
                 if (data.ProcessSuccess) {
                     $scope.Items = data.Items;
@@ -309,12 +309,12 @@ app.controller('ctrl', function ($scope, svc) {
         }
     }
     $scope.ListDataNonCommercials = function () {
-        var ModuleCategory = $scope.ModuleCategory.Name;
-        var Module = $scope.Module.Name
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
-        var ProcDept = $scope.Department.Name
+        const ModuleCategory = $scope.ModuleCategory.Name;
+        let Module = $scope.Module.Name
+        const StartDate = $scope.Date.Start;
+        const EndDate = $scope.Date.End;
+        let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
+        let ProcDept = $scope.Department.Name
         if (Branch == 'All') {
             Branch = '';
         }
@@ -324,7 +324,7 @@ app.controller('ctrl', function ($scope, svc) {
         if (ProcDept == 'All') {
             ProcDept = '';
         }
-        var param = {
+        const param = {
             ModuleCategory: ModuleCategory,
             Module: Module,
             Branch: Branch,
@@ -335,7 +335,7 @@ app.controller('ctrl', function ($scope, svc) {
 
 
         if (ModuleCategory != undefined) {
-            //var proc = svc.svc_ListDataNonCommercials(param);
+            //const proc = svc.svc_ListDataNonCommercials(param);
             const proc = svc.svc_SPDEV_ListDataApproval(param);
             proc.then(function (response) {
                 const data = JSON.parse(response.data.d);
@@ -350,18 +350,18 @@ app.controller('ctrl', function ($scope, svc) {
         }
     }
     $scope.ListDataCommercials = function () {
-        var ModuleCategory = $scope.ModuleCategory.Name;
-        var Module = $scope.Module.Name
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
+        const ModuleCategory = $scope.ModuleCategory.Name;
+        let Module = $scope.Module.Name
+        const StartDate = $scope.Date.Start;
+        const EndDate = $scope.Date.End;
+        let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
         if (Branch == 'All') {
             Branch = '';
         }
         if (Module == 'All') {
             Module = '';
         }
-        var param = {
+        const param = {
             ModuleCategory: ModuleCategory,
             Module: Module,
             Branch: Branch,
@@ -371,7 +371,7 @@ app.controller('ctrl', function ($scope, svc) {
 
 
         if (ModuleCategory != undefined) {
-            //var proc = svc.svc_ListDataCommercials(param);
+            //const proc = svc.svc_ListDataCommercials(param);
             const proc = svc.svc_SPDEV_ListDataApproval(param);
             proc.then(function (response) {
                 const data = JSON.parse(response.data.d);
@@ -434,175 +434,6 @@ app.controller('ctrl', function ($scope, svc) {
         $("#" + tableID).table2excel({ filename: "ReportTables.xls" });
     };
 
-
-    //$scope.onChangeDDLPostingStatus = function () {
-    //    if ($scope.PostingStatus.Code != 4) {
-    //        $scope.PendingApprovalRole = {};
-    //        $scope.MasterRoleApproverCR = [];
-    //    }
-
-    //    var proc = svc.svc_GetPendingApprovalRole();
-    //    proc.then(function (response) {
-    //        var data = JSON.parse(response.data.d);
-    //        console.log(data);
-    //        if (data.ProcessSuccess) {
-    //            $scope.ddlPendingApprovalRole = data.MasterRoleApproverCR;
-    //            $scope.MasterRoleApproverCR = data.MasterRoleApproverCR[0];
-
-    //        }
-    //    }, function (data, status) {
-    //        console.log(data.statusText + ' - ' + data.data.Message);
-    //    });
-    //}
-
-    //$scope.ddlFilterBy = [
-    //    //{ Code: "", Name: "Please Select" },
-    //    { Code: 'Created_Date', Name: 'Created Date' },
-    //    { Code: 'Approval_Date', Name: 'Approval Date' },
-    //    { Code: 'MIRO_Date', Name: 'MIRO Date' },
-    //    { Code: 'Scheduled_Payment_Date', Name: 'Scheduled Payment Date' },
-    //    { Code: 'Actual_Payment_Date', Name: 'Actual Payment Date' }
-    //];
-
-    //$scope.FilterBy = $scope.ddlFilterBy[0];
-
-    //$scope.ddlPaymentStatus = [
-    //    //{ Code: "", Name: "Please Select" },
-    //    { Code: '', Name: 'All' },
-    //    { Code: '1', Name: 'Paid' },
-    //    { Code: '0', Name: 'Unpaid' },
-    //];
-
-    //$scope.PaymentStatus = $scope.ddlPaymentStatus[0];
-
-    //$scope.ddlPostingStatus = [
-    //    //{ Code: "", Name: "Please Select" },
-    //    { Code: '', Name: 'All' },
-    //    { Code: '1', Name: 'Submitted' },
-    //    { Code: '4', Name: 'Pending Approval' },
-    //    { Code: '1', Name: 'Posted' },
-    //    { Code: '0', Name: 'Pending SAP Post' },
-    //    { Code: '5', Name: 'Revised' },
-    //    { Code: '6', Name: 'Rejected' },
-    //    { Code: '7', Name: 'Approved' },
-    //    { Code: '8', Name: 'Draft' },
-    //];
-
-    //$scope.PostingStatus = $scope.ddlPostingStatus[0];
-
-    //$scope.ddlSearchBy = [
-    //    { Code: 'Form_No', Name: 'Nintex No' },
-    //    { Code: 'Requester_Name', Name: 'Requester' },
-    //];
-
-    //$scope.SearchBy = $scope.ddlSearchBy[0];
-
-
-    //$scope.Date = {
-    //    Start: DateFormat_ddMMMyyyy(new Date(new Date().setDate(1))),
-    //    End: DateFormat_ddMMMyyyy(new Date())
-    //};
-
-    //$scope.CreateNewForm = function () {
-    //    if ($scope.Module.Code == 'M001')
-    //        location.href = 'Memo.aspx?module=' + $scope.Module.Code;
-    //    else
-    //        location.href = $scope.Module.Module_Url;
-    //}
-
-    ///* Pagination */
-    //$scope.ItemIDs = [];
-    //$scope.TaskIDs = [];
-    //$scope.Items = [];
-    //$scope.Keywords = '';
-    //$scope.GrandTotal = 0;
-    //$scope.ListData = function (PageIndex) {
-    //    var TableName = $scope.Module.Table_Name;
-    //    var isReviseRebate = $scope.Module.Name == 'Revise Rebate' ? true : false
-    //    var FilterBy = $scope.FilterBy.Code;
-    //    var listName = $scope.Module.List_Name
-    //    var StartDate = $scope.Date.Start;
-    //    var EndDate = $scope.Date.End;
-    //    var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
-    //    if (Branch == 'All') {
-    //        Branch = '';
-    //    }
-    //    console.log(isReviseRebate, $scope.Module)
-
-    //    var param = {
-    //        TableName: TableName,
-    //        FilterBy: FilterBy,
-    //        //StartDate: StartDate.toISOString().split('T')[0],
-    //        //EndDate: EndDate.toISOString().split('T')[0],
-    //        StartDate: StartDate,
-    //        EndDate: EndDate,
-    //        PageIndex: PageIndex,
-    //        SearchBy: $scope.SearchBy.Code,
-    //        Keywords: $scope.Keywords,
-    //        PaymentStatus: $scope.PaymentStatus.Code,
-    //        PostingStatus: $scope.PostingStatus.Code,
-    //        BranchName: Branch,
-    //        ListName: listName,
-    //        PendingApproverRole: $scope.PendingApprovalRole.Code,
-    //        //CurrentLogin: 'daikin\\urohman',
-    //    };
-
-
-    //    if (TableName != undefined) {
-
-    //        var proc = svc.svc_ListData(param);
-    //        proc.then(function (response) {
-    //            var data = JSON.parse(response.data.d);
-    //            console.log(data);
-    //            if (data.ProcessSuccess) {
-    //                $scope.GrandTotal = data.GrandTotal;
-    //                $scope.Total = 0;
-    //                $scope.Items = data.Items;
-
-    //                for (x in $scope.Items) {
-    //                    $scope.Total += $scope.Items[x].Grand_Total;
-    //                    for (y in $scope.Items[x]) {
-    //                        if (y.endsWith('Date')) {
-    //                            $scope.Items[x][y] = $scope.ConvertJSONDate($scope.Items[x][y]);
-    //                        }
-    //                    }
-    //                }
-    //                $(".Pager").ASPSnippets_Pager({
-    //                    ActiveCssClass: "current",
-    //                    PagerCssClass: "pager",
-    //                    PageIndex: data.PageIndex,
-    //                    PageSize: data.PageSize,
-    //                    RecordCount: data.RecordCount
-    //                });
-    //            }
-    //        }, function (data, status) {
-    //            console.log(data);
-    //            alert(data.statusText + ' - ' + data.data.Message);
-    //        });
-    //    }
-    //}
-    //$scope.Search = function () {
-    //    $scope.ListData(1);
-    //}
-
     $scope.GetModuleOptions();
     ///*End Of Pagination*/
-
-    //console.log($scope.FilterBy, 'Filter By');
-    //$("body").on("click", ".Pager .page", function () {
-    //    $scope.ListData(parseInt($(this).attr('page')));
-    //});
-
-    //$scope.SearchHelper = function (keyEvent) {
-    //    if (keyEvent.which === 13) {
-    //        $scope.Search();
-    //    }
-    //};
-
-
-    //setTimeout(function(){ 
-    //    $scope.Search();
-    //}, 3000);
-
-
 });

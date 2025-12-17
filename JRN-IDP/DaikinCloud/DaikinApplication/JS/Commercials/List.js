@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 app.directive('button', function () {
     return {
         restrict: 'E',
@@ -16,12 +16,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -51,9 +51,9 @@ app.directive('loading', ['$http', function ($http) {
 
 }]);
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -61,14 +61,14 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_ListLog = function (Form_No, Module_Code, Trans_ID) {
-        var param = {
+        const param = {
             Form_No: Form_No,
             Module_Code: Module_Code,
             Transaction_ID: Trans_ID
         };
         console.log("Param history log: ", param);
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -78,11 +78,11 @@ app.service("svc", function ($http) {
     }
 
     this.svc_POSubconListData = function (model) {
-        var param = {
+        const param = {
             model: model
         }
         console.log('subcon', param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/POSubconListData",
             data: JSON.stringify(param),
@@ -93,11 +93,11 @@ app.service("svc", function ($http) {
     }
 
     this.svc_PIBListData = function (model) {
-        var param = {
+        const param = {
             model: model
         }
         console.log('pib', param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/PIBListData",
             data: JSON.stringify(param),
@@ -120,11 +120,11 @@ app.service("svc", function ($http) {
     }
 
     this.svc_LoadApproverRoles = function (ListName) {
-        var param = {
+        const param = {
             ListName: ListName
         }
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Commercials.asmx/LoadApproverRoles",
             data: JSON.stringify(param),
@@ -148,8 +148,8 @@ app.service("svc", function ($http) {
     }
 
     this.svc_PlantOptions = function () {
-        var param = {};
-        var response = $http({
+        const param = {};
+        const response = $http({
             method: "post",
             url: "/_layouts/15/daikin.application/WebServices/Master.asmx/PlantOptions",
             data: {},
@@ -227,7 +227,7 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.plant = {};
     $scope.dllPlants = [];
-    var init = true;
+    let init = true;
     $scope.onChangeDDLModule = function () {
         $scope.ddlPendingApprover = [];
         $scope.PendingApproverRole = {};
@@ -301,29 +301,7 @@ app.controller('ctrl', function ($scope, svc) {
             $scope.PostingStatus = $scope.ddlPostingStatus[0];
 
 
-            if (!init) $scope.GetModuleOptions($scope.Module.Code);
-
-            //if ($scope.Module.List_Approval !== undefined) {
-            //    var proc = svc.svc_LoadApproverRoles($scope.Module.List_Approval);
-            //    proc.then(function (response) {
-            //        var data = JSON.parse(response.data.d);
-            //        if (data.ProcessSuccess) {
-            //            $scope.ddlPendingApprover = data.listApproverRole;
-            //            console.log('Pending Approver', data.listApproverRole);
-            //            $scope.PendingApproverRole = data.listApproverRole[0];
-
-            //            const IsPlant = ['M010', 'M011'].indexOf($scope.Module.Code) >= 0
-
-            //            if (IsPlant) $scope.GetPlantOptions();
-
-            //        } else {
-            //            alert(`onChangeDDLModule: ${data.InfoMessage}`)
-            //            console.log(data);
-            //        }
-            //    }, function (data, status) {
-            //        console.log(data.statusText + ' - ' + data.data.Message);
-            //    });
-            //}
+            if (!init) $scope.GetModuleOptions($scope.Module.Code)
 
         } catch (e) {
             console.log(e.message);
@@ -331,9 +309,9 @@ app.controller('ctrl', function ($scope, svc) {
     }
 
     function getParameterByName(name) {
-        var url = window.location.href;
+        const url = window.location.href;
         name = name.replace(/[\[\]]/g, '\\$&');
-        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
             results = regex.exec(url);
         if (!results) return null;
         if (!results[2]) return '';
@@ -345,10 +323,10 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.selectAll = function ($event) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
-        for (var i = 0; i < $scope.Items.length; i++) {
-            var entity = $scope.Items[i];
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
+        for (let i = 0; i < $scope.Items.length; i++) {
+            const entity = $scope.Items[i];
             if (entity.Current_Index_Approver == 2) {
                 updateSelected(action, entity.Item_ID);
             }
@@ -362,7 +340,7 @@ app.controller('ctrl', function ($scope, svc) {
         return $scope.selected.length === $scope.Items.length;
     };
 
-    var updateSelected = function (action, id) {
+    const updateSelected = function (action, id) {
         if (action === 'add' && $scope.selected.indexOf(id) === -1) {
             $scope.selected.push(id);
         }
@@ -372,8 +350,8 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.updateSelection = function ($event, id) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
         updateSelected(action, id);
     };
 
@@ -385,10 +363,10 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.ApproverLog = function (obj) {
         $scope.showModal = 'block';
         const item_id = obj.Module_Code == "M026" ? obj.Item_ID : obj.ID;
-        var proc = svc.svc_ListLog(obj.Form_No, $scope.Module.Code, item_id);
+        const proc = svc.svc_ListLog(obj.Form_No, $scope.Module.Code, item_id);
         console.log(obj);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 $scope.Logs = data.Logs;
@@ -412,7 +390,7 @@ app.controller('ctrl', function ($scope, svc) {
         return arr.findIndex(item => item.Name === 'All');
     };
 
-    var arrBranch;
+    let arrBranch;
 
     $scope.Module = {};
     $scope.ddlModule = [];
@@ -468,7 +446,7 @@ app.controller('ctrl', function ($scope, svc) {
         const proc = svc.svc_PlantOptions();
 
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 $scope.dllPlants = data.listPlant;
@@ -487,8 +465,8 @@ app.controller('ctrl', function ($scope, svc) {
         if (x == null)
             return x;
 
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
+        const re = /\/Date\(([0-9]*)\)\//;
+        const m = x.match(re);
         if (m)
             return new Date(parseInt(m[1]));
         else
@@ -502,15 +480,15 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.Keywords = '';
     $scope.GrandTotal = 0;
     $scope.ListData = function (PageIndex) {
-        var TableName = $scope.Module.Table_Name;
-        var FilterBy = $scope.FilterBy.Code;
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch.Name;
+        const TableName = $scope.Module.Table_Name;
+        const FilterBy = $scope.FilterBy.Code;
+        const StartDate = $scope.Date.Start;
+        const EndDate = $scope.Date.End;
+        let Branch = $scope.Branch.Name;
         if (Branch == 'All') {
             Branch = '';
         }
-        var param = {
+        const param = {
             TableName: TableName,
             FilterBy: FilterBy,
             Plant_Code: $scope.plant.Code,
@@ -566,9 +544,9 @@ app.controller('ctrl', function ($scope, svc) {
         else if ($scope.Module.Code == 'M025') { //PIB
             param.PendingApproverRoleID = $scope.PendingApproverRole.Position_ID;
 
-            var proc = svc.svc_PIBListData(param);
+            const proc = svc.svc_PIBListData(param);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 console.log(data);
 
                 if (data.ProcessSuccess) {
@@ -592,9 +570,9 @@ app.controller('ctrl', function ($scope, svc) {
         else {
             param.PendingApproverRoleID = $scope.PendingApproverRole.Position_ID;
 
-            var proc = svc.svc_POSubconListData(param);
+            const proc = svc.svc_POSubconListData(param);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 console.log(data);
                 if (data.ProcessSuccess) {
                     $scope.GrandTotal = data.GrandTotal;

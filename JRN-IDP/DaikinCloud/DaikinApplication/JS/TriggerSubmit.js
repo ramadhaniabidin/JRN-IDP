@@ -20,7 +20,7 @@ function getApprover(ListName, ListItemID) {
             async: true,
             success: function (data) {
                 console.log('Approver: '+ data.d)
-                var control = NWF$("#" + Approvers);
+                let control = NWF$("#" + Approvers);
                 control.val(data.d);
                 control.trigger('change')
                 NWF.FormFiller.Functions.ProcessOnChange(control);

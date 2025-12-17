@@ -191,31 +191,31 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.plant = {};
     $scope.dllPlants = [];
-    var init = true;
+    let init = true;
     $scope.onChangeDDLModule = function () {
         console.log('Module: ', $scope.Module);
         $scope.Items = [];
     };
 
     function getParameterByName(name) {
-        var url = window.location.href;
+        const url = window.location.href;
         name = name.replace(/[\[\]]/g, '\\$&');
-        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
             results = regex.exec(url);
         if (!results) return null;
         if (!results[2]) return '';
         return decodeURIComponent(results[2].replace(/\+/g, ' '));
-    }
+    };
 
     $scope.getSelectedClass = function (entity) {
         return $scope.isSelected(entity.Item_ID) ? 'selected' : '';
     };
 
     $scope.selectAll = function ($event) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
-        for (var i = 0; i < $scope.Items.length; i++) {
-            var entity = $scope.Items[i];
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
+        for (let i = 0; i < $scope.Items.length; i++) {
+            const entity = $scope.Items[i];
             if (entity.Current_Index_Approver == 2) {
                 updateSelected(action, entity.Item_ID);
             }
@@ -229,7 +229,7 @@ app.controller('ctrl', function ($scope, svc) {
         return $scope.selected.length === $scope.Items.length;
     };
 
-    var updateSelected = function (action, id) {
+    const updateSelected = function (action, id) {
         if (action === 'add' && $scope.selected.indexOf(id) === -1) {
             $scope.selected.push(id);
         }
@@ -239,8 +239,8 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.updateSelection = function ($event, id) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
         updateSelected(action, id);
     };
 
@@ -279,7 +279,7 @@ app.controller('ctrl', function ($scope, svc) {
         return arr.findIndex(item => item.Name === 'All');
     };
 
-    var arrBranch;
+    let arrBranch;
 
     $scope.GetListBranch = function () {
         try{
@@ -353,7 +353,7 @@ app.controller('ctrl', function ($scope, svc) {
         const proc = svc.svc_PlantOptions();
 
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 $scope.dllPlants = data.listPlant;
@@ -366,19 +366,19 @@ app.controller('ctrl', function ($scope, svc) {
         }, function (data) {
             console.error(data.statusText + ' - ' + data.data.Message);
         });
-    }
+    };
 
     $scope.ConvertJSONDate = function (x) {
         if (x == null)
             return x;
 
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
+        const re = /\/Date\(([0-9]*)\)\//;
+        const m = x.match(re);
         if (m)
             return new Date(parseInt(m[1]));
         else
             return null;
-    }
+    };
 
     /* Pagination */
     $scope.ItemIDs = [];
@@ -432,7 +432,7 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.Search = function () {
         $scope.ListData(1);
-    }
+    };
 
 
     $("body").on("click", ".Pager .page", function () {
@@ -452,7 +452,7 @@ app.controller('ctrl', function ($scope, svc) {
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 
     $scope.loadPage();
 });

@@ -1,27 +1,27 @@
-﻿var popUpDialog;
-var page_CurrIdx = 1;
-var page_Count = 1;
-var dataResult = [];
-var dataResult_Details = [];
-var inputSelectors = [];
-var transNumber = '';
-var selectedItem = [];
-var sumTotalValue = 0;
-var vendorName;
-var itemsRS_currSelected;
+﻿let popUpDialog;
+let page_CurrIdx = 1;
+let page_Count = 1;
+let dataResult = [];
+let dataResult_Details = [];
+let inputSelectors = [];
+let transNumber = '';
+let selectedItem = [];
+let sumTotalValue = 0;
+let vendorName;
+let itemsRS_currSelected;
 
-var options = [];
-var tblHeaders = [];
-var tblName = "";
-var moduleName = "";
-var trgtID = "";
-var trgtCol = [];
-var page_count = 0;
-var detailTable = "";
-var ColumnToFilter = "";
-var FilterValue = "";
-var targetID_Detail = [];
-var targetCol_Detail = [];
+let options = [];
+let tblHeaders = [];
+let tblName = "";
+let moduleName = "";
+let trgtID = "";
+let trgtCol = [];
+let page_count = 0;
+let detailTable = "";
+let ColumnToFilter = "";
+let FilterValue = "";
+let targetID_Detail = [];
+let targetCol_Detail = [];
 let totalItemCnt;
 
 const PopUp_ColumnMapping = {
@@ -117,7 +117,7 @@ const PopUp_OptionsMapping = {
 
 NWF.FormFiller.Events.RegisterAfterReady(function () {
     console.log("Masuk Condition Business Relation")
-    var control = NWF$("#" + Approvers);
+    const control = NWF$("#" + Approvers);
     control.val('Approver1; Approver2;');
     control.trigger('change')
     NWF.FormFiller.Functions.ProcessOnChange(control);
@@ -134,7 +134,7 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
         deleteRepeaterRow(2)
         deleteRepeaterRow(3)
         NWF$('#' + PIB).change(function () {
-            var PIB = NWF$('.PIB label').html()
+            const PIB = NWF$('.PIB label').html()
             console.log(PIB)
             if (PIB == "No") {
                 deleteAmountAffiliate(0)
@@ -144,8 +144,8 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
             }
         });
         NWF$('#' + BPNPaidBy).change(function () {
-            var BPNPaid = NWF$('#' + BPNPaidBy).val()
-            var PIB = NWF$('#' + PIB).val()
+            const BPNPaid = NWF$('#' + BPNPaidBy).val()
+            const PIB = NWF$('#' + PIB).val()
             if (BPNPaid.includes("Vendor")) {
                 deleteAmountAffiliate(1)
                 deleteAmountAffiliate(2)
@@ -164,7 +164,7 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
     }
     if ($('#' + ItemID).val() != null && $('#' + ItemID).val() != "") {
         //console.log('Masuk Sini')
-        var control = NWF$("#" + Approvers);
+        const control = NWF$("#" + Approvers);
         control.val('Approver1; Approver2;');
         control.trigger('change')
         NWF.FormFiller.Functions.ProcessOnChange(control);
@@ -179,25 +179,25 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
         });
     }
 
-    var repeatingSection = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const repeatingSection = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
     repeatingSection.each(function () {
-        var row = NWF$(this);
+        const row = NWF$(this);
         NWF$(this).find('.pop-up').on('click', function () {
             PopUp_ShowDialog(null, "Material Anaplan", row);
         });
     });
 
-    var poRS = NWF$(".poRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const poRS = NWF$(".poRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
     poRS.each(function () {
-        var poRSRow = NWF$(this);
+        const poRSRow = NWF$(this);
         NWF$(this).find(".pop-up").on("click", function () {
             PopUp_ShowDialog(null, "Cost Center", poRSRow);
         });
     });
 
-    var ANCRS = NWF$(".ANCRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const ANCRS = NWF$(".ANCRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
     ANCRS.each(function () {
-        var ANCRSRow = NWF$(this);
+        const ANCRSRow = NWF$(this);
         NWF$(this).find(".pop-up").on("click", function () {
             PopUp_ShowDialog(null, "ANC Vendor Bank RS", ANCRSRow);
         });
@@ -208,25 +208,25 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
 
 NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
     $('.btnApproval input[type="radio"]').prop('checked', false);
-    var repeatingSection = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const repeatingSection = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
     repeatingSection.each(function () {
-        var row = NWF$(this);
+        const row = NWF$(this);
         NWF$(this).find('.pop-up').on('click', function () {
             PopUp_ShowDialog(null, "Material Anaplan", row);
         });
     });
 
-    var poRS = NWF$(".poRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const poRS = NWF$(".poRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
     poRS.each(function () {
-        var poRSRow = NWF$(this);
+        const poRSRow = NWF$(this);
         NWF$(this).find(".pop-up").on("click", function () {
             PopUp_ShowDialog(null, "Cost Center", poRSRow);
         });
     });
 
-    var ANCRS = NWF$(".ANCRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    const ANCRS = NWF$(".ANCRS .nf-repeater-row:not('.nf-repeater-row-hidden')");
     ANCRS.each(function () {
-        var ANCRSRow = NWF$(this);
+        const ANCRSRow = NWF$(this);
         NWF$(this).find(".pop-up").on("click", function () {
             PopUp_ShowDialog(null, "ANC Vendor Bank RS", ANCRSRow);
         });
@@ -234,7 +234,7 @@ NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
 });
 
 function GetUserProfile() {
-    var param = {
+    const param = {
         'logon': NWF$("#" + current_user).val()
         //logon: 'test1'
     };
@@ -249,7 +249,7 @@ function GetUserProfile() {
         dataType: "json",
         async: true,
         success: function (data) {
-            var jsonData = JSON.parse(data.d);
+            const jsonData = JSON.parse(data.d);
             console.log(jsonData);
             if (jsonData.Success) {
                 $(".requester_name input").val(jsonData.CurrLoginName);
@@ -265,14 +265,14 @@ function GetUserProfile() {
 };
 
 function deleteAmountAffiliate(NoRow) {
-    var row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(NoRow)
+    const row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(NoRow)
     row.find(".taxBase input").val('')
     row.find(".amount input").val('')
     row.find(".amount label").html('')
 };
 
 function deleteRepeaterRow(NoRow) {
-    var row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(NoRow)
+    const row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(NoRow)
     row.find(".nf-repeater-deleterow-image").css("display", "none");
 };
 
@@ -290,14 +290,14 @@ function setAttachmentSelfie(Item_ID) {
             dataType: "json",
             async: true,
             success: function (data) {
-                var JSONData = JSON.parse(data.d)
-                var atc = JSONData.dataATC
+                const JSONData = JSON.parse(data.d)
+                const atc = JSONData.dataATC
                 console.log('AtcSelfie Data: ', atc)
                 atc.forEach((dataAtc) => {
                     console.log(dataAtc, "dataperATC")
-                    var url = `<a href="https://spdev:3473/Lists/Business%20Relation/Attachments/` + Item_ID + `/` + dataAtc.Attachment_Selfie + `" target="_blank"><img width="200px" src="http://spdev:3473/Lists/Business%20Relation/Attachments/` + Item_ID + `/` + dataAtc.Attachment_Selfie + `"></a>"`
+                    const url = `<a href="https://spdev:3473/Lists/Business%20Relation/Attachments/` + Item_ID + `/` + dataAtc.Attachment_Selfie + `" target="_blank"><img width="200px" src="http://spdev:3473/Lists/Business%20Relation/Attachments/` + Item_ID + `/` + dataAtc.Attachment_Selfie + `"></a>"`
                     console.log(url)
-                    var row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(dataAtc.No - 1);
+                    const row = NWF$(".details .nf-repeater-row:not('.nf-repeater-row-hidden')").eq(dataAtc.No - 1);
                     row.find(".atcselfietesting").html(url)
                 });
             },
@@ -329,7 +329,7 @@ function getApprover(ListName, ListItemID) {
             async: true,
             success: function (data) {
                 console.log('Approver: ' + data.d)
-                var control = NWF$("#" + Approvers);
+                const control = NWF$("#" + Approvers);
                 control.val(data.d);
                 control.trigger('change')
                 NWF.FormFiller.Functions.ProcessOnChange(control);
@@ -697,7 +697,7 @@ function PopUp_SelectItem(id) {
     }
     else if (moduleName == "ANC Vendor Bank") {
         $.each(trgtCol, function (index, values) {
-            var resultValue;
+            let resultValue;
             if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
                 resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
             }
@@ -707,8 +707,8 @@ function PopUp_SelectItem(id) {
             }
             console.log('606', resultValue, trgtID[index], moduleName)
             if (typeof resultValue === 'string' && resultValue.startsWith('/Date(') && resultValue.endsWith(')/')) {
-                var timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
-                var formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                const timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
+                const formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 NWF$('#' + trgtID[index]).val(formattedDate);
             } else {
                 NWF$('#' + trgtID[index]).val(resultValue);

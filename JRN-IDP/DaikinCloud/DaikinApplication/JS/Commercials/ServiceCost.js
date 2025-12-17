@@ -257,10 +257,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     });
 
     $scope.ApproverLog = function () {
-        var proc = svc.svc_ListLog($scope.Header.Form_No, $scope.Header.ID);
+        const proc = svc.svc_ListLog($scope.Header.Form_No, $scope.Header.ID);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
-            console.log("Get history log ", data);
+            const data = JSON.parse(response.data.d);
             if (data.ProcessSuccess) {
                 $scope.Logs = data.Logs;
             } else {
@@ -273,7 +272,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.UpdateLogRemarks = function (idx) {
-        var objIndex = $scope.Remarks.findIndex(o => o.ID == idx.ID);
+        const objIndex = $scope.Remarks.findIndex(o => o.ID == idx.ID);
         $scope.Remarks[objIndex].Outcome = idx.Outcome;
         $scope.Remarks[objIndex].Reason_Rejection = idx.Outcome == true ? '' : idx.Reason_Rejection;
         console.log($scope.Remarks, 'Remarks');
@@ -284,10 +283,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             if ($scope.txt_ReffNo.length <= 0) {
                 $scope.showModal = 'block';
             }
-            var req = svc.svc_PopListReference($scope.Keywords, page, $scope.Reference_Type);
+            const req = svc.svc_PopListReference($scope.Keywords, page, $scope.Reference_Type);
             req.then(function (response) {
-                var data = JSON.parse(response.data.d);
-                console.log(data, 'PopListReference');
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     $scope.PopItems = data.Items;
 
@@ -827,83 +825,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
     };
 
-
-    // $scope.OnChangeDDLVAT = function (i, Calculate) {
-    //     try {
-    //         const objIndex = $scope.Items.findIndex(o => o.No == i.No);
-    //         if ($scope.Items[objIndex].Freight_Cost.length <= 0) {
-    //             $scope.Items[objIndex].Freight_Cost = '0';
-    //         } else {
-    //             i.Freight_Cost = i.Freight_Cost.replace(/,/g, '');
-    //             $scope.Items[objIndex].Freight_Cost = addCommas(i.Freight_Cost);
-    //         }
-
-    //         if ($scope.Items[objIndex].Tax_Base_Amount.length <= 0) {
-    //             $scope.Items[objIndex].Tax_Base_Amount = '0';
-    //             i.Tax_Base_Amount = '0';
-    //         } else {
-    //             i.Tax_Base_Amount = i.Tax_Base_Amount.replace(/,/g, '');
-    //             i.Total_Amount = i.Tax_Base_Amount;
-    //         }
-
-    //         var VAT_Amount = 0;
-    //         var Tax_Base_Amount = 0;
-    //         var Total = i.Total_Amount.replace(/,/g, '');
-
-    //         if (i.VAT_Type == 'I0') {
-    //             $scope.Items[objIndex].VAT_Amount = '0';
-    //             $scope.Items[objIndex].VAT_Percent = '0';
-    //             $scope.Items[objIndex].VAT_No = '';
-
-    //             $scope.Items[objIndex].Total_Amount = addCommas(i.Tax_Base_Amount);
-
-    //         } else {
-    //             var Percent = $scope.ddlVAT.find(o => o.Code == i.VAT_Type).VAT_Percent;
-    //             if (Calculate) {
-    //                 VAT_Amount = Percent * parseFloat(i.Tax_Base_Amount);
-    //             } else {
-    //                 VAT_Amount = i.VAT_Amount.replace(/,/g, '');
-    //             }
-
-
-    //             $scope.Items[objIndex].VAT_Percent = Percent;
-    //             Tax_Base_Amount = parseFloat(i.Tax_Base_Amount);
-
-    //             Total = parseFloat(VAT_Amount) + Tax_Base_Amount;
-    //         }
-    //         $scope.Items[objIndex].VAT_Type = i.VAT_Type;
-
-    //         var WHT_Amount = 0;
-    //         var WHT_Name = '';
-    //         if (i.WHT_Type_Code !== '00') {
-    //             var WHT_Percent = $scope.ddlWHT.find(o => o.Code == i.WHT_Type_Code);
-    //             if (WHT_Percent !== undefined) {
-    //                 if (Calculate) {
-    //                     WHT_Amount = i.Tax_Base_Amount * WHT_Percent.Percentage;
-    //                 } else {
-    //                     WHT_Amount = i.WHT_Amount.replace(/,/g, '');
-    //                 }
-    //                 WHT_Name = WHT_Percent.Name;
-    //             }
-    //         }
-    //         $scope.Items[objIndex].VAT_Amount = addCommas(VAT_Amount);
-    //         $scope.Items[objIndex].Tax_Base_Amount = addCommas(i.Tax_Base_Amount);
-    //         $scope.Items[objIndex].Total_Amount = Total - parseFloat(WHT_Amount);
-    //         $scope.Items[objIndex].WHT_Type_Code = i.WHT_Type_Code.length <= 0 ? '00' : i.WHT_Type_Code;
-    //         $scope.Items[objIndex].WHT_Amount = addCommas(WHT_Amount);
-    //         $scope.Items[objIndex].WHT_Type_Name = WHT_Name;
-
-    //         Total = 0;
-    //         for (var x in $scope.Items) {
-    //             Total += parseFloat($scope.Items[x].Total_Amount);
-    //         }
-    //         $scope.Header.Grand_Total = Total;
-    //     } catch (e) {
-    //         console.log(e.message);
-    //     }
-
-    // };
-
     $scope.OnChangeDDLPPJK = function () {
         try {
             $scope.Header.PPJK_Curr = $scope.ppjk.Curr;
@@ -919,7 +840,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             console.log(i.Condition_Code, 'Condition_Code');
             console.log(i.Condition_ID, 'Condition_ID');
             console.log(i.Condition_Name, 'Condition_Name');
-            var objIndex = $scope.Items.findIndex(o => o.No == i.No);
+            const objIndex = $scope.Items.findIndex(o => o.No == i.No);
             $scope.Items[objIndex].Condition_Name = $scope.ddlCondition.find(o => o.Code == i.Condition_Code).Name;
             $scope.Items[objIndex].Condition_ID = $scope.ddlCondition.find(o => o.Code == i.Condition_Code).ID;
             $scope.Items[objIndex].Condition_Code = i.Condition_Code;
@@ -934,10 +855,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.LoadDDL = function () {
         try {
-            var proc = svc.svc_LoadDDL();
+            const proc = svc.svc_LoadDDL();
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
-                console.log(data, 'LoadDDL()');
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     $scope.ddlTradingPartner = data.listTradingPartner;
                     $scope.tradingPartner = data.listTradingPartner[0];
@@ -976,16 +896,16 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         obj.File_Name = file[0].name;
         $scope.SelectedFile = file[0];
         $scope.Upload();
-        var objIndex = $scope.Items.findIndex((o => o.No == obj.No));
+        const objIndex = $scope.Items.findIndex((o => o.No == obj.No));
         $scope.Items[objIndex].File_Name = obj.File_Name;
         console.log($scope.Items);
     };
 
     $scope.RemoveAttachment = function (obj) {
         if ($scope.Header.Pending_Approver_Role_ID == '' || $scope.Header.Approval_Status == '5') {
-            var dialogRemove = confirm('Remove Attachment ?');
+            const dialogRemove = confirm('Remove Attachment ?');
             if (dialogRemove) {
-                var objIndex = $scope.Items.findIndex((o => o.No == obj.No));
+                const objIndex = $scope.Items.findIndex((o => o.No == obj.No));
                 obj.File_Name = '';
                 $scope.Items[objIndex].File_Name = obj.File_Name;
             }
@@ -994,8 +914,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.Upload = function () {
         $scope.uploadf = true;
-        var files = $scope.SelectedFile;
-        console.log(files);
+        const files = $scope.SelectedFile;
         if (files.name.length > 0) {
             Upload.upload({
                 url: '/_layouts/15/Daikin.Application/Handler/UploadHandler.ashx',
@@ -1024,10 +943,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             Selected: false,
             ID: '0',
         });
-        for (var x = 0; x < $scope.ddlCondition.length; x++) {
-            var item = $scope.ddlCondition[x];
+        for (let x = 0; x < $scope.ddlCondition.length; x++) {
+            const item = $scope.ddlCondition[x];
             if (item.Title !== '') {
-                console.log(item.Title, 'Item.Title');
                 if ($scope.expenseType.Name == 'INSPECTION COST') {
                     if (item.Title.includes('ZSG')) {
                         $scope.FilteredCondition.push(item);
@@ -1168,149 +1086,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
     };
 
-    // $scope.GetData = function () {
-    //     try {
-    //         var id = GetQueryString()['ID']; //Nintex No
-    //         if (id != undefined) {
-    //             var proc = svc.svc_GetData(id);
-    //             proc.then(function (response) {
-    //                 var data = JSON.parse(response.data.d);
-    //                 console.log('Get data', data);
-    //                 if (data.ProcessSuccess) {
-    //                     var h = data.Header;
-    //                     var d = data.Details;
-    //                     $scope.Remarks = data.Remarks;
-
-    //                     for (var x = 0; x < data.Remarks.length; x++) {
-    //                         if (data.Remarks[x].Outcome == 'True') {
-    //                             $scope.Remarks[x].Outcome = true;
-    //                         }
-    //                     }
-    //                     $scope.IsCurrentApprover = data.IsCurrentApprover;
-    //                     console.log($scope.IsCurrentApprover, 'IsCurrentApprover');
-
-    //                     $scope.Header.OA_Summary_Attachment = h.OA_Summary_Attachment;
-    //                     $scope.Header.OA_Summary_FileName = h.OA_Summary_FileName;
-    //                     $scope.Header.ID = h.ID;
-    //                     $scope.Header.Form_No = h.Form_No;
-    //                     $scope.Header.Requester_Email = h.Requester_Email;
-    //                     $scope.Header.Requester_Name = h.Requester_Name;
-    //                     $scope.Header.Approval_Status = h.Approval_Status;
-    //                     $scope.Header.Approval_Status_Name = h.Approval_Status_Name;
-    //                     $scope.Header.PPJK_Category = h.PPJK_Category;
-    //                     $scope.Header.PPJK_Curr = h.PPJK_Curr;
-    //                     $scope.Header.Grand_Total = h.Grand_Total;
-    //                     $scope.Header.Item_ID = h.Item_ID;
-    //                     $scope.Header.Bank_Account_No = h.Bank_Account_No;
-    //                     $scope.IsDocumentReceived = h.Document_Received == '0' ? false : true;
-    //                     $scope.Header.Pending_Approver_Role_ID = h.Pending_Approver_Role_ID;
-    //                     $scope.Header.DIID_Invoice = h.DIID_Invoice;
-    //                     if ($scope.Header.Approval_Status == '5' && data.IsRequestor) {
-    //                         $scope.IsRequestor = true;
-    //                     }
-    //                     else {
-    //                         $scope.IsRequestor = false;
-    //                     }
-    //                     if ($scope.Header.Approval_Status == '5') { //Revise
-    //                         $scope.Val_Message = '';
-    //                     }
-
-    //                     console.log('isRequestor', data.IsRequestor);
-    //                     console.log('Header', $scope.Header);
-
-    //                     $scope.IsTaxVerifier = data.IsTaxVerifier;
-    //                     $scope.IsReceiverDocs = data.IsReceiverDocs;
-    //                     if (data.IsTaxVerifier || h.Approval_Status == '7') {
-    //                         $scope.showWHT = true;
-    //                     } else {
-    //                         $scope.showWHT = false;
-    //                     }
-
-    //                     $scope.ApproverLog();
-
-    //                     if (h.Approval_Status == '5') {
-    //                         $scope.CanEdit = true;
-    //                         $scope.DisableActivate = false;
-    //                     } else {
-    //                         $scope.CanEdit = false;
-    //                         $scope.DisableActivate = true;
-    //                     }
-
-
-    //                     $scope.ddlTradingPartner = data.listTradingPartner;
-    //                     $scope.tradingPartner = data.listTradingPartner.find(o => o.Code == h.Trading_Partner_Code);
-
-    //                     $scope.ddlPlant = data.listPlant;
-    //                     $scope.plant = data.listPlant.find(o => o.Code == h.Plant_Code);
-
-    //                     $scope.ddlExpenseType = data.listExpenseType;
-    //                     $scope.expenseType = data.listExpenseType.find(o => o.Name == h.Expense_Type_Name);
-    //                     $scope.ddlBussPlace = data.listBussPlace;
-    //                     $scope.bussPlace = data.listBussPlace.find(o => o.Code == h.Buss_Place_Code);
-    //                     $scope.ddlPPJK = data.listPPJK;
-    //                     $scope.ppjk = data.listPPJK.find(o => o.Code == h.PPJK_Code);
-
-
-    //                     //Details
-    //                     $scope.ddlVendor = data.listMasterVendor;
-    //                     $scope.ddlWHT = data.listWHT;
-    //                     $scope.ddlCondition = data.listConditionSC;
-    //                     $scope.ddlVAT = data.listVAT;
-
-    //                     for (x = 0; x < d.length; x++) {
-
-
-    //                         $scope.Items.push({
-    //                             No: d[x].No,
-    //                             ID: d[x].ID,
-    //                             Document_Date: d[x].Document_Date,
-    //                             Ref_No: d[x].Ref_No,
-    //                             Ref_Type: d[x].Ref_Type,
-    //                             BL_No: d[x].BL_No,
-    //                             FOB_No: d[x].FOB_No,
-    //                             ddlVendor: $scope.ddlVendor,
-    //                             ddlCondition: $scope.ddlCondition,
-    //                             Freight_Cost: addCommas(d[x].Freight_Cost),
-    //                             ddlWHT: $scope.ddlWHT,
-    //                             Vendor_No: d[x].Vendor_No,
-    //                             Vendor_Name: d[x].Vendor_Name,
-    //                             Vendor_Invoice_No: d[x].Vendor_Invoice_No,
-    //                             Condition_ID: d[x].Condition_ID,
-    //                             Condition_Code: d[x].Condition_Code,
-    //                             Condition_Name: d[x].Condition_Name,
-    //                             ddlVAT: $scope.ddlVAT,
-    //                             VAT_No: d[x].VAT_No,
-    //                             VAT_Type: d[x].VAT_Type,
-    //                             VAT_Percent: d[x].VAT_Percent,
-    //                             VAT_Amount: d[x].VAT_Amount,
-    //                             WHT_Type_Code: d[x].WHT_Type_Code,
-    //                             WHT_Type_Name: d[x].WHT_Type_Name,
-    //                             WHT_Amount: d[x].WHT_Amount,
-    //                             Tax_Base_Amount: addCommas(d[x].Tax_Base_Amount),
-    //                             Total_Amount: d[x].Total_Amount,
-    //                             Text: d[x].Text,
-    //                             File_Name: d[x].File_Name,
-    //                             Attachment_URL: d[x].Attachment_URL,
-    //                         });
-    //                     }
-
-    //                     console.log($scope.Items, 'Get Data Items');
-
-    //                 }
-    //             });
-
-    //         } else {
-    //             $scope.LoadDDL();
-    //         }
-
-    //     } catch (e) {
-    //         alert(e.message);
-    //     }
-    // };
-
     $scope.Close = function () {
         location.href = 'List.aspx';
-    }
+    };
 
     $scope.GetData();
 

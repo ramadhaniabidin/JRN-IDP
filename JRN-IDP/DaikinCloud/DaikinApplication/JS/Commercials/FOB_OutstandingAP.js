@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -33,14 +33,13 @@ app.directive('loading', ['$http', function ($http) {
 }]);
 app.service("svc", function ($http) {
     this.svc_ListLog = function (Form_No, Transaction_ID) {
-
-        var param = {
+        const param = {
             Form_No: Form_No,
             Module_Code: 'M010',
             Transaction_ID: Transaction_ID
-        }
+        };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -50,14 +49,14 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ListOutstandingAP = function (PageIndex, DueOn, TradingPartnerCode, Curr) {
-        var param = {
+        const param = {
             PageIndex: PageIndex,
             DueOn: DueOn,
             TradingPartnerCode: TradingPartnerCode,
             Curr: Curr,
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/ListOutstandingAP",
             data: JSON.stringify(param),
@@ -66,14 +65,13 @@ app.service("svc", function ($http) {
         return response;
     }
     this.svc_SaveUpdate = function (h, listDetail, listRemarks) {
-        var param = {
+        const param = {
             h: h,
             listDetail: listDetail,
             listRemarks: listRemarks,
         };
-        console.log(param);
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/SaveFOB",
             data: JSON.stringify(param),
@@ -83,12 +81,12 @@ app.service("svc", function ($http) {
     }
 
     this.svc_GetData = function (ID, PageIndex) {
-        var param = {
+        const param = {
             Form_No: ID,
             PageIndex: PageIndex,
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/GetDataFOB",
             data: JSON.stringify(param),
@@ -98,13 +96,13 @@ app.service("svc", function ($http) {
     }
 
     this.svc_Approval = function (ntx, IsDocumentReceived, listRemarks) {
-        var param = {
+        const param = {
             ntx: ntx,
             IsDocumentReceived: IsDocumentReceived,
             listRemarks: listRemarks,
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/FOBApproval",
             data: JSON.stringify(param),
@@ -132,10 +130,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.colspan = 7;
     $scope.TotalCurrPerPage = 0;
     $scope.TotalLocalCurrPerPage = 0;
-    var TotalChecked = 0;
+    let TotalChecked = 0;
 
     $("body").on("click", ".Pager .page", function () {
-        var pg = parseInt($(this).attr('page'));
+        const pg = parseInt($(this).attr('page'));
         $scope.GetData(pg);
     });
 
@@ -145,17 +143,16 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.UpdateLogRemarks = function (idx) {
-        var objIndex = $scope.Remarks.findIndex(o => o.ID == idx.ID);
+        const objIndex = $scope.Remarks.findIndex(o => o.ID == idx.ID);
         $scope.Remarks[objIndex].Outcome = idx.Outcome;
         $scope.Remarks[objIndex].Reason_Rejection = idx.Outcome == true ? '' : idx.Reason_Rejection;
     };
 
 
     $scope.ApproverLog = function () {
-        var proc = svc.svc_ListLog($scope.Header.Form_No, $scope.Header.ID);
+        const proc = svc.svc_ListLog($scope.Header.Form_No, $scope.Header.ID);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
-
+            const data = JSON.parse(response.data.d);
             if (data.ProcessSuccess) {
                 $scope.Logs = data.Logs;
             } else {
@@ -210,7 +207,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 TotalChecked++;
             } else {
                 $scope.Items[x].check = false;
-                var objIndex = $scope.ItemSelected.findIndex(o => o.Document_No == $scope.Items[x].Document_No);
+                const objIndex = $scope.ItemSelected.findIndex(o => o.Document_No == $scope.Items[x].Document_No);
                 $scope.ItemSelected.pop(objIndex, 1);
                 TotalChecked--;
             }
@@ -225,7 +222,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         if (o.check == true) {
             o.check = false;
             TotalChecked--;
-            var filteredArr = $scope.ItemSelected.filter(function (el) {
+            const filteredArr = $scope.ItemSelected.filter(function (el) {
                 return el.Document_No !== o.Document_No;
             });
             $scope.ItemSelected = filteredArr;
@@ -263,9 +260,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 return;
             }
 
-            var isValid = true;
-            var strMessage = 'Please upload an attachment for this below document No. :\n';
-            for (var c = 0; c < $scope.ItemSelected.length; c++) {
+            let isValid = true;
+            let strMessage = 'Please upload an attachment for this below document No. :\n';
+            for (let c = 0; c < $scope.ItemSelected.length; c++) {
                 if (IsEmpty($scope.ItemSelected[c].File_Name)) {
                     isValid = false;
                     strMessage += $scope.ItemSelected[c].Document_No + '\n';
@@ -282,12 +279,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }
 
             $scope.Header.Currency = $scope.Curr.Code;
-            var conf = confirm('Submit ?');
+            const conf = confirm('Submit ?');
             if (conf) {
                 $scope.Header.Approval_Status = Approval_Status;
-                var req = svc.svc_SaveUpdate($scope.Header, $scope.ItemSelected, $scope.Remarks);
+                const req = svc.svc_SaveUpdate($scope.Header, $scope.ItemSelected, $scope.Remarks);
                 req.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         location.href = '/_layouts/15/Daikin.Application/Commercials/OutstandingAP.aspx?ID=' + data.ID;
                         alert("Submitted Successfully");
@@ -306,7 +303,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     }
 
     $scope.sumByCurrency = function (Curr) {
-        var total = 0;
+        let total = 0;
         for (let count = 0; count < $scope.ItemSelected.length; count++) {
             if ($scope.ItemSelected[count].Currency == Curr)
                 total += $scope.ItemSelected[count].Amount;
@@ -318,15 +315,15 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         obj.File_Name = file[0].name;
         $scope.SelectedFile = file[0];
         $scope.Upload();
-        var objIndex = $scope.ItemSelected.findIndex((o => o.Document_No == obj.Document_No));
+        const objIndex = $scope.ItemSelected.findIndex((o => o.Document_No == obj.Document_No));
         $scope.ItemSelected[objIndex].File_Name = obj.File_Name;
     };
 
     $scope.RemoveAttachment = function (obj) {
         if ($scope.Header.Pending_Approver_Role_ID == '' || $scope.Header.Approval_Status == '5') {
-            var dialogRemove = confirm('Remove Attachment ?');
+            const dialogRemove = confirm('Remove Attachment ?');
             if (dialogRemove) {
-                var objIndex = $scope.ItemSelected.findIndex((o => o.Document_No == obj.Document_No));
+                const objIndex = $scope.ItemSelected.findIndex((o => o.Document_No == obj.Document_No));
                 obj.File_Name = '';
                 $scope.ItemSelected[objIndex].File_Name = obj.File_Name;
                 console.log($scope.ItemSelected)
@@ -343,7 +340,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.RemoveOA = function () {
         console.log('$scope.Header.Approval_Status: ', $scope.Header.Approval_Status);
         if ($scope.Header.OA_Summary_Attachment == '' || $scope.Header.Approval_Status !== '4') {
-            var confirmMsg = confirm('Remove OA Summary Attachment ?');
+            const confirmMsg = confirm('Remove OA Summary Attachment ?');
             if (confirmMsg) {
                 $scope.Header.OA_Summary_Attachment = '';
                 $scope.Header.OA_Summary_FileName = '';
@@ -353,14 +350,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.Upload = function () {
         $scope.uploadf = true;
-        var files = $scope.SelectedFile;
+        const files = $scope.SelectedFile;
         if (files.name.length > 0) {
             Upload.upload({
                 url: '/_layouts/15/Daikin.Application/Handler/UploadHandler.ashx',
                 data: { file: files },
-                //data: {
-                //    files: files
-                //}
             }).then(function (response) {
                 $timeout(function (response) {
                     //console.log('response upload: ', response);
@@ -388,10 +382,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         if (!page)
             page = 1;
 
-        var proc = svc.svc_ListOutstandingAP(page, DueOn, FactoryCode, Curr);
+        const proc = svc.svc_ListOutstandingAP(page, DueOn, FactoryCode, Curr);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
-            console.log(data);
+            const data = JSON.parse(response.data.d);
             if (data.ProcessSuccess) {
                 $scope.Items = data.items;
                 $scope.Header.Requester_Name = data.CurrentLogin;
@@ -405,8 +398,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 $scope.ddlPlant = data.listPlant;
                 $scope.Plant = data.listPlant[0];
 
-                for (var j = 0; j < $scope.ItemSelected.length; j++) {
-                    for (var k = 0; k < $scope.Items.length; k++) {
+                for (let j = 0; j < $scope.ItemSelected.length; j++) {
+                    for (let k = 0; k < $scope.Items.length; k++) {
                         if ($scope.ItemSelected[j].Document_No == $scope.Items[k].Document_No) {
                             $scope.Items[k].check = true;
                             $scope.Items[k].File_Name = $scope.ItemSelected[j].File_Name;
@@ -437,18 +430,18 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.GetData =
         function (page) {
-            var id = GetQueryString()['ID'];
+            const id = GetQueryString()['ID'];
             if (id !== undefined) {
-                var proc = svc.svc_GetData(id, page);
+                const proc = svc.svc_GetData(id, page);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         console.log(data);
                         $scope.Header = data.Header;
                         $scope.Items = data.Details;
                         $scope.Remarks = data.Remarks;
 
-                        for (var x = 0; x < data.Remarks.length; x++) {
+                        for (let x = 0; x < data.Remarks.length; x++) {
                             if (data.Remarks[x].Outcome == 'True') {
                                 $scope.Remarks[x].Outcome = true;
                             }
@@ -483,11 +476,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     alert(data.Message);
                 });
             } else {
-                var Factory = decodeURIComponent(GetQueryString()['tp']);
-                var FactoryCode = decodeURIComponent(GetQueryString()['tpc']);
-                var DueOn = decodeURIComponent(GetQueryString()['don']);
-                var DueOnCode = decodeURIComponent(GetQueryString()['doc']);
-                var Curr = decodeURIComponent(GetQueryString()['curr']);
+                const Factory = decodeURIComponent(GetQueryString()['tp']);
+                const FactoryCode = decodeURIComponent(GetQueryString()['tpc']);
+                const DueOn = decodeURIComponent(GetQueryString()['don']);
+                const DueOnCode = decodeURIComponent(GetQueryString()['doc']);
+                const Curr = decodeURIComponent(GetQueryString()['curr']);
 
                 $scope.Header.Factory = Factory;
                 $scope.Header.FactoryCode = FactoryCode;
@@ -503,13 +496,13 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
 
     $scope.OnChangeDDLCurr = function () {
-        var Factory = decodeURIComponent(GetQueryString()['tp']);
-        var FactoryCode = decodeURIComponent(GetQueryString()['tpc']);
-        var DueOn = decodeURIComponent(GetQueryString()['don']);
-        var DueOnCode = decodeURIComponent(GetQueryString()['doc']);
-        var Curr = $scope.Curr.Code;
-        var Plant_Code = $scope.Plant.Code;
-        var Plant_Name = $scope.Plant.Name;
+        const Factory = decodeURIComponent(GetQueryString()['tp']);
+        const FactoryCode = decodeURIComponent(GetQueryString()['tpc']);
+        const DueOn = decodeURIComponent(GetQueryString()['don']);
+        const DueOnCode = decodeURIComponent(GetQueryString()['doc']);
+        const Curr = $scope.Curr.Code;
+        const Plant_Code = $scope.Plant.Code;
+        const Plant_Name = $scope.Plant.Name;
 
         $scope.Header.Factory = Factory;
         $scope.Header.FactoryCode = FactoryCode;
@@ -532,7 +525,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.Approval = function () {
         try {
-            var st = $scope.Outcome;
+            const st = $scope.Outcome;
             if (st == 0) {
                 alert('Please select the outcomes');
                 return;
@@ -541,8 +534,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 alert('Please specify your comments for rejecting this FOB');
                 return;
             }
-            var msg = '';
-            var outcomeName = '';
+            let msg = '';
+            let outcomeName = '';
             if (st == 1) {
                 msg = 'Approve ?';
                 outcomeName = 'Approve';
@@ -554,8 +547,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 outcomeName = 'Revise';
             }
 
-            //var confirmApprove = confirm(msg);
-
             //if (confirmApprove) {
             $scope.ntx.FormNo = $scope.Header.Form_No;
             $scope.ntx.Outcome = st;
@@ -565,9 +556,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             $scope.ntx.Item_ID = $scope.Header.Item_ID;
             $scope.ntx.OutcomeName = outcomeName;
 
-            var proc = svc.svc_Approval($scope.ntx, $scope.IsDocumentReceived, $scope.Remarks);
+            const proc = svc.svc_Approval($scope.ntx, $scope.IsDocumentReceived, $scope.Remarks);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
                 } else {

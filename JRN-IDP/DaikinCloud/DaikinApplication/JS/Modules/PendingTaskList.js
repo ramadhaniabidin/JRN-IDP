@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -34,17 +34,16 @@ app.directive('loading', ['$http', function ($http) {
 
 app.service("svc", function ($http) {
     this.svc_TaskApprovalGetPendingTaskApproval = function (pageNo, rowlimit, SearchBy, Keywords) {
-        var model = {
-            PageIndex: pageNo,
-            PageSize: rowlimit,
-            SearchBy: SearchBy,
-            Keywords: Keywords,
-        }
-        var param = {
-            model: model
-        }
+        const param = {
+            model: {
+                PageIndex: pageNo,
+                PageSize: rowlimit,
+                SearchBy: SearchBy,
+                Keywords: Keywords,
+            }
+        };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/PendingTask.asmx/TaskApprovalByCurrentLogin",
             data: JSON.stringify(param),
@@ -117,9 +116,9 @@ app.controller('ctrl', function ($scope, svc) {
         try {
             $scope.pageNo = pageNo;
 
-            var proc = svc.svc_TaskApprovalGetPendingTaskApproval($scope.pageNo, $scope.rowlimit, $scope.SearchBy.Code, $scope.Keywords);
+            const proc = svc.svc_TaskApprovalGetPendingTaskApproval($scope.pageNo, $scope.rowlimit, $scope.SearchBy.Code, $scope.Keywords);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     $scope.PendingTasks = data.data;
 

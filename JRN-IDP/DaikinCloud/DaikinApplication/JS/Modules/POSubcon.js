@@ -25,7 +25,7 @@ function PopUp_ShowDetail() {
 
 function getApprovalLog() {
     try {
-        var objek = new Object();
+        const objek = new Object();
         objek.Form_No = NWF$('#' + textFormNo).val();
         objek.Transaction_ID = NWF$("#" + cvItemID).val();
         objek.Module_Code = NWF$("#" + cvModuleCode).val();
@@ -56,10 +56,10 @@ function getAjaxProps(objek) {
 };
 
 function poSubconSuccess(response) {
-    var trHTML = '';
-    var parsedData = JSON.parse(response.d);
-    var items = parsedData.Logs;
-    var TotalRows = $("#tblHistory").find("tr:not(:first)").length;
+    let trHTML = '';
+    const parsedData = JSON.parse(response.d);
+    const items = parsedData.Logs;
+    const TotalRows = $("#tblHistory").find("tr:not(:first)").length;
     if (TotalRows > 0) {
         $("#tblHistory").find("tr:not(:first)").remove();
     }

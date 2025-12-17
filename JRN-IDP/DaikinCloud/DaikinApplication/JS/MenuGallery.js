@@ -1,32 +1,24 @@
-﻿var app = angular.module('modApp', []);
+﻿const app = angular.module('modApp', []);
 
 app.service("svc", function ($http) {
-   
     this.svc_GetModules = function (ListName) {
-        var param = {
-            //ListName: ListName
-        }
-
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/WebServices/Modules.asmx/getModules",
             data: {},
             dataType: "json"
         });
         return response;
-
-    }
-
+    };
 });
 
 app.controller('modCtrl', function ($scope, svc) {
     $scope.Modules = [];
-
     $scope.getModules = function () {
-        var proc = svc.svc_GetModules();
+        const proc = svc.svc_GetModules();
         proc.then(function (response) {
-            var res = JSON.parse(response.data.d);
-             console.log(res);
+            const res = JSON.parse(response.data.d);
+            console.log(res);
             if (res.ProcessSuccess) {
                 $scope.Modules = res.Datas;
             }

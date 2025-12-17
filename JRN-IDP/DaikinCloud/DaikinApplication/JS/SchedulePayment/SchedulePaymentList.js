@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 $(".table").click(
     function (event) {
         event.preventDefault();
@@ -11,12 +11,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -61,9 +61,9 @@ app.directive('loading', ['$http', function ($http) {
 }]);
 
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -71,7 +71,7 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_ListData = function (SearchBy, Keyword, PageIndex, PageSize, Start_Date, End_Date, BankName) {
-        var param = {
+        const param = {
             model: {
                 SearchBy: SearchBy,
                 Keywords: Keyword,
@@ -83,7 +83,7 @@ app.service("svc", function ($http) {
             }
         };
         console.log("Param for ListData ", param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ScheduledPayment.asmx/ListData",
             data: JSON.stringify(param),
@@ -93,14 +93,14 @@ app.service("svc", function ($http) {
     }
 
     this.svc_HistoryLogList = function (form_no, module_code, transaction_id) {
-        var param = {
+        const param = {
             Form_No: form_no,
             Module_Code: module_code,
             Transaction_ID: transaction_id
         };
         console.log("Param for approval log ", param);
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application//WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -180,14 +180,14 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.List_Data = (pageIndex) => {
-        var Payment_Date_Start = $scope.paymentDateFrom == null ? "" : $scope.paymentDateFrom;
-        var Payment_Date_End = $scope.paymentDateEnd == null ? "" : $scope.paymentDateEnd;
-        var bankName = $scope.bankName.Code;
-        var proc = svc.svc_ListData($scope.SearchBy.Code, $scope.Keywords, pageIndex, $scope.pageSize, Payment_Date_Start, Payment_Date_End, bankName);
+        const Payment_Date_Start = $scope.paymentDateFrom == null ? "" : $scope.paymentDateFrom;
+        const Payment_Date_End = $scope.paymentDateEnd == null ? "" : $scope.paymentDateEnd;
+        const bankName = $scope.bankName.Code;
+        const proc = svc.svc_ListData($scope.SearchBy.Code, $scope.Keywords, pageIndex, $scope.pageSize, Payment_Date_Start, Payment_Date_End, bankName);
         proc.then(function (resp) {
-            var jsonData = JSON.parse(resp.data.d);
+            const jsonData = JSON.parse(resp.data.d);
             console.log('JSON data ', jsonData);
-            var Items = jsonData.Items;
+            const Items = jsonData.Items;
             $scope.Total = 0;
             $scope.GrandTotal = jsonData.GrandTotal;
             for (let x in Items) {
@@ -223,9 +223,9 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.ApprovalLog = (form_no) => {
         $scope.showModal = 'block';
-        var proc = svc.svc_HistoryLogList(form_no, 'M008', 0);
+        const proc = svc.svc_HistoryLogList(form_no, 'M008', 0);
         proc.then(function (response) {
-            var jsonData = JSON.parse(response.data.d);
+            const jsonData = JSON.parse(response.data.d);
             console.log(jsonData);
             if (jsonData.ProcessSuccess) {
                 $scope.Logs = jsonData.Logs;

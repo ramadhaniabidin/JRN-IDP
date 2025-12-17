@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -18,12 +18,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 showButtonPanel: true,
                 changeMonth: true,
                 changeYear: true,
@@ -45,12 +45,12 @@ app.directive("monthyears", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ctrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ctrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 changeMonth: true,
                 changeYear: true,
                 dateInput: false,
@@ -115,7 +115,7 @@ app.directive('format', ['$filter', function ($filter) {
             });
 
             ctrl.$parsers.unshift(function (viewValue) {
-                var plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, '')
+                const plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, '')
                 elem.val($filter(attrs.format)(plainNumber))
                 return plainNumber
             })
@@ -124,9 +124,9 @@ app.directive('format', ['$filter', function ($filter) {
 }]);
 
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -134,14 +134,13 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_ContractGetApproverLogByID = function (id) {
-
-        var param = {
+        const param = {
             Form_No: id,
             Module_Code: 'M014',
             Transaction_ID: 0
-        }
+        };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -151,43 +150,37 @@ app.service("svc", function ($http) {
     }
 
     this.svc_GetBranches = function () {
-        var param = {}
-
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetBranches",
-            data: JSON.stringify(param),
+            data: {},
             dataType: "json"
         });
         return response;
     }
 
     this.svc_GetVendors = function () {
-        var param = {}
-
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetVendors",
-            data: JSON.stringify(param),
+            data: {},
             dataType: "json"
         });
         return response;
     }
 
     this.svc_GetDepartments = function () {
-        var param = {}
-
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetDepartments",
-            data: JSON.stringify(param),
+            data: {},
             dataType: "json"
         });
         return response;
     }
 
     this.svc_ContractGetContractDatas = function () {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ContractGetContractDatas",
             data: {},
@@ -197,7 +190,7 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ContractSubmit = function (ch, cd, ca, Deleted) {
-        var param = {
+        const param = {
             ch: ch,
             cd: cd,
             ca: ca,
@@ -205,8 +198,7 @@ app.service("svc", function ($http) {
             dd: Deleted.cdd.join("','"),
             da: Deleted.cad.join("','"),
         };
-        //console.log(param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ContractSubmit",
             data: JSON.stringify(param),
@@ -216,10 +208,10 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ContractGetContractByID = function (ID) {
-        var param = {
+        const param = {
             Form_No: ID,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ContractGetContractByID",
             data: JSON.stringify(param),
@@ -229,7 +221,7 @@ app.service("svc", function ($http) {
     }
 
     this.svc_GetMaterialAnaplans = function () {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/GetMaterialAnaplans",
             data: {},
@@ -252,7 +244,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_ContractApprovalSubmit = function (approvalValue, ListName, ListItemID, HeaderID, Comment) {
-        var param = {
+        const param = {
             approvalValue: approvalValue,
             ListName: ListName,
             ListItemID: ListItemID,
@@ -260,7 +252,7 @@ app.service("svc", function ($http) {
             comments: Comment,
         };
 
-        var response = $http({
+        const response = $http({
             method: "POST",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ApproveRequestNonCom",
             data: JSON.stringify(param),
@@ -271,7 +263,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_PopUpVendor_GetData = function (SearchTable, PageIndex, SearchBy, Keywords) {
-        var param = {
+        const param = {
             input: {
                 searchTabl: SearchTable,
                 searchCol: SearchBy,
@@ -286,7 +278,7 @@ app.service("svc", function ($http) {
             }
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/PopList.asmx/PopUpListData",
             data: JSON.stringify(param),
@@ -296,7 +288,7 @@ app.service("svc", function ($http) {
     };
 
     this.svc_PopUpList = function (SearchTable, PageIndex, SearchBy, Keywords) {
-        var param = {
+        const param = {
             input: {
                 searchTabl: SearchTable,
                 searchCol: SearchBy,
@@ -310,7 +302,7 @@ app.service("svc", function ($http) {
                 RecordCount: 0,
             }
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/PopList.asmx/PopUpListData",
             data: JSON.stringify(param),
@@ -324,7 +316,7 @@ app.service("svc", function ($http) {
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     const now = new Date();
-    var options = {
+    const options = {
         year: "numeric",
         month: "short",
     };
@@ -480,20 +472,20 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.PopUp_Search = () => {
         $scope.popUpCurrPageIndex = 1;
-        var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+        const searchByItem = $scope.popUpSearchOptions.find(function (opt) {
             return opt.Text == $scope.popUpSearchBy;
         });
-        var searchBy = searchByItem.DB_Col;
+        const searchBy = searchByItem.DB_Col;
         $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
     };
 
     $scope.PopUp_Prev = () => {
         if ($scope.popUpCurrPageIndex > 1) {
             $scope.popUpCurrPageIndex -= 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+            const searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
-            var searchBy = searchByItem.DB_Col;
+            const searchBy = searchByItem.DB_Col;
             $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
         }
     };
@@ -501,10 +493,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.PopUp_Next = () => {
         if ($scope.popUpCurrPageIndex < $scope.popUpTotalPageCount) {
             $scope.popUpCurrPageIndex += 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+            const searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
-            var searchBy = searchByItem.DB_Col;
+            const searchBy = searchByItem.DB_Col;
             $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
         }
     };
@@ -514,17 +506,17 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             searchBy += ";Procurement_Department_Title";
             keyWord += ";" + $scope.ContractHeader.Procurement_Department;
         }
-        var proc = svc.svc_PopUpList(tableName, pageIndex, searchBy, keyWord);
+        const proc = svc.svc_PopUpList(tableName, pageIndex, searchBy, keyWord);
         proc.then(function (response) {
-            var jsonData = JSON.parse(response.data.d);
+            const jsonData = JSON.parse(response.data.d);
             //console.log(jsonData);
             if ($scope.popUpModule == "Vendor") {
-                var vendorData = jsonData.Logs;
+                const vendorData = jsonData.Logs;
                 $scope.popUpTotalPageCount = jsonData.TotalPages;
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
                 for (let i of vendorData) {
-                    var newObj = {
+                    const newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Name': i.filter(x => x.Key == 'Title')[0].Value,
                         'Code': i.filter(x => x.Key == 'Vendor_Number')[0].Value,
@@ -538,7 +530,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
                 for (let i of jsonData.Logs) {
-                    var newObj = {
+                    const newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Kode': i.filter(x => x.Key == 'Material_Code')[0].Value,
                         'Deskripsi': i.filter(x => x.Key == 'Material_Description')[0].Value,
@@ -562,7 +554,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.PopUp_SelectItem = (id) => {
-        var selectedItem = $scope.PopUpData.find(function (item) {
+        const selectedItem = $scope.PopUpData.find(function (item) {
             return item.ID == id;
         });
         if ($scope.popUpModule == "Vendor") {
@@ -584,9 +576,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.GetBranches = function () {
         try {
-            var proc = svc.svc_GetBranches();
+            const proc = svc.svc_GetBranches();
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     $scope.ddlBranches = data.Branches;
                     $scope.Branch = data.Branches[0];
@@ -629,9 +621,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.GetDepartments = function () {
         try {
-            var proc = svc.svc_GetDepartments();
+            const proc = svc.svc_GetDepartments();
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                const data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     //console.log(data);
                     $scope.IsDepartment = false;
@@ -668,9 +660,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.GetVendors();
         $scope.GetDepartments();
 
-        var proc = svc.svc_ContractGetContractDatas();
+        const proc = svc.svc_ContractGetContractDatas();
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             if (data.ProcessSuccess) {
                 //console.log(data);
 
@@ -707,9 +699,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     }
 
     $scope.GetMaterialAnaplans = () => {
-        var promise = svc.svc_GetMaterialAnaplans();
+        const promise = svc.svc_GetMaterialAnaplans();
         promise.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             angular.forEach(data.MaterialAnaplans, (val, ind) => {
                 $scope.ddlMaterialAnaplansTemp.push({
                     Code: val.Code,
@@ -723,9 +715,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.GetMaterialAnaplansByID = (ID) => {
-        var promise = svc.svc_GetMaterialAnaplansByID(ID);
+        const promise = svc.svc_GetMaterialAnaplansByID(ID);
         promise.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             $scope.contractGetContracMaterialName_New();
         }).catch(function (err) {
             console.log(err)
@@ -758,12 +750,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
         angular.forEach($scope.ddlMaterialAnaplansTemp, (val) => {
             let Code = val.Code;
-            var str = $scope.ProcDeptType.Procurement_Department_Code;
-            //var str = $scope.ProcDeptType.Name;
-
-            ////console.log("Code : ", Code);
-            ////console.log("str : ", str);   
-
+            const str = $scope.ProcDeptType.Procurement_Department_Code;
             if (Code.includes(str)) {
                 $scope.MaterialAnaplans.push({
                     Code: val.Code,
@@ -898,88 +885,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             alert('The attachments below already exist: ' + result.warningMsg);
             $scope.ResetFileInput();
         }
-
-
-        // var msg = 'The attachments below already exist: ';
-        // const IsUpload = () => {
-        //     var warningMsg = '';
-        //     var anyError = false;
-
-        //     angular.forEach($scope.uploadFiles, function (file, key) {
-        //         var indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
-        //         if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
-        //             var input = file;
-        //             var formdata = false;
-        //             if (window.FormData) {
-        //                 formdata = new FormData();
-        //             }
-        //             else {
-        //                 $scope.isUploadFile = false;
-        //             }
-
-        //             if (window.FileReader) {
-        //                 let reader = new FileReader();
-        //                 reader.onloadend = function (e) {
-        //                 };
-        //                 reader.readAsDataURL(input);
-        //             }
-        //             else {
-        //                 $scope.isUploadFile = false;
-        //             }
-
-        //             if (formdata) {
-        //                 formdata.append("file", input);
-        //                 $.ajax({
-        //                     url: "/_layouts/15/Daikin.Application/Handler/PostUploadHandler.ashx",
-        //                     type: "POST",
-        //                     data: formdata,
-        //                     processData: false,
-        //                     contentType: false,
-        //                     async: false,
-        //                     dataType: "JSON",
-        //                     success: function (result) {
-        //                         const { PostedFile } = result;
-        //                         const myFile = new File([input], PostedFile.name);
-        //                         $scope.isUploadFile = false;
-        //                         $scope.ContractUploaded.push(myFile);
-        //                         $scope.ContractAttachments.push({
-        //                             Id: 0,
-        //                             Attachment_FileName: PostedFile.name,
-        //                             Size: PostedFile.size,
-        //                             Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
-        //                         });
-        //                     },
-        //                     error: function (err) {
-        //                         console.log(err.statusText);
-        //                     },
-        //                 });
-        //             }
-        //             else {
-        //                 $scope.isUploadFile = false;
-        //             }
-        //         }
-        //         else {
-        //             warningMsg += `\n----- ${file.name} -----`;
-        //             anyError = true;
-        //             return
-        //         }
-        //     });
-
-        //     return {
-        //         anyError: anyError,
-        //         warningMsg: warningMsg,
-        //     };
-        // }
-
-
-        // const { anyError, warningMsg } = IsUpload();
-
-        // if (anyError) {
-        //     alert(msg + warningMsg);
-        //     var inputs = document.querySelectorAll("input[type=file]")
-        //     inputs[0].value = null;
-        //     return;
-        // }
     };
 
     $scope.contractDeletingFile = function (index) {
@@ -1132,9 +1037,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }
             let confirmMsg = confirm('Submit ?');
             if (confirmMsg) {
-                var proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
+                const proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         alert('Submitted Successfully!');
                         location.href = 'List.aspx';
@@ -1252,7 +1157,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.ContractGetContractByID = function () {
         try {
-            var id = GetQueryString()['ID']; //Nintex No
+            const id = GetQueryString()['ID']; //Nintex No
 
             if (id != undefined) {
                 $scope.showModal = "none";
@@ -1322,13 +1227,13 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.ContractGetApproverLogByID = function () {
         try {
-            var id = GetQueryString()['ID']; //Nintex No
+            const id = GetQueryString()['ID']; //Nintex No
 
             if (id != undefined) {
-                var proc = svc.svc_ContractGetApproverLogByID(id);
+                const proc = svc.svc_ContractGetApproverLogByID(id);
 
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         //console.log(data);
 
@@ -1347,10 +1252,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.ContractApprovalSubmit = function () {
         try {
-            var st = $scope.Outcome;
-            var id = $scope.ContractHeader.Form_No;
-            var approvalValue = "";
-            approvalValue = st == 1 ? "Approve" : "Reject";
+            const st = $scope.Outcome;
+            const id = $scope.ContractHeader.Form_No;
+            const approvalValue = st == 1 ? "Approve" : "Reject";
 
             if (st == 0) {
                 alert('Please select the outcomes');
@@ -1361,44 +1265,24 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 alert('Please specify your comments for rejecting this Contract');
                 return;
             }
+            $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
+            $scope.ntx.Outcome = st;
+            $scope.ntx.Module = 'PC';
+            $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
+            $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
 
-            //var msg = '';
-            //if (st == 1) {
-            //    msg = 'Are you sure want to approve ?';
-            //} else if (st == 2) {
-            //    msg = 'Are you sure want to reject ?';
-            //} else {
-            //    msg = 'Are you sure want to revise ?';
-            //}
-            //var confirmApprove = confirm(msg);
+            const proc = svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment);
+            proc.then(function (response) {
+                const data = JSON.parse(response.data.d);
+                if (data.ProcessSuccess) {
+                    location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
+                } else {
+                    alert(data.InfoMessage);
+                }
 
-            var confirmApprove = true;
-            if (confirmApprove) {
-                $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
-                $scope.ntx.Outcome = st;
-                $scope.ntx.Module = 'PC';
-                $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
-                $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
-
-                var proc = svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment);
-                proc.then(function (response) {
-                    //console.log(response);
-                    var data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        //if (st == 1) {
-                        //    alert('Approved Successfully!');
-                        //} else if (st == 2) {
-                        //    alert('Rejected Successfully!');
-                        //}
-                        location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
-                    } else {
-                        alert(data.InfoMessage);
-                    }
-
-                }, function (data, status) {
-                    alert(data.data.Message);
-                });
-            }
+            }, function (data, status) {
+                alert(data.data.Message);
+            });
         } catch (e) {
             alert(e.message);
         }

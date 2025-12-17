@@ -1,9 +1,9 @@
 ﻿function addCommas(nStr) {
     nStr += '';
-    var x = nStr.split('.');
-    var x1 = x[0];
-    var x2 = x.length > 1 ? '.' + x[1] : '';
-    var rgx = /(\d+)(\d{3})/;
+    let x = nStr.split('.');
+    let x1 = x[0];
+    let x2 = x.length > 1 ? '.' + x[1] : '';
+    let rgx = /(\d+)(\d{3})/;
     while (rgx.test(x1)) {
         x1 = x1.replace(rgx, '$1' + ',' + '$2');
     }
@@ -17,7 +17,7 @@ function GenerateGuid() {
 }
 
 function OnlyNumberAlsoDecimals(evt) {
-    var charCode = (evt.which) ? evt.which : event.keyCode;
+    let charCode = (evt.which) ? evt.which : event.keyCode;
     if (charCode != 46 && charCode > 31
     && (charCode < 45 || charCode > 57)) {
         evt.preventDefault();
@@ -27,11 +27,11 @@ function OnlyNumberAlsoDecimals(evt) {
 }
 
 function IsFileSizeExceeded(maxSizeInMB) {
-    var isValid = false;
-    for (var i = 0; i < NWF$('input[type=file]').length; i++) {
+    let isValid = false;
+    for (let i = 0; i < NWF$('input[type=file]').length; i++) {
         if (NWF$('input[type=file]')[i].files.length > 0 && NWF$('input[type=file]')[i].files[0] !== null && NWF$('input[type=file]')[i].files[0] !== undefined) {
             if (NWF$('input[type=file]')[i].files[0].size > (maxSizeInMB * 1048600)) {
-                var sizeInMB = Math.round(NWF$('input[type=file]')[i].files[0].size / 10486) / 100; // # MB with two decimal places
+                let sizeInMB = Math.round(NWF$('input[type=file]')[i].files[0].size / 10486) / 100; // # MB with two decimal places
                 isValid = true;
                 //alert("The maximum file size is " + maxSizeInMB + "MB, but the file " + NWF$('input[type=file')[i].files[0].name + " is " + sizeInMB + "MB. Please reduce the file size before uploading.");
                 break;
@@ -47,9 +47,9 @@ function IsEmpty(str) {
 }
 
 function GetQueryString() {
-    var vars = [], hash;
-    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-    for (var i = 0; i < hashes.length; i++) {
+    let vars = [], hash;
+    let hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for (let i = 0; i < hashes.length; i++) {
         hash = hashes[i].split('=');
         vars.push(hash[0]);
         vars[hash[0]] = hash[1];
@@ -58,73 +58,73 @@ function GetQueryString() {
 }
 
 function DateFormat_ddMMyyyy(date) {
-    var monthNames = [
+    let monthNames = [
   "01", "02", "03",
   "04", "05", "06", "07",
   "08", "09", "10",
   "11", "12"
     ];
 
-    var day = date.getDate();
-    var monthIndex = date.getMonth();
-    var year = date.getFullYear();
-    var jam = date.getHours();
-    var menit = date.getMinutes();
+    let day = date.getDate();
+    let monthIndex = date.getMonth();
+    let year = date.getFullYear();
+    let jam = date.getHours();
+    let menit = date.getMinutes();
 
-    var formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
+    let formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
 
     return formatDate;
 }
 
 function DateFormat_ddMMyyyy2(date) {
-    var monthNames = [
+    let monthNames = [
   "01", "02", "03",
   "04", "05", "06", "07",
   "08", "09", "10",
   "11", "12"
     ];
 
-    var day = date.getDate();
-    var monthIndex = date.getMonth();
-    var year = date.getFullYear();
-    var jam = date.getHours();
-    var menit = date.getMinutes();
+    let day = date.getDate();
+    let monthIndex = date.getMonth();
+    let year = date.getFullYear();
+    let jam = date.getHours();
+    let menit = date.getMinutes();
 
     if (day < 10) {
         day += "0" + day;
     }
 
-    var formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
+    let formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
 
     return formatDate;
 }
 
 
 function DateFormat_ddMMMyyyy(date) {
-    var monthNames = [
+    let monthNames = [
   "Jan", "Feb", "Mar",
   "Apr", "May", "Jun", "Jul",
   "Aug", "Sep", "Oct",
   "Nov", "Dec"
     ];
 
-    var day = date.getDate();
-    var monthIndex = date.getMonth();
-    var year = date.getFullYear();
-    var jam = date.getHours();
-    var menit = date.getMinutes();
+    let day = date.getDate();
+    let monthIndex = date.getMonth();
+    let year = date.getFullYear();
+    let jam = date.getHours();
+    let menit = date.getMinutes();
 
-    var formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
+    let formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
 
-    //var strDateTime = [formatDate, [AddZero(jam), AddZero(menit)].join(":"), jam >= 12 ? "PM" : "AM"].join(" ");
-    //var strDateTime = [formatDate, [AddZero(jam), AddZero(menit)].join(":")].join(" ");
+    //let strDateTime = [formatDate, [AddZero(jam), AddZero(menit)].join(":"), jam >= 12 ? "PM" : "AM"].join(" ");
+    //let strDateTime = [formatDate, [AddZero(jam), AddZero(menit)].join(":")].join(" ");
 
     return formatDate;
 }
 
 function JSONDateToJavaScript(jsonDateString) {
-    var d = new Date(parseInt(jsonDateString.replace('/Date(', '')));
-    var result = DateFormat_ddMMMyyyy(d);
+    let d = new Date(parseInt(jsonDateString.replace('/Date(', '')));
+    let result = DateFormat_ddMMMyyyy(d);
     return result;
 }
 

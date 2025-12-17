@@ -1,8 +1,8 @@
-﻿var dialog;
-var CurPage = 1;
-var TotalPage = 1;
+﻿let dialog;
+let CurPage = 1;
+let TotalPage = 1;
 
-var objRS;
+let objRS;
 
 NWF$().ready(function () {
     //$("#fieldName").prop("readonly", true);
@@ -23,7 +23,7 @@ NWF$().ready(function () {
         } else {
             if (NWF$(this).val().length > 0) {
                 NWF$(this).val(NWF$(this).val().replace(/,/g, ''));
-                var amount = NWF$(this).val();
+                let amount = NWF$(this).val();
                 NWF$(this).val(addCommas(amount));
             }
         }
@@ -65,8 +65,8 @@ function selectItems_ForRS(el) {
 
 NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
     NWF$(".repeatedSection .nf-repeater-row:not('.nf-repeater-row-hidden')").each(function () {
-        var row = NWF$(this);
-        var inp_target = row.find('.target input');
+        let row = NWF$(this);
+        let inp_target = row.find('.target input');
         row.find('.img-lookup').click(function (e) {
             e.preventDefault();
             showDialog(inp_target);
@@ -114,7 +114,7 @@ NWF$('#' + pibNumber).blur(function (e) {
         NWF$('#' + txtRemarks).val(NWF$('#' + pibNumber).val() + " INV " + NWF$('#' + txt1).val() + "," + NWF$('#' + OtherInvoice).val());
     }
 
-    var control3 = NWF$("#" + txtRemarks);
+    let control3 = NWF$("#" + txtRemarks);
     NWF.FormFiller.Functions.ProcessOnChange(control3);
 
 });
@@ -127,18 +127,18 @@ NWF$('#' + OtherInvoice).blur(function (e) {
         NWF$('#' + txtRemarks).val(NWF$('#' + pibNumber).val() + " INV " + NWF$('#' + txt1).val() + "," + NWF$('#' + OtherInvoice).val());
     }
 
-    var control3 = NWF$("#" + txtRemarks);
+    let control3 = NWF$("#" + txtRemarks);
     NWF.FormFiller.Functions.ProcessOnChange(control3);
 
 });
 
 function selectItems(el) {
     try {
-        var Inv_No = el.parentNode.parentNode.cells[1].innerHTML;
-        var BL_No = el.parentNode.parentNode.cells[2].innerHTML;
+        let Inv_No = el.parentNode.parentNode.cells[1].innerHTML;
+        let BL_No = el.parentNode.parentNode.cells[2].innerHTML;
         NWF$('#' + txt2).val(BL_No);
 
-        var param = {
+        let param = {
             Keywords: BL_No == undefined ? '' : BL_No
         };
         const InvoiceCommercial = [];
@@ -152,15 +152,15 @@ function selectItems(el) {
             async: false,
             success: function (data) {
                 console.log(data.d);
-                var jsonData = JSON.parse(data.d);
+                let jsonData = JSON.parse(data.d);
 
                 $.each(jsonData.Items, function () {
                     InvoiceCommercial.push(this.Ref_No);
                 });
                 console.log(InvoiceCommercial);
 
-                var listInvNoSpace = InvoiceCommercial.join(' ');
-                var listInvNoComma = InvoiceCommercial.join(',');
+                let listInvNoSpace = InvoiceCommercial.join(' ');
+                let listInvNoComma = InvoiceCommercial.join(',');
 
                 if (NWF$('#' + OtherInvoice).val().trim() == "") {
                     NWF$('#' + txtRemarks).val(NWF$('#' + pibNumber).val() + " INV " + NWF$('#' + txt1).val());
@@ -180,13 +180,13 @@ function selectItems(el) {
 
         console.log(NWF$('#' + pibNumber).val());
 
-        var control = NWF$("#" + txt1);
+        let control = NWF$("#" + txt1);
         NWF.FormFiller.Functions.ProcessOnChange(control);
 
-        var control2 = NWF$("#" + txt2);
+        let control2 = NWF$("#" + txt2);
         NWF.FormFiller.Functions.ProcessOnChange(control2);
 
-        var control3 = NWF$("#" + txtRemarks);
+        let control3 = NWF$("#" + txtRemarks);
         NWF.FormFiller.Functions.ProcessOnChange(control3);
 
         dialog.dialog("close");
@@ -220,7 +220,7 @@ function Next() {
 
 function GetWorkflowHistoryList() {
     try {
-        var objek = new Object();
+        let objek = new Object();
         objek.Form_No = NWF$('#' + textFormNo).val();
         objek.Transaction_ID = NWF$('.trans_id input').val();
         objek.Module_Code = "M025";
@@ -247,10 +247,10 @@ function GetWorkflowHistoryList() {
 
 
 function onSuccessGetWorkflowHistoryLog(response) {
-    var trHTML = '';
-    var parsedData = JSON.parse(response.d);
+    let trHTML = '';
+    let parsedData = JSON.parse(response.d);
     console.log("Parse Data = ", parsedData);
-    var TotalRows = $("#tblHistory").find("tr:not(:first)").length;
+    let TotalRows = $("#tblHistory").find("tr:not(:first)").length;
     if (TotalRows > 0) {
         $("#tblHistory").find("tr:not(:first)").remove();
     }
@@ -269,7 +269,7 @@ function onSuccessGetWorkflowHistoryLog(response) {
 
 
 function ListData_InvoiceNumber(PageIndex, Keywords) {
-    var param = {
+    let param = {
         PageIndex: PageIndex,
         Keywords: Keywords == undefined ? '' : Keywords,
     };
@@ -282,18 +282,18 @@ function ListData_InvoiceNumber(PageIndex, Keywords) {
         dataType: "json",
         async: false,
         success: function (data) {
-            var trHTML = '';
-            var r = 0;
+            let trHTML = '';
+            let r = 0;
             console.log(data.d, 'data.d');
-            var jsonData = JSON.parse(data.d);
+            let jsonData = JSON.parse(data.d);
 
             $('#RecordCount').val(jsonData.RecordCount);
-            var TotalRecords = jsonData.RecordCount;
+            let TotalRecords = jsonData.RecordCount;
 
             TotalPage = TotalRecords / 5;
             TotalPage = Math.ceil(TotalPage.toFixed(1));
 
-            var TotalRows = $("#tblPop tbody").find("tr").length;
+            let TotalRows = $("#tblPop tbody").find("tr").length;
             if (TotalRows > 0) {
                 $("#tblPop tbody").find("tr").remove();
             }

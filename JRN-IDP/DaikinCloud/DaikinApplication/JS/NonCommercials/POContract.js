@@ -1,4 +1,4 @@
-﻿var app = angular.module("app", []);
+﻿let app = angular.module("app", []);
 
 app.directive("button", () => {
     return {
@@ -18,12 +18,12 @@ app.directive("datepicker", () => {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            let updateModel = function (dateText) {
                 scope.$apply(() => {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            let options = {
                 showButtonPanel: true,
                 changeMonth: true,
                 changeYear: true,
@@ -44,12 +44,12 @@ app.directive("monthyears", () => {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            let updateModel = function (dateText) {
                 scope.$apply(() => {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            let options = {
                 changeMonth: true,
                 changeYear: true,
                 //showButtonPanel: true,
@@ -108,7 +108,7 @@ app.directive("format", [
                 });
 
                 ctrl.$parsers.unshift(function (viewValue) {
-                    var plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, "");
+                    let plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, "");
                     elem.val($filter(attrs.format)(plainNumber));
                     return plainNumber;
                 });
@@ -118,9 +118,9 @@ app.directive("format", [
 ]);
 
 app.filter("FormatDate", () => {
-    var re = /\/Date\(([0-9]*)\)\//;
+    let re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        let m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -672,14 +672,14 @@ app.controller("ctrl", function ($scope, svc) {
 
     function resolveRequestId() {
         const id = GetQueryString()["ID"];
-        if(!id){
+        if (!id) {
             $scope.POWithContractGetData();
             return null;
         }
         return id;
     };
 
-    
+
 
 
     $scope.PopUpDialog = (module, indexDetail, indexMaterial) => {
@@ -709,20 +709,20 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.PopUp_Search = () => {
         $scope.popUpCurrPageIndex = 1;
-        var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+        let searchByItem = $scope.popUpSearchOptions.find(function (opt) {
             return opt.Text == $scope.popUpSearchBy;
         });
-        var searchBy = searchByItem.DB_Col;
+        let searchBy = searchByItem.DB_Col;
         $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
     };
 
     $scope.PopUp_Prev = () => {
         if ($scope.popUpCurrPageIndex > 1) {
             $scope.popUpCurrPageIndex -= 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+            let searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
-            var searchBy = searchByItem.DB_Col;
+            let searchBy = searchByItem.DB_Col;
             $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
         }
     };
@@ -730,10 +730,10 @@ app.controller("ctrl", function ($scope, svc) {
     $scope.PopUp_Next = () => {
         if ($scope.popUpCurrPageIndex < $scope.popUpTotalPageCount) {
             $scope.popUpCurrPageIndex += 1;
-            var searchByItem = $scope.popUpSearchOptions.find(function (opt) {
+            let searchByItem = $scope.popUpSearchOptions.find(function (opt) {
                 return opt.Text == $scope.popUpSearchBy;
             });
-            var searchBy = searchByItem.DB_Col;
+            let searchBy = searchByItem.DB_Col;
             $scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, searchBy, $scope.popUpSearchKeyword);
         }
     };
@@ -750,15 +750,15 @@ app.controller("ctrl", function ($scope, svc) {
             }
         }
         console.log($scope.Header);
-        var proc = svc.svc_PopUpList(tableName, pageIndex, searchBy, keyWord);
+        let proc = svc.svc_PopUpList(tableName, pageIndex, searchBy, keyWord);
         proc.then(function (response) {
-            var jsonData = JSON.parse(response.data.d);
+            let jsonData = JSON.parse(response.data.d);
             if ($scope.popUpModule == "Cost Center") {
                 $scope.popUpTotalPageCount = jsonData.TotalPages;
                 $scope.popUpTotalRecords = jsonData.TotalRecords;
                 $scope.PopUpData = [];
                 for (let i of jsonData.Logs) {
-                    var newObj = {
+                    let newObj = {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Cost Center': i.filter(x => x.Key == 'Cost_Center')[0].Value,
                         'Description': i.filter(x => x.Key == 'Description')[0].Value,
@@ -781,7 +781,7 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.PopUp_SelectItem = (id) => {
-        var selectedItem = $scope.PopUpData.find(function (item) {
+        let selectedItem = $scope.PopUpData.find(function (item) {
             return item.ID == id;
         });
         $scope.Header.Detail[$scope.popUpIndexDetail].Materials[$scope.popUpIndexMaterial].Cost_Center = selectedItem.Combine;
@@ -836,7 +836,7 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.getDateTime = (format, jsondate) => {
-        var date = new Date(jsondate);
+        let date = new Date(jsondate);
         let year = date.getFullYear();
 
         let month = date.getMonth();
@@ -931,7 +931,7 @@ app.controller("ctrl", function ($scope, svc) {
         if (S < 10) SS = "0" + S;
         else SS = S;
 
-        var format = format.replace("{yyyy}", year);
+        format = format.replace("{yyyy}", year);
         format = format.replace("{mmmm}", months["mmmm"][month]);
         format = format.replace("{mmm}", months["mmm"][month]);
         format = format.replace("{mm}", months["mm"][month]);
@@ -961,7 +961,7 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.Approval = function () {
         try {
-            var st = $scope.Outcome;
+            let st = $scope.Outcome;
 
             if (st == 0) {
                 alert("Please select the outcomes");
@@ -975,8 +975,8 @@ app.controller("ctrl", function ($scope, svc) {
                 return;
             }
 
-            //var approvalValue = st == 1 ? "Approve" : "Reject";
-            var approvalValue = "";
+            //let approvalValue = st == 1 ? "Approve" : "Reject";
+            let approvalValue = "";
             if (st == 1) {
                 approvalValue = "Approve";
             }
@@ -987,7 +987,7 @@ app.controller("ctrl", function ($scope, svc) {
                 approvalValue = "Revise";
             }
 
-            //var msg = "";
+            //let msg = "";
             //if (st == 1) {
             //    msg = "Approve ?";
             //} else if (st == 2) {
@@ -995,8 +995,8 @@ app.controller("ctrl", function ($scope, svc) {
             //} else {
             //    msg = "Revise ?";
             //}
-            //var confirmApprove = confirm(msg);
-            var confirmApprove = true;
+            //let confirmApprove = confirm(msg);
+            let confirmApprove = true;
 
             if (confirmApprove) {
                 $scope.ntx.FormNo = $scope.Header.Form_No;
@@ -1005,12 +1005,12 @@ app.controller("ctrl", function ($scope, svc) {
                 $scope.ntx.Position_ID = $scope.Header.Pending_Approver_Role_ID;
                 $scope.ntx.Transaction_ID = $scope.Header.ID;
 
-                var proc = svc.svc_POWithContractGetApproval(
+                let proc = svc.svc_POWithContractGetApproval(
                     approvalValue, "PO Contract", $scope.Header.Item_ID, $scope.Header.ID, $scope.ntx.Comment
                 );
                 proc.then(
                     function (response) {
-                        var data = JSON.parse(response.data.d);
+                        let data = JSON.parse(response.data.d);
                         if (data.ProcessSuccess) {
                             console.log(data);
                             //if (st == 1) {
@@ -1229,12 +1229,12 @@ app.controller("ctrl", function ($scope, svc) {
         //     alert("Please Choose Branch");
         //     return;
         // } else {
-        //     var indexRemark = $scope.RemarkSelected.findIndex(
+        //     let indexRemark = $scope.RemarkSelected.findIndex(
         //         (o) => o.Name == valDetail.Name
         //     );
         //     if (indexRemark == -1) {
         //         console.log('$scope.Header.Detail[0].Remark: ', $scope.Header.Detail[0].Remark);
-        //         var proc = svc.svc_POWithContractGetContract(
+        //         let proc = svc.svc_POWithContractGetContract(
         //             $scope.Vendor.Code,
         //             $scope.Branch.Code,
         //             valDetail.Code,
@@ -1244,7 +1244,7 @@ app.controller("ctrl", function ($scope, svc) {
         //         );
         //         proc.then(
         //             function (response) {
-        //                 var data = JSON.parse(response.data.d);
+        //                 let data = JSON.parse(response.data.d);
         //                 console.log(data);
         //                 if (data.ProcessSuccess) {
         //                     data.Detail.Remark = valDetail;
@@ -1358,19 +1358,19 @@ app.controller("ctrl", function ($scope, svc) {
         //     alert("Please Choose Branch");
         //     return;
         // } else {
-        //     var proc = svc.svc_POWithContractGetRemarks(
+        //     let proc = svc.svc_POWithContractGetRemarks(
         //         $scope.Vendor.Code,
         //         $scope.Branch.Code,
         //         $scope.Header.Procurement_Department
         //     );
         //     proc.then(
         //         function (response) {
-        //             var data = JSON.parse(response.data.d);
+        //             let data = JSON.parse(response.data.d);
         //             if (data.ProcessSuccess) {
         //                 console.log(data);
         //                 if ($scope.RemarkSelected.length < data.Remarks.length) {
         //                     data.Remarks.forEach(function (value, index) {
-        //                         var index = $scope.Remarks.findIndex(
+        //                         let index = $scope.Remarks.findIndex(
         //                             (x) => x.Name == value.Name
         //                         );
 
@@ -1418,13 +1418,13 @@ app.controller("ctrl", function ($scope, svc) {
         $scope.Remarks = [];
 
         if ($scope.Vendor.Code.length > 0) {
-            var proc = svc.svc_POWithContractGetBranches(
+            let proc = svc.svc_POWithContractGetBranches(
                 $scope.Vendor.Code,
                 $scope.Header.Procurement_Department
             );
             proc.then(
                 function (response) {
-                    var data = JSON.parse(response.data.d);
+                    let data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         $scope.Branches = data.Branches;
                         $scope.Branch = data.Branches[0];
@@ -1461,12 +1461,12 @@ app.controller("ctrl", function ($scope, svc) {
         $scope.RemarkSelected = [];
         $scope.Remarks = [];
 
-        var proc = svc.svc_POWithContractGetVendor(
+        let proc = svc.svc_POWithContractGetVendor(
             $scope.Header.Procurement_Department
         );
         proc.then(
             function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     console.log(data);
                     $scope.Vendors = data.Vendors;
@@ -1488,10 +1488,10 @@ app.controller("ctrl", function ($scope, svc) {
         $scope.MarketingCategories = [];
         $scope.MarketingCategory = {};
 
-        var proc = svc.svc_POWithContractGetMarketingCategory();
+        let proc = svc.svc_POWithContractGetMarketingCategory();
         proc.then(
             function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     console.log(data);
                     $scope.MarketingCategories = data.MarketingCategories;
@@ -1529,10 +1529,10 @@ app.controller("ctrl", function ($scope, svc) {
     };
 
     $scope.POWithContractGetData = () => {
-        var proc = svc.svc_POWithContractGetData();
+        let proc = svc.svc_POWithContractGetData();
         proc.then(
             function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     const UserProceDept = data.UserProcDepts;
                     $scope.User.Name = data.CurrentLoginName;
@@ -1554,13 +1554,13 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.ApproverLog = function () {
         try {
-            var id = GetQueryString()["ID"]; //Nintex No
+            let id = GetQueryString()["ID"]; //Nintex No
 
             if (id != undefined) {
-                var proc = svc.svc_ListLog(id);
+                let proc = svc.svc_ListLog(id);
                 proc.then(
                     function (response) {
-                        var data = JSON.parse(response.data.d);
+                        let data = JSON.parse(response.data.d);
                         if (data.ProcessSuccess) {
                             if (data.Logs.length > 0) {
                                 $scope.Logs = data.Logs;
@@ -1583,16 +1583,16 @@ app.controller("ctrl", function ($scope, svc) {
 
     $scope.POWithContractGetDataById = () => {
         const id = resolveRequestId();
-        if(!id) return;
+        if (!id) return;
         $scope.showModal = "none";
         fetchDataById(id);
 
-        // var id = GetQueryString()["ID"]; //Nintex No
+        // let id = GetQueryString()["ID"]; //Nintex No
         // if (!id) {
         //     $scope.POWithContractGetData();
         //     return;
         // }
-        // var proc = svc.svc_POWithContractGetDataById(id);
+        // let proc = svc.svc_POWithContractGetDataById(id);
         // $scope.showModal = "none";
         // proc.then(response => {
         //     const data = JSON.parse(response.data.d);
@@ -1640,8 +1640,8 @@ app.controller("ctrl", function ($scope, svc) {
         //         $scope.Header = data.Header;
         //         if ($scope.Header.ID > 0) {
         //             console.log("Header ID > 0");
-        //             var lookup_elements = document.getElementsByClassName("fa");
-        //             for (var i = 0; i < lookup_elements.length; i++) {
+        //             let lookup_elements = document.getElementsByClassName("fa");
+        //             for (let i = 0; i < lookup_elements.length; i++) {
         //                 lookup_elements[i].style.pointerEvents = "none";
         //             }
         //         }

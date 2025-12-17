@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿let app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -18,12 +18,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            let updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            let options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -45,7 +45,7 @@ app.directive('format', ['$filter', function ($filter) {
             });
 
             elem.bind('blur', function (event) {
-                var plainNumber = elem.val().replace(/[^\d|\-+|\.+]/g, '');
+                let plainNumber = elem.val().replace(/[^\d|\-+|\.+]/g, '');
                 elem.val($filter(attrs.format)(plainNumber));
             });
         }
@@ -86,9 +86,9 @@ app.directive('ngFile', ['$parse', function ($parse) {
 }]);
 
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    let re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        let m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -97,10 +97,10 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_ListsGetListById = function (ID) {
-        var param = {
+        let param = {
             Form_No: ID,
         };
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/WebServices/NonCommercials.asmx/ListsGetListById",
             data: JSON.stringify(param),
@@ -110,7 +110,7 @@ app.service("svc", function ($http) {
     }
 
     this.svc_listGetListData = function () {
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ListGetListData",
             data: {},
@@ -120,9 +120,9 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ListsGetLists = function (model) {
-        var param = { model }
+        let param = { model }
         console.log(param, 'List NC');
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ListData",
             data: JSON.stringify(param),
@@ -132,9 +132,9 @@ app.service("svc", function ($http) {
     }
 
     this.svc_LoadApproverRoles = function (Module_ID) {
-        var param = { Module_ID: Module_ID }
+        let param = { Module_ID: Module_ID }
 
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/LoadApproverRoles",
             data: JSON.stringify(param),
@@ -146,13 +146,13 @@ app.service("svc", function ($http) {
 
     this.svc_ListLog = function (Trans_ID, Module_Code, Transaction_ID) {
 
-        var param = {
+        let param = {
             Form_No: Trans_ID,
             Module_Code: Module_Code,
             Transaction_ID: Transaction_ID
         }
         console.log("Param Get History Log, ", param);
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Master.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -162,12 +162,12 @@ app.service("svc", function ($http) {
     }
 
     this.svc_listsGetListsCreateNewForm = function (params) {
-        var param = {
+        let param = {
             Procurement_Department_ID: params.Procurement_Department_ID,
             Code: params.Code
         }
 
-        var response = $http({
+        let response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NonCommercials.asmx/ListsGetListsCreateNewForm",
             data: JSON.stringify(param),
@@ -181,7 +181,7 @@ app.service("svc", function ($http) {
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     const now = new Date();
-    var options = {
+    let options = {
         year: "numeric",
         month: "short",
     };
@@ -249,7 +249,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.ListsGetListById = () => {
         try {
-            var id = GetQueryString()['ID'];
+            let id = GetQueryString()['ID'];
             if (id != undefined) {
                 $scope.Param.Keywords = id;
 
@@ -269,9 +269,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.listGetListData = () => {
         try {
             $scope.onChangeDDLModule();
-            var proc = svc.svc_listGetListData();
+            let proc = svc.svc_listGetListData();
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     console.log(data);
                     $scope.Modules = data.Modules;
@@ -353,10 +353,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }
             $scope.Param.SearchBy = $scope.SearchsBy[0];
 
-            var module_code = $scope.Param.Module.Code == undefined ? '' : $scope.Param.Module.Code;
-            var proc = svc.svc_LoadApproverRoles(module_code);
+            let module_code = $scope.Param.Module.Code == undefined ? '' : $scope.Param.Module.Code;
+            let proc = svc.svc_LoadApproverRoles(module_code);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     // console.log(data);
                     $scope.Items = [];
@@ -396,7 +396,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.Form = false;
     $scope.ListsGetLists = (PageIndex) => {
         try {
-            var param = {
+            let param = {
                 TableName: $scope.Param.Module.Table_Name,
                 FilterBy: $scope.Param.FilterBy.Code,
                 StartDate: $scope.Param.Start,
@@ -417,9 +417,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }
 
             // console.log($scope.PendingApproverRole);
-            var proc = svc.svc_ListsGetLists(param);
+            let proc = svc.svc_ListsGetLists(param);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 if (data.ProcessSuccess) {
                     console.log(data);
                     $scope.GrandTotal = data.GrandTotal;
@@ -469,8 +469,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         if (x == null)
             return x;
 
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
+        let re = /\/Date\(([0-9]*)\)\//;
+        let m = x.match(re);
         if (m)
             return new Date(parseInt(m[1]));
         else
@@ -483,10 +483,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.ApproverLog = function (obj) {
         $scope.showModal = 'block';
-        var proc = svc.svc_ListLog(obj.Form_No, $scope.Param.Module.Code, obj.ID);
+        let proc = svc.svc_ListLog(obj.Form_No, $scope.Param.Module.Code, obj.ID);
 
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            let data = JSON.parse(response.data.d);
             //console.log('Approval Log Data:', data);
             if (data.ProcessSuccess) {
                 $scope.Logs = data.Logs;
@@ -513,22 +513,22 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
             if ($scope.Param.Module.Code == "M016") {
                 //location.href = "/_layouts/15/Daikin.WebApps/Master/Display.aspx?module=M016";
-                var targetURL = "/_Layouts/15/Daikin.Application/NonCommercials/Display.aspx?module=M016";
+                let targetURL = "/_Layouts/15/Daikin.Application/NonCommercials/Display.aspx?module=M016";
                 location.href = targetURL;
 
             }
             else if ($scope.Param.Module.Code == "M017") {
-                var targetURL = "/Lists/QCF " + (($scope.Param.Department.Name.toUpperCase().includes("MARKETING")) ? "MKT/NewForm.aspx" : "GA IT/NewForm.aspx");
+                let targetURL = "/Lists/QCF " + (($scope.Param.Department.Name.toUpperCase().includes("MARKETING")) ? "MKT/NewForm.aspx" : "GA IT/NewForm.aspx");
                 location.href = targetURL;
             }
             else {
-                var proc = svc.svc_listsGetListsCreateNewForm(param);
+                let proc = svc.svc_listsGetListsCreateNewForm(param);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    let data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         console.log(data);
 
-                        var objIndex = data.ProcDept.findIndex(o => o.Code == $scope.Param.Module.Code);
+                        let objIndex = data.ProcDept.findIndex(o => o.Code == $scope.Param.Module.Code);
                         if (objIndex !== -1) {
                             location.href = data.ProcDept[objIndex].Module_Url;
                         }

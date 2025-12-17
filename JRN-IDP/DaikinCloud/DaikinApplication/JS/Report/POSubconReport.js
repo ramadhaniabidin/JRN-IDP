@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', ['ngFileUpload']);
+﻿const app = angular.module('app', ['ngFileUpload']);
 
 app.directive('button', function () {
     return {
@@ -17,12 +17,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -51,9 +51,9 @@ app.directive('loading', ['$http', function ($http) {
     };
 }]);
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -62,10 +62,10 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_GetOptions = function () {
-        var param = {
+        const param = {
             ListName: 'Commercials'
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/ModuleOptions",
             data: JSON.stringify(param),
@@ -74,13 +74,12 @@ app.service("svc", function ($http) {
         return response;
     }
     this.svc_ListData = function (model) {
-
-        var param = {
+        const param = {
             model: model
-        }
+        };
 
         console.log('param svc_ListData', param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/NACWebService.asmx/ListDataPOSubcon",
             data: JSON.stringify(param),
@@ -113,22 +112,22 @@ app.controller('ctrl', function ($scope, svc) {
         if (x == null)
             return x;
 
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
+        const re = /\/Date\(([0-9]*)\)\//;
+        const m = x.match(re);
         if (m)
             return new Date(parseInt(m[1]));
         else
             return null;
     }
     $scope.GetModuleOptions = function (x) {
-        var proc = svc.svc_GetOptions();
+        const proc = svc.svc_GetOptions();
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.ddlBranch = data.listBranch;
                 console.log('GetModuleOptions - Branch: ', data.Branch);
-                var br = data.Branch;
+                let br = data.Branch;
 
                 if (data.Branch == undefined) {
                     br = '';
@@ -151,16 +150,16 @@ app.controller('ctrl', function ($scope, svc) {
         });
     };
     $scope.ListData = function () {
-        var SearchBy = $scope.SearchBy.Code;
-        var Keywords = $scope.Keywords
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
-        var Status = $scope.Status.Name
+        const SearchBy = $scope.SearchBy.Code;
+        const Keywords = $scope.Keywords
+        const StartDate = $scope.Date.Start;
+        const EndDate = $scope.Date.End;
+        let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
+        const Status = $scope.Status.Name
         if (Branch == 'All') {
             Branch = '';
         }
-        var param = {
+        const param = {
             SearchBy: SearchBy,
             Keywords: Keywords,
             Branch: Branch,
@@ -168,9 +167,9 @@ app.controller('ctrl', function ($scope, svc) {
             EndDate: EndDate,
             Status: Status
         };
-        var proc = svc.svc_ListData(param);
+        const proc = svc.svc_ListData(param);
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.Items = data.Items;

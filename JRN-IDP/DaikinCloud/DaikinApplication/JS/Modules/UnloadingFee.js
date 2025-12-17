@@ -1,28 +1,28 @@
 ﻿
 
-var popUpDialog;
-var page_CurrIdx = 1;
-var page_Count = 1;
-var dataResult = [];
-var dataResult_Details = [];
-var inputSelectors = [];
-var transNumber = '';
-var selectedItem = [];
-var sumTotalValue = 0;
-var vendorName;
+let popUpDialog;
+let page_CurrIdx = 1;
+let page_Count = 1;
+let dataResult = [];
+let dataResult_Details = [];
+let inputSelectors = [];
+let transNumber = '';
+let selectedItem = [];
+let sumTotalValue = 0;
+let vendorName;
 
-var options = [];
-var tblHeaders = [];
-var tblName = "";
-var moduleName = "";
-var trgtID = "";
-var trgtCol = [];
-var page_count = 0;
-var detailTable = "";
-var ColumnToFilter = "";
-var FilterValue = "";
-var targetID_Detail = [];
-var targetCol_Detail = [];
+let options = [];
+let tblHeaders = [];
+let tblName = "";
+let moduleName = "";
+let trgtID = "";
+let trgtCol = [];
+let page_count = 0;
+let detailTable = "";
+let ColumnToFilter = "";
+let FilterValue = "";
+let targetID_Detail = [];
+let targetCol_Detail = [];
 let itemsRS_currSelected;
 let totalItemCnt;
 
@@ -61,17 +61,17 @@ const PopUp_OptionsMapping = {
 NWF.FormFiller.Events.RegisterAfterReady(function () {
 
     currRow.find(".popupfilled").addClass("disableForm");
-    //var currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").last();
-    var currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    //let currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").last();
+    let currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
     currRow.find(".description").removeClass("hidden");
     currRow.find(".description label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
 
 });
 
 NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
-    var currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
+    let currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
     currRow.find(".dDescription").removeClass("hidden");
-    var currRow1 = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").first().find('.description label').html();
+    let currRow1 = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").first().find('.description label').html();
     currRow.find(".description label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
     currRow.find(".dDescription label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
     currRow.find(".dDescription input").val(('UNLOADING FEE - ') + vendorName.toUpperCase());
@@ -329,7 +329,7 @@ function PopUp_SelectItem(id) {
     }
     else if (moduleName == "UnloadingFee") {
         $.each(trgtCol, function (index, values) {
-            var resultValue;
+            let resultValue;
             if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
                 resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
             }
@@ -338,20 +338,20 @@ function PopUp_SelectItem(id) {
                 resultValue = "";
             }
 
-            //var resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
+            //let resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
 
             if (typeof resultValue === 'string' && resultValue.startsWith('/Date(') && resultValue.endsWith(')/')) {
-                var timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
-                var formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                let timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
+                let formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 NWF$('#' + trgtID[index]).val(formattedDate);
             } else {
                 NWF$('#' + trgtID[index]).val(resultValue);
             }
         });
 
-        var bankKeyID = NWF$("#" + BankKeyID).val();
+        let bankKeyID = NWF$("#" + BankKeyID).val();
         vendorName = NWF$("#" + VendorName).val();
-        var param = {
+        let param = {
             input: {
                 searchTabl: "[dbo].[MasterBank]",
                 searchCol: "code",
@@ -380,7 +380,7 @@ function PopUp_SelectItem(id) {
                 //}
                 $('#PopUp_TableBody').html('');
 
-                var jsonData = JSON.parse(data.d);
+                let jsonData = JSON.parse(data.d);
                 console.log('JSON data : ', jsonData);
 
                 dataResult = jsonData.Logs[0];
@@ -391,7 +391,7 @@ function PopUp_SelectItem(id) {
                 //NWF$(".desc label").html(('Unloading Fee - ') + vendorName);
                 //NWF$("#" + Desc).val(('Unloading Fee - ') + vendorName);
 
-                var currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
+                let currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
                 currRow.find(".dDescription").removeClass("hidden");
                 currRow.find(".description label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
                 currRow.find(".dDescription label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
@@ -407,7 +407,7 @@ function PopUp_SelectItem(id) {
 
     else {
         $.each(trgtCol, function (index, values) {
-            var resultValue;
+            let resultValue;
             if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
                 resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
             }
@@ -416,11 +416,11 @@ function PopUp_SelectItem(id) {
                 resultValue = "";
             }
 
-            //var resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
+            //let resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
 
             if (typeof resultValue === 'string' && resultValue.startsWith('/Date(') && resultValue.endsWith(')/')) {
-                var timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
-                var formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                let timestamp = parseInt(resultValue.match(/\/Date\((\d+)\)\//)[1], 10);
+                let formattedDate = new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 NWF$('#' + trgtID[index]).val(formattedDate);
             } else {
                 NWF$('#' + trgtID[index]).val(resultValue);

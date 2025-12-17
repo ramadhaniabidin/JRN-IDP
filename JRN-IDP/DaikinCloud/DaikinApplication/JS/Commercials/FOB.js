@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 
 app.directive('button', function () {
     return {
@@ -34,7 +34,7 @@ app.directive('loading', ['$http', function ($http) {
 
 app.service("svc", function ($http) {
     this.svc_LoadDDL = function () {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/Commercials.asmx/LoadDDL",
             data: {},
@@ -53,9 +53,9 @@ app.controller('ctrl', function ($scope, svc) {
 
 
     $scope.LoadDDL = function () {
-        var proc = svc.svc_LoadDDL();
+        const proc = svc.svc_LoadDDL();
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             if (data.ProcessSuccess) {
                 $scope.ddlTradingPartner = data.listTradingPartner;
                 const index = $scope.ddlTradingPartner.findIndex(x => x.Code === '');

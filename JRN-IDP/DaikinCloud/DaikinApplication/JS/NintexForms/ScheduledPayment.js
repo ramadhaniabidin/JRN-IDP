@@ -5,11 +5,8 @@
 
 function GetCurrency() {
     try {
-        var objek = new Object();
-        objek.form_number = NWF$(".title input").val();
-        if (objek.form_number === null || objek.form_number === undefined) {
-            objek.form_number = NWF$("#" + title).val();
-        }
+        let objek = { form_number: NWF$(".title input").val() };
+        if (!objek.form_number) objek.form_number = NWF$("#" + title).val();
         NWF$.ajax({
             type: "POST",
             url: '/_layouts/15/WebServices/SchedulePaymentList.asmx/GetCurrencyBasedOnFormNumber',
@@ -18,9 +15,9 @@ function GetCurrency() {
             data: JSON.stringify(objek),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
-                var jsonData = JSON.parse(data.d);
+                const jsonData = JSON.parse(data.d);
                 if (jsonData.Success) {
-                    var currency = jsonData.Currency;
+                    const currency = jsonData.Currency;
                     NWF$(".my-label label").text(currency);
                 }
             },
@@ -35,10 +32,8 @@ function GetCurrency() {
 };
 
 function GetAttachment(ListName, ItemID) {
-    try{
-        var objek = new Object();
-        objek.listName = ListName;
-        objek.listItemID = ItemID;
+    try {
+        const objek = { listName: ListName, listItemID: ItemID };
         $.ajax({
             type: "POST",
             url: 'https://sp3.daikin.co.id:8443/_vti_bin/lists.asmx',
@@ -48,7 +43,7 @@ function GetAttachment(ListName, ItemID) {
             data: JSON.stringify(objek),
             contentType: "application/json; charset=utf-8",
             success: function (data) {
-                var jsonData = JSON.parse(data.d);
+                const jsonData = JSON.parse(data.d);
                 console.log(jsonData);
             },
             error: function (xhr, ajaxOptions, thrownError) {
@@ -62,9 +57,9 @@ function GetAttachment(ListName, ItemID) {
 };
 
 function invokeSharePointService() {
-    var xhr = new XMLHttpRequest();
-    var url = "https://sp3.daikin.co.id:8443/_vti_bin/lists.asmx";  // SharePoint SOAP URL
-    var soapRequest = 
+    let xhr = new XMLHttpRequest();
+    let url = "https://sp3.daikin.co.id:8443/_vti_bin/lists.asmx";  // SharePoint SOAP URL
+    let soapRequest =
         `<?xml version="1.0" encoding="utf-8"?>
         <soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
           <soap12:Body>

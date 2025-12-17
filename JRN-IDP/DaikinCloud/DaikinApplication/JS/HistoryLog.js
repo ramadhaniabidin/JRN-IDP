@@ -68,7 +68,7 @@ NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
 
 function GetWorkflowHistoryList() {
     try {
-        var objek = new Object();
+        let objek = new Object();
 
         objek.Form_No = NWF$('#' + textFormNo).val();
         objek.Transaction_ID = NWF$("#" + cvItemID).val();
@@ -96,14 +96,14 @@ function GetWorkflowHistoryList() {
     }
 
 
-}
+};
 
 
 function onSuccessGetWorkflowHistoryLog(response) {
-    var trHTML = '';
-    var parsedData = JSON.parse(response.d);
+    let trHTML = '';
+    const parsedData = JSON.parse(response.d);
     console.log("Parse Data = ", parsedData);
-    var TotalRows = $("#tblHistory").find("tr:not(:first)").length;
+    const TotalRows = $("#tblHistory").find("tr:not(:first)").length;
     if (TotalRows > 0) {
         $("#tblHistory").find("tr:not(:first)").remove();
     }

@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 app.directive('button', function () {
     return {
         restrict: 'E',
@@ -16,12 +16,12 @@ app.directive("datepicker", function () {
         restrict: "A",
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
-            var updateModel = function (dateText) {
+            const updateModel = function (dateText) {
                 scope.$apply(function () {
                     ngModelCtrl.$setViewValue(dateText);
                 });
             };
-            var options = {
+            const options = {
                 dateFormat: "d M yy",
                 onSelect: function (dateText) {
                     updateModel(dateText);
@@ -51,9 +51,9 @@ app.directive('loading', ['$http', function ($http) {
 
 }]);
 app.filter("FormatDate", function () {
-    var re = /\/Date\(([0-9]*)\)\//;
+    const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
-        var m = x.match(re);
+        const m = x.match(re);
         if (m) return new Date(parseInt(m[1]));
         else return null;
     };
@@ -61,7 +61,7 @@ app.filter("FormatDate", function () {
 
 app.service("svc", function ($http) {
     this.svc_GetOptions2 = function (Table, Code, Name, Extra) {
-        var param = {
+        const param = {
             Table: Table,
             Code: Code,
             Name: Name,
@@ -69,7 +69,7 @@ app.service("svc", function ($http) {
             FilterValue: '',
             Extra: Extra
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/GetOptions",
             data: JSON.stringify(param),
@@ -79,11 +79,11 @@ app.service("svc", function ($http) {
     }
 
     this.svc_UpdateDocReceived = function (List_Name, ItemIDs) {
-        var param = {
+        const param = {
             List_Name: List_Name,
             ItemIDs: ItemIDs,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/UpdateDocumentReceived",
             data: JSON.stringify(param),
@@ -108,10 +108,10 @@ app.service("svc", function ($http) {
     };
 
     this.svc_GetOptions = function () {
-        var param = {
+        const param = {
             ListName: 'Claim Reimbursement'
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/ModuleOptions",
             data: JSON.stringify(param),
@@ -121,7 +121,7 @@ app.service("svc", function ($http) {
     }
 
     this.svc_GetPendingApprovalRole = function () {
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/GetPendingApprovalRole",
             data: {},
@@ -131,13 +131,12 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ListData = function (model) {
-
-        var param = {
+        const param = {
             model: model
-        }        
+        };
 
          console.log('param svc_ListData',param);
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/ListData",
             data: JSON.stringify(param),
@@ -148,12 +147,12 @@ app.service("svc", function ($http) {
 
     this.svc_ListLog = function (Trans_ID, Module_Code) {
 
-        var param = {
+        const param = {
             Form_No: Trans_ID,
             Module_Code: Module_Code,
         };
 
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/GetHistoryLog",
             data: JSON.stringify(param),
@@ -163,8 +162,8 @@ app.service("svc", function ($http) {
     }
 
     this.svc_ListLogByTransID = function (Transaction_ID, Module_Code) {
-        var param = { Transaction_ID, Module_Code };
-        var response = $http({
+        const param = { Transaction_ID, Module_Code };
+        const response = $http({
             method: "post",
             url: "/_layouts/15/Daikin.Application/WebServices/ClaimReimbursement.asmx/GetHistoryLogByTransactionID",
             data: JSON.stringify(param),
@@ -194,7 +193,7 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.RequestorDepartment = "";
     $scope.ShowExcelButton = false;
 
-    var modal = document.getElementById("appModal");
+    const modal = document.getElementById("appModal");
     window.onclick = function (event) {
         if (event.target == modal) {
             $scope.showModal = 'none';
@@ -205,8 +204,8 @@ app.controller('ctrl', function ($scope, svc) {
         if (x == null)
             return x;
 
-        var re = /\/Date\(([0-9]*)\)\//;
-        var m = x.match(re);
+        const re = /\/Date\(([0-9]*)\)\//;
+        const m = x.match(re);
         if (m)
             return new Date(parseInt(m[1]));
         else
@@ -225,11 +224,11 @@ app.controller('ctrl', function ($scope, svc) {
 
     $scope.Received = function () {
         try {
-            var confirmDialog = confirm('Confirm received ?');
+            const confirmDialog = confirm('Confirm received ?');
             if (confirmDialog) {
-                var proc = svc.svc_UpdateDocReceived('Claim Reimbursement', $scope.selected);
+                const proc = svc.svc_UpdateDocReceived('Claim Reimbursement', $scope.selected);
                 proc.then(function (response) {
-                    var data = JSON.parse(response.data.d);
+                    const data = JSON.parse(response.data.d);
                     if (data.ProcessSuccess) {
                         alert('Physical Document has been confirmed successfully!');
                     } else {
@@ -248,9 +247,9 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.selected = [];
 
     function getParameterByName(name) {
-        var url = window.location.href;
+        const url = window.location.href;
         name = name.replace(/[\[\]]/g, '\\$&');
-        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
             results = regex.exec(url);
         if (!results) return null;
         if (!results[2]) return '';
@@ -262,10 +261,10 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.selectAll = function ($event) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
-        for (var i = 0; i < $scope.Items.length; i++) {
-            var entity = $scope.Items[i];
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
+        for (let i = 0; i < $scope.Items.length; i++) {
+            const entity = $scope.Items[i];
             if (entity.Current_Index_Approver == 2) {
                 console.log('entity:', entity);
                 updateSelected(action, entity.Item_ID);
@@ -280,7 +279,7 @@ app.controller('ctrl', function ($scope, svc) {
         return $scope.selected.length === $scope.Items.length;
     };
 
-    var updateSelected = function (action, id) {
+    const updateSelected = function (action, id) {
         if (action === 'add' && $scope.selected.indexOf(id) === -1) {
             $scope.selected.push(id);
             console.log(id, 'selected push id');
@@ -291,8 +290,8 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
     $scope.updateSelection = function ($event, id) {
-        var checkbox = $event.target;
-        var action = (checkbox.checked ? 'add' : 'remove');
+        const checkbox = $event.target;
+        const action = (checkbox.checked ? 'add' : 'remove');
         updateSelected(action, id);
     };
 
@@ -302,12 +301,12 @@ app.controller('ctrl', function ($scope, svc) {
     }
     $scope.ApproverLog = function (obj) {
         $scope.showModal = 'block';
-        var proc = "";
+        let proc = "";
         console.log(obj.ID, 'obj ID');
         proc = svc.svc_ListLogByTransID(obj.ID, $scope.Module.Code);
 
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
 
             if (data.ProcessSuccess) {
                 console.log(data);
@@ -333,16 +332,16 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.Module = {};
     $scope.ddlModule = [];
     $scope.GetModuleOptions = function (x) {
-        var proc = svc.svc_GetOptions();
+        const proc = svc.svc_GetOptions();
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.ddlModule = [...$scope.ddlModule, ...data.Items];
-                var module_code = GetQueryString()['module'];
+                const module_code = GetQueryString()['module'];
                 $scope.ddlBranch = data.listBranch;
                 console.log('GetModuleOptions - Branch: ', data.Branch);
-                var br = data.Branch;
+                let br = data.Branch;
 
                 if (data.Branch == undefined) {
                     br = '';
@@ -374,9 +373,9 @@ app.controller('ctrl', function ($scope, svc) {
             $scope.MasterRoleApproverCR = [];
         }
 
-        var proc = svc.svc_GetPendingApprovalRole();
+        const proc = svc.svc_GetPendingApprovalRole();
         proc.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.ddlPendingApprovalRole = data.MasterRoleApproverCR;
@@ -500,20 +499,20 @@ app.controller('ctrl', function ($scope, svc) {
     $scope.Keywords = '';
     $scope.GrandTotal = 0;
     $scope.ListData = function (PageIndex) {
-        var TableName = $scope.Module.Table_Name;
-        var isReviseRebate = $scope.Module.Name == 'Revise Rebate' ? true : false
-        var FilterBy = $scope.FilterBy.Code;
-        var listName = $scope.Module.List_Name
-        var StartDate = $scope.Date.Start;
-        var EndDate = $scope.Date.End;
-        var Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
-        var RequestorDepartment = $scope.RequestorDepartment == undefined ? '' : $scope.RequestorDepartment;
+        let TableName = $scope.Module.Table_Name;
+        let isReviseRebate = $scope.Module.Name == 'Revise Rebate' ? true : false
+        let FilterBy = $scope.FilterBy.Code;
+        let listName = $scope.Module.List_Name
+        let StartDate = $scope.Date.Start;
+        let EndDate = $scope.Date.End;
+        let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
+        let RequestorDepartment = $scope.RequestorDepartment == undefined ? '' : $scope.RequestorDepartment;
         if (Branch == 'All') {
             Branch = '';
         }
         console.log(isReviseRebate, $scope.Module)
 
-        var param = {
+        let param = {
             TableName: TableName,
             FilterBy: FilterBy,
             StartDate: StartDate,
@@ -531,9 +530,9 @@ app.controller('ctrl', function ($scope, svc) {
 
         if (TableName != undefined) {
 
-            var proc = svc.svc_ListData(param);
+            let proc = svc.svc_ListData(param);
             proc.then(function (response) {
-                var data = JSON.parse(response.data.d);
+                let data = JSON.parse(response.data.d);
                 console.log(data);
                 if (data.ProcessSuccess) {
                     $scope.GrandTotal = data.GrandTotal;

@@ -1,4 +1,4 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 app.directive('button', function () {
     return {
         restrict: 'E',

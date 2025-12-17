@@ -1,12 +1,12 @@
-﻿var app = angular.module('app', []);
+﻿const app = angular.module('app', []);
 
 app.service("svc", function ($http) {
     this.svc_AttachmentList = function (FormNo, ModuleId) {
-        var param = {
+        const param = {
             FormNo: FormNo,
             ModuleId: ModuleId,
         };
-        var response = $http({
+        const response = $http({
             method: "post",
             url: "/_layouts/15/WebServices/SharePointFunctionality.asmx/GetAttachmentList",
             data: JSON.stringify(param),
@@ -19,11 +19,11 @@ app.service("svc", function ($http) {
 app.controller('ctrl', function ($scope, svc) {
     $scope.Items = [];
     $scope.ListData = function () {
-        var FormNo = GetQueryString()['FormNo'];
-        var ModuleId = GetQueryString()['ModuleId'];
-        var req = svc.svc_AttachmentList(FormNo, ModuleId);
+        const FormNo = GetQueryString()['FormNo'];
+        const ModuleId = GetQueryString()['ModuleId'];
+        const req = svc.svc_AttachmentList(FormNo, ModuleId);
         req.then(function (response) {
-            var data = JSON.parse(response.data.d);
+            const data = JSON.parse(response.data.d);
             console.log(data);
             if (data.ProcessSuccess) {
                 $scope.Items = data.Items;
