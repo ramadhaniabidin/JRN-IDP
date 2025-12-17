@@ -1,4 +1,10 @@
-﻿let app = angular.module("app", []);
+﻿function updateNgModel(scope, ngModelCtrl, value) {
+    scope.$apply(()=>{
+        ngModelCtrl.$setViewValue(value);
+    });
+};
+
+let app = angular.module("app", []);
 
 app.directive("button", () => {
     return {
@@ -19,9 +25,10 @@ app.directive("datepicker", () => {
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
             let updateModel = function (dateText) {
-                scope.$apply(() => {
-                    ngModelCtrl.$setViewValue(dateText);
-                });
+                // scope.$apply(() => {
+                //     ngModelCtrl.$setViewValue(dateText);
+                // });
+                updateNgModel(scope, ngModelCtrl, dateText);
             };
             let options = {
                 showButtonPanel: true,
@@ -45,9 +52,10 @@ app.directive("monthyears", () => {
         require: "ngModel",
         link: function (scope, elem, attrs, ngModelCtrl) {
             let updateModel = function (dateText) {
-                scope.$apply(() => {
-                    ngModelCtrl.$setViewValue(dateText);
-                });
+                updateNgModel(scope, ngModelCtrl, dateText);
+                // scope.$apply(() => {
+                //     ngModelCtrl.$setViewValue(dateText);
+                // });
             };
             let options = {
                 changeMonth: true,
