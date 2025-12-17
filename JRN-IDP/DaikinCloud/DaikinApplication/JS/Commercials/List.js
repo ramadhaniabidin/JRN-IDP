@@ -392,10 +392,15 @@ app.controller('ctrl', function ($scope, svc) {
 
     let arrBranch;
 
+    function bindBranchField(arr){
+        return arr[$scope.FindIndexAll(arr)];
+    };
+
     $scope.Module = {};
     $scope.ddlModule = [];
     $scope.GetModuleOptions = function (module_code) {
         try {
+            const isSubcon = (module_code === "M019" || module_code === "M026");
             const proc = svc.svc_GetOptions();
             proc.then(function (response) {
                 const data = JSON.parse(response.data.d);
@@ -411,24 +416,28 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.dllPlants = data.listPlant;
                     $scope.plant = data.listPlant[0];
                     arrBranch = data.listBranch;
-                    if ((module_code == 'M019') || (module_code == 'M026'))
-                        $scope.ddlBranch = data.listBranchSubcon;
-                    else
-                        $scope.ddlBranch = data.listBranch;
-                    if (data.Branch == '') {
-                        $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
-                    } else {
-                        if ((module_code == 'M019') || (module_code == 'M026')) {
-                            $scope.Branch = data.listBranchSubcon[$scope.FindIndexAll(data.listBranchSubcon)];
-                        } else {
-                            $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
-                        }
-                    }
-                    if ((module_code == 'M019') || (module_code == 'M026')) {
-                        $scope.Module = $scope.ddlModule[0];
-                    } else {
-                        $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
-                    }
+                    $scope.ddlBranch = isSubcon ? data.listBranchSubcon : data.listBranch;
+                    $scope.Module = isSubcon ? $scope.ddlModule[0] : $scope.ddlModule.find(md => md.Code === module_code);
+                    $scope.Branch = isSubcon ? bindBranchField(data.listBranchSubcon) : bindBranchField(data.listBranch);
+
+                    // if ((module_code == 'M019') || (module_code == 'M026'))
+                    //     $scope.ddlBranch = data.listBranchSubcon;
+                    // else
+                    //     $scope.ddlBranch = data.listBranch;
+                    // if (data.Branch == '') {
+                    //     $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
+                    // } else {
+                    //     if ((module_code == 'M019') || (module_code == 'M026')) {
+                    //         $scope.Branch = data.listBranchSubcon[$scope.FindIndexAll(data.listBranchSubcon)];
+                    //     } else {
+                    //         $scope.Branch = data.listBranch[$scope.FindIndexAll(data.listBranch)];
+                    //     }
+                    // }
+                    // if ((module_code == 'M019') || (module_code == 'M026')) {
+                    //     $scope.Module = $scope.ddlModule[0];
+                    // } else {
+                    //     $scope.Module = $scope.ddlModule.find(o => o.Code == module_code);
+                    // }
                 }
                 else {
                     console.log(`GetModuleOptions : ${data}`);
