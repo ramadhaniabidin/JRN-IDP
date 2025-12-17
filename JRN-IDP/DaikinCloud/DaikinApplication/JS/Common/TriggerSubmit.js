@@ -145,7 +145,7 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
         });
         NWF$('#' + BPNPaidBy).change(function () {
             const BPNPaid = NWF$('#' + BPNPaidBy).val()
-            const PIB = NWF$('#' + PIB).val()
+            // const PIB = NWF$('#' + PIB).val();
             if (BPNPaid.includes("Vendor")) {
                 deleteAmountAffiliate(1)
                 deleteAmountAffiliate(2)

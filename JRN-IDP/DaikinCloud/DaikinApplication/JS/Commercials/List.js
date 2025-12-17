@@ -390,7 +390,7 @@ app.controller('ctrl', function ($scope, svc) {
         return arr.findIndex(item => item.Name === 'All');
     };
 
-    let arrBranch;
+    // let arrBranch;
 
     function bindBranchField(arr){
         return arr[$scope.FindIndexAll(arr)];
@@ -415,7 +415,7 @@ app.controller('ctrl', function ($scope, svc) {
                     $scope.PendingApproverRole = $scope.ddlPendingApprover[0];
                     $scope.dllPlants = data.listPlant;
                     $scope.plant = data.listPlant[0];
-                    arrBranch = data.listBranch;
+                    // arrBranch = data.listBranch;
                     $scope.ddlBranch = isSubcon ? data.listBranchSubcon : data.listBranch;
                     $scope.Module = isSubcon ? $scope.ddlModule[0] : $scope.ddlModule.find(md => md.Code === module_code);
                     $scope.Branch = isSubcon ? bindBranchField(data.listBranchSubcon) : bindBranchField(data.listBranch);

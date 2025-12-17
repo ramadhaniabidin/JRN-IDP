@@ -132,7 +132,7 @@ NWF$('#' + OtherInvoice).blur(function (e) {
 
 function selectItems(el) {
     try {
-        let Inv_No = el.parentNode.parentNode.cells[1].innerHTML;
+        // let Inv_No = el.parentNode.parentNode.cells[1].innerHTML;
         let BL_No = el.parentNode.parentNode.cells[2].innerHTML;
         NWF$('#' + txt2).val(BL_No);
 
@@ -157,7 +157,7 @@ function selectItems(el) {
                 });
                 console.log(InvoiceCommercial);
 
-                let listInvNoSpace = InvoiceCommercial.join(' ');
+                // let listInvNoSpace = InvoiceCommercial.join(' ');
                 let listInvNoComma = InvoiceCommercial.join(',');
 
                 if (NWF$('#' + OtherInvoice).val().trim() == "") {

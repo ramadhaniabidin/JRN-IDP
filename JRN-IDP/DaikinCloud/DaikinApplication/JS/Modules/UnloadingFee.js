@@ -71,7 +71,7 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
 NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
     let currRow = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')");
     currRow.find(".dDescription").removeClass("hidden");
-    let currRow1 = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").first().find('.description label').html();
+    // let currRow1 = NWF$(".repeatingSection .nf-repeater-row:not('.nf-repeater-row-hidden')").first().find('.description label').html();
     currRow.find(".description label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
     currRow.find(".dDescription label").html(('UNLOADING FEE - ') + vendorName.toUpperCase());
     currRow.find(".dDescription input").val(('UNLOADING FEE - ') + vendorName.toUpperCase());
@@ -374,7 +374,7 @@ function PopUp_SelectItem(id) {
             dataType: "json",
             async: true,
             success: function (data) {
-                const tBodyHTML = document.getElementById("PopUp_TableBody");
+                // const tBodyHTML = document.getElementById("PopUp_TableBody");
                 //while (tBodyHTML.firstChild) {
                 //    tBodyHTML.removeChild(tBodyHTML.lastChild);
                 //}

@@ -534,16 +534,17 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 alert('Please specify your comments for rejecting this FOB');
                 return;
             }
-            let msg = '';
+            // unused
+            // let msg = '';
             let outcomeName = '';
             if (st == 1) {
-                msg = 'Approve ?';
+                // msg = 'Approve ?';
                 outcomeName = 'Approve';
             } else if (st == 2) {
-                msg = 'Reject ?';
+                // msg = 'Reject ?';
                 outcomeName = 'Reject';
             } else {
-                msg = 'Revise ?';
+                // msg = 'Revise ?';
                 outcomeName = 'Revise';
             }
 

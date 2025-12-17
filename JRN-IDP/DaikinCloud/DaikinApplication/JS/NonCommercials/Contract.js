@@ -323,7 +323,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         month: "short",
     };
 
-    let DateNow = now.toLocaleDateString(undefined, options);
+    // let DateNow = now.toLocaleDateString(undefined, options);
 
     $scope.ContractHeader = {
         ID: 0,
@@ -719,7 +719,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.GetMaterialAnaplansByID = (ID) => {
         const promise = svc.svc_GetMaterialAnaplansByID(ID);
         promise.then(function (response) {
-            const data = JSON.parse(response.data.d);
+            // const data = JSON.parse(response.data.d);
             $scope.contractGetContracMaterialName_New();
         }).catch(function (err) {
             console.log(err)
@@ -1255,7 +1255,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.ContractApprovalSubmit = function () {
         try {
             const st = $scope.Outcome;
-            const id = $scope.ContractHeader.Form_No;
+            // const id = $scope.ContractHeader.Form_No;
             const approvalValue = st == 1 ? "Approve" : "Reject";
 
             if (st == 0) {

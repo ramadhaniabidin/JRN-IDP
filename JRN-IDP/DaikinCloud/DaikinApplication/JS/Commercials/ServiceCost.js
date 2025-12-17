@@ -464,6 +464,20 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         }
     };
 
+    function getPayloadApproval(outcomeCode) {
+        let outcomeName = '';
+        if (outcomeCode === 1) outcomeName = "Approve";
+        else if (outcomeCode === 2) outcomeName = "Reject";
+        else outcomeName = "Revise";
+        $scope.ntx.FormNo = $scope.Header.Form_No;
+        $scope.ntx.Outcome = outcomeCode;
+        $scope.ntx.Module = 'SC';
+        $scope.ntx.Position_ID = $scope.Header.Pending_Approver_Role_ID;
+        $scope.ntx.Transaction_ID = $scope.Header.ID;
+        $scope.ntx.Item_ID = $scope.Header.Item_ID;
+        $scope.ntx.OutcomeName = outcomeName;
+    };
+
     $scope.Approval = function () {
         try {
             console.log($scope.Outcome, 'Outcome');
@@ -476,57 +490,58 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 alert('Please specify your comments for rejecting this Service Cost');
                 return;
             }
-            let msg = '';
-            let outcomeName = '';
-            if (st == 1) {
-                msg = 'Approve ?';
-                outcomeName = 'Approve';
-            } else if (st == 2) {
-                msg = 'Reject ?';
-                outcomeName = 'Reject';
-            } else {
-                msg = 'Revise ?';
-                outcomeName = 'Revise';
-            }
-            $scope.ntx.FormNo = $scope.Header.Form_No;
-            $scope.ntx.Outcome = st;
-            $scope.ntx.Module = 'SC';
-            $scope.ntx.Position_ID = $scope.Header.Pending_Approver_Role_ID;
-            $scope.ntx.Transaction_ID = $scope.Header.ID;
-            $scope.ntx.Item_ID = $scope.Header.Item_ID;
-            $scope.ntx.OutcomeName = outcomeName;
+            getPayloadApproval(st);
+            // let msg = '';
+            // let outcomeName = '';
+            // if (st == 1) {
+            //     msg = 'Approve ?';
+            //     outcomeName = 'Approve';
+            // } else if (st == 2) {
+            //     msg = 'Reject ?';
+            //     outcomeName = 'Reject';
+            // } else {
+            //     msg = 'Revise ?';
+            //     outcomeName = 'Revise';
+            // }
+            // $scope.ntx.FormNo = $scope.Header.Form_No;
+            // $scope.ntx.Outcome = st;
+            // $scope.ntx.Module = 'SC';
+            // $scope.ntx.Position_ID = $scope.Header.Pending_Approver_Role_ID;
+            // $scope.ntx.Transaction_ID = $scope.Header.ID;
+            // $scope.ntx.Item_ID = $scope.Header.Item_ID;
+            // $scope.ntx.OutcomeName = outcomeName;
 
-            let detail = [];
-            for (let j = 0; j < $scope.Items.length; j++) {
-                const it = $scope.Items[j];
-                detail.push({
-                    No: it.No,
-                    ID: it.ID,
-                    Document_Date: it.Document_Date,
-                    Ref_No: it.Ref_No,
-                    Ref_Type: it.Ref_Type,
-                    BL_No: it.BL_No,
-                    FOB_No: it.FOB_No,
-                    Freight_Cost: it.Freight_Cost.replace(/,/g, ''),
-                    Vendor_No: it.Vendor_No,
-                    Vendor_Name: it.Vendor_Name,
-                    Vendor_Invoice_No: it.Vendor_Invoice_No,
-                    Condition_ID: it.Condition_ID,
-                    Condition_Code: it.Condition_Code,
-                    Condition_Name: it.Condition_Name,
-                    VAT_No: it.VAT_No,
-                    VAT_Percent: it.VAT_Percent,
-                    VAT_Amount: it.VAT_Amount.toString().replace(/,/g, ''),
-                    WHT_Type_Code: it.WHT_Type_Code,
-                    WHT_Type_Name: it.WHT_Type_Name,
-                    WHT_Amount: it.WHT_Amount.toString().replace(/,/g, ''),
-                    Tax_Base_Amount: it.Tax_Base_Amount.replace(/,/g, ''),
-                    Total_Amount: it.Total_Amount,
-                    Text: it.Text,
-                    File_Name: it.File_Name,
-                    Attachment_URL: it.Attachment_URL,
-                });
-            };
+            const detail = getPayloadDetails($scope.Items);
+            // for (let j = 0; j < $scope.Items.length; j++) {
+            //     const it = $scope.Items[j];
+            //     detail.push({
+            //         No: it.No,
+            //         ID: it.ID,
+            //         Document_Date: it.Document_Date,
+            //         Ref_No: it.Ref_No,
+            //         Ref_Type: it.Ref_Type,
+            //         BL_No: it.BL_No,
+            //         FOB_No: it.FOB_No,
+            //         Freight_Cost: it.Freight_Cost.replace(/,/g, ''),
+            //         Vendor_No: it.Vendor_No,
+            //         Vendor_Name: it.Vendor_Name,
+            //         Vendor_Invoice_No: it.Vendor_Invoice_No,
+            //         Condition_ID: it.Condition_ID,
+            //         Condition_Code: it.Condition_Code,
+            //         Condition_Name: it.Condition_Name,
+            //         VAT_No: it.VAT_No,
+            //         VAT_Percent: it.VAT_Percent,
+            //         VAT_Amount: it.VAT_Amount.toString().replace(/,/g, ''),
+            //         WHT_Type_Code: it.WHT_Type_Code,
+            //         WHT_Type_Name: it.WHT_Type_Name,
+            //         WHT_Amount: it.WHT_Amount.toString().replace(/,/g, ''),
+            //         Tax_Base_Amount: it.Tax_Base_Amount.replace(/,/g, ''),
+            //         Total_Amount: it.Total_Amount,
+            //         Text: it.Text,
+            //         File_Name: it.File_Name,
+            //         Attachment_URL: it.Attachment_URL,
+            //     });
+            // };
             const proc = svc.svc_Approval($scope.ntx, $scope.Remarks, detail, $scope.IsDocumentReceived);
             proc.then(function (response) {
                 const data = JSON.parse(response.data.d);
@@ -1108,3 +1123,38 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.GetData();
 
 });
+
+function getPayloadDetails(itemDetails) {
+    const detail = [];
+    for (let j = 0; j < itemDetails; j++) {
+        const it = $scope.Items[j];
+        detail.push({
+            No: it.No,
+            ID: it.ID,
+            Document_Date: it.Document_Date,
+            Ref_No: it.Ref_No,
+            Ref_Type: it.Ref_Type,
+            BL_No: it.BL_No,
+            FOB_No: it.FOB_No,
+            Freight_Cost: it.Freight_Cost.replace(/,/g, ''),
+            Vendor_No: it.Vendor_No,
+            Vendor_Name: it.Vendor_Name,
+            Vendor_Invoice_No: it.Vendor_Invoice_No,
+            Condition_ID: it.Condition_ID,
+            Condition_Code: it.Condition_Code,
+            Condition_Name: it.Condition_Name,
+            VAT_No: it.VAT_No,
+            VAT_Percent: it.VAT_Percent,
+            VAT_Amount: it.VAT_Amount.toString().replace(/,/g, ''),
+            WHT_Type_Code: it.WHT_Type_Code,
+            WHT_Type_Name: it.WHT_Type_Name,
+            WHT_Amount: it.WHT_Amount.toString().replace(/,/g, ''),
+            Tax_Base_Amount: it.Tax_Base_Amount.replace(/,/g, ''),
+            Total_Amount: it.Total_Amount,
+            Text: it.Text,
+            File_Name: it.File_Name,
+            Attachment_URL: it.Attachment_URL,
+        });
+    };
+    return detail;
+};

@@ -31,7 +31,7 @@ function IsFileSizeExceeded(maxSizeInMB) {
     for (let i = 0; i < NWF$('input[type=file]').length; i++) {
         if (NWF$('input[type=file]')[i].files.length > 0 && NWF$('input[type=file]')[i].files[0] !== null && NWF$('input[type=file]')[i].files[0] !== undefined) {
             if (NWF$('input[type=file]')[i].files[0].size > (maxSizeInMB * 1048600)) {
-                let sizeInMB = Math.round(NWF$('input[type=file]')[i].files[0].size / 10486) / 100; // # MB with two decimal places
+                // let sizeInMB = Math.round(NWF$('input[type=file]')[i].files[0].size / 10486) / 100; // # MB with two decimal places
                 isValid = true;
                 //alert("The maximum file size is " + maxSizeInMB + "MB, but the file " + NWF$('input[type=file')[i].files[0].name + " is " + sizeInMB + "MB. Please reduce the file size before uploading.");
                 break;
@@ -85,8 +85,9 @@ function DateFormat_ddMMyyyy(date) {
     let day = date.getDate();
     let monthIndex = date.getMonth();
     let year = date.getFullYear();
-    let jam = date.getHours();
-    let menit = date.getMinutes();
+    // unused variables
+    // let jam = date.getHours();
+    // let menit = date.getMinutes();
 
     let formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
 
@@ -104,8 +105,9 @@ function DateFormat_ddMMyyyy2(date) {
     let day = date.getDate();
     let monthIndex = date.getMonth();
     let year = date.getFullYear();
-    let jam = date.getHours();
-    let menit = date.getMinutes();
+    // unused variables
+    // let jam = date.getHours();
+    // let menit = date.getMinutes();
 
     if (day < 10) {
         day += "0" + day;
@@ -128,8 +130,9 @@ function DateFormat_ddMMMyyyy(date) {
     let day = date.getDate();
     let monthIndex = date.getMonth();
     let year = date.getFullYear();
-    let jam = date.getHours();
-    let menit = date.getMinutes();
+    // unused variables
+    // let jam = date.getHours();
+    // let menit = date.getMinutes();
 
     let formatDate = day + '-' + monthNames[monthIndex] + '-' + year.toString();
 

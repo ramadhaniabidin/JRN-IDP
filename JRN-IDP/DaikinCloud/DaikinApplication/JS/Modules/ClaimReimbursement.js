@@ -508,7 +508,7 @@ app.controller('ctrl', function ($scope, svc) {
         let StartDate = $scope.Date.Start;
         let EndDate = $scope.Date.End;
         let Branch = $scope.Branch == undefined ? '' : $scope.Branch.Name;
-        let RequestorDepartment = $scope.RequestorDepartment == undefined ? '' : $scope.RequestorDepartment;
+        // let RequestorDepartment = $scope.RequestorDepartment == undefined ? '' : $scope.RequestorDepartment;
         if (Branch == 'All') {
             Branch = '';
         }

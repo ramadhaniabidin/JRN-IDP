@@ -312,7 +312,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.GrandTotal = 0;
         $scope.Total = 0;
         try {
-            const MasterApprover = 'Master Approver Non Commercials';
+            // const MasterApprover = 'Master Approver Non Commercials';
             if ($scope.Param.Module.Code == undefined) {
                 $scope.Param.Module.Code = "M016";
             }
