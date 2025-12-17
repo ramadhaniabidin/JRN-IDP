@@ -1,5 +1,5 @@
 ﻿function updateNgModel(scope, ngModelCtrl, value) {
-    scope.$apply(()=>{
+    scope.$apply(() => {
         ngModelCtrl.$setViewValue(value);
     });
 };
@@ -398,9 +398,7 @@ app.controller("ctrl", function ($scope, svc) {
     $scope.popUpTotalPageCount = 0;
     $scope.PopUpData = [];
 
-    function handleServiceError(err) {
-        console.log(err.statusText + " - " + err.data.Message);
-    };
+
 
     function recalculateContract() {
         $scope.POWithContractPOContractMaterialContractAmountChangeCalculate();
@@ -615,26 +613,11 @@ app.controller("ctrl", function ($scope, svc) {
         bindProcurementDepartment(data.UserDepartment, data.Header.Procurement_Department);
     };
 
-    function disableLookupIcons() {
-        const icons = document.getElementsByClassName("fa");
-        for (let i = 0; i < icons.length; i++) {
-            icons[i].style.pointerEvents = "none";
-        }
-    };
-
     function applyHeaderState(header) {
         $scope.Header = header;
         if ($scope.Header.ID > 0) {
             disableLookupIcons();
         }
-    };
-
-    function isDateField(prop) {
-        return prop.includes("Create_PO_From_Period") ||
-            prop.includes("Create_PO_To_Period") ||
-            prop.includes("Period_Start") ||
-            prop.includes("Period_End") ||
-            prop.endsWith("Date");
     };
 
     function normalizeDatesRecursively(value) {
@@ -1924,5 +1907,24 @@ function isPresent(value) {
 
 function isEmpty(arr) {
     return !arr || arr.length === 0;
+};
+
+function handleServiceError(err) {
+    console.log(err.statusText + " - " + err.data.Message);
+};
+
+function disableLookupIcons() {
+    const icons = document.getElementsByClassName("fa");
+    for (let i = 0; i < icons.length; i++) {
+        icons[i].style.pointerEvents = "none";
+    }
+};
+
+function isDateField(prop) {
+    return prop.includes("Create_PO_From_Period") ||
+        prop.includes("Create_PO_To_Period") ||
+        prop.includes("Period_Start") ||
+        prop.includes("Period_End") ||
+        prop.endsWith("Date");
 };
 
