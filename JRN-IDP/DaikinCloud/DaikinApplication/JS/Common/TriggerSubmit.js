@@ -414,24 +414,6 @@ function SaveApprovalNonCom(approvalValue, ListName, ListItemID, HeaderID) {
 
 };
 
-function PopUp_GenerateParam(tableName, searchBy, keywords, pageIndex) {
-    const param = {
-        input: {
-            searchTabl: tableName,
-            searchCol: searchBy,
-            searchVal: keywords,
-            searchLike: 1,
-            pageIndx: pageIndex,
-            pageSize: 10,
-        },
-        output: {
-            RecordCount: 0,
-        }
-    };
-
-    return param;
-};
-
 function PopUp_ValidateKeywords(keywords, moduleName) {
     if ((keywords === null) || (keywords === undefined)) {
         keywords = "";

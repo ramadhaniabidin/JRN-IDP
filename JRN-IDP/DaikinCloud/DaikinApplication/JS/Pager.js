@@ -43,7 +43,7 @@
 (function (a) {
     a.fn.ASPSnippets_Pager = function (b) {
         let c = {};
-        let b = a.extend(c, b);
+        b = a.extend(c, b);
         return this.each(function () {
             ASPSnippetsPager(a(this), b)
         })
