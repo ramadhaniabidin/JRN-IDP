@@ -71,17 +71,7 @@ function RepeatingSectionPopUp() {
 };
 
 function PopUp_GenerateTableHeaders(module) {
-    if (module === "ANC Vendor Bank") {
-        tblHeaders = [
-            { db_col: "Vendor_Name", name: "Vendor Name" },
-            { db_col: "Vendor_Number", name: "Vendor Number" },
-            { db_col: "Bank_Key", name: "Bank Key" },
-            { db_col: "Bank_Account_No", name: "Account No" },
-            { db_col: "Bank_Account_Name", name: "Account Name" },
-            { db_col: "Bank_Name", name: "Bank Name" },
-            { db_col: "Partner_Bank", name: "Partner Bank" },
-        ];
-    } else if (module === "ANC Vendor Bank RS") {
+    if (module === "ANC Vendor Bank" || module === "ANC Vendor Bank RS") {
         tblHeaders = [
             { db_col: "Vendor_Name", name: "Vendor Name" },
             { db_col: "Vendor_Number", name: "Vendor Number" },
@@ -95,17 +85,7 @@ function PopUp_GenerateTableHeaders(module) {
 };
 
 function PopUp_GenerateOptions(module) {
-    if (module === "ANC Vendor Bank") {
-        options = [
-            { value: "Vendor_Name", name: "Vendor Name" },
-            { value: "Vendor_Number", name: "Vendor Number" },
-            { value: "Bank_Key", name: "Bank Key" },
-            { value: "Bank_Account_No", name: "Account No" },
-            { value: "Bank_Account_Name", name: "Account Name" },
-            { value: "Bank_Name", name: "Bank Name" },
-            { value: "Partner_Bank", name: "Partner Bank" },
-        ];
-    } else if (module === "ANC Vendor Bank RS") {
+    if (module === "ANC Vendor Bank" || module === "ANC Vendor Bank RS") {
         options = [
             { value: "Vendor_Name", name: "Vendor Name" },
             { value: "Vendor_Number", name: "Vendor Number" },
