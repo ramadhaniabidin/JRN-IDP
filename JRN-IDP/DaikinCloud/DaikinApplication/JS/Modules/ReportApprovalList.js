@@ -174,6 +174,79 @@ app.controller('ctrl', function ($scope, svc) {
     };
 
 
+    const tableHeadMapping = {
+        "M014": [
+            { Name: 'Direct Head/Head Of Department' },
+            { Name: 'PIC Contract/ Head of Departement MKT' },
+            { Name: 'PIC Contract MKT' },
+        ],
+        "M016": [
+            { Name: 'Direct Head' },
+            { Name: 'Head of Departement' },
+            { Name: 'GM Planning' },
+        ],
+        "M017": [
+            { Name: 'Head Of Branch' },
+            { Name: 'Direct Head' },
+            { Name: 'Head of Departement' },
+            { Name: 'AGM / GM' },
+            { Name: 'CFO' },
+            { Name: 'CEO' }
+        ],
+        "M018": [
+            { Name: 'Accounting Manager' },
+            { Name: 'Receiver Document' },
+            { Name: 'Verifier Document' },
+            { Name: 'Finance Verifier 2' },
+            { Name: 'Tax Verification' },
+            { Name: 'Pending SAP Post' }
+        ],
+        "M019": [
+            { Name: 'Head Of Service' },
+            { Name: 'Field Service Manager' },
+            { Name: 'Finance Verifier - Subcon 1' },
+            { Name: 'Tax Verifier - Subcon' },
+            { Name: 'Manager Service Operation' },
+            { Name: 'Assistant GM Service / Svc. Planning Manager' },
+            { Name: 'Finance Verifier - Subcon 2' },
+            { Name: 'Finance Receiver - Subcon' },
+            { Name: 'Waiting For MIRO' }
+        ],
+        "M010": [
+            { Name: 'Direct Head' },
+            { Name: 'AGM / GM Planning / Head Of Branch' },
+            { Name: 'Receiver Document' },
+            { Name: 'Verifier Document' },
+            { Name: 'Verifier Document 2' },
+            { Name: 'Tax Verification' },
+            { Name: 'Pending SAP Post' }
+        ],
+        "M011": [
+            { Name: 'Head of Budget Owner' },
+            { Name: 'AGM / GM Planning / Head Of Branch' },
+            { Name: 'Receiver Document' },
+            { Name: 'Finance Verification' },
+            { Name: 'Finance Verification 2' },
+            { Name: 'Tax Verification' },
+            { Name: 'Pending SAP Post' }
+        ],
+        "M020": [
+            { Name: 'Direct Head' },
+            { Name: 'Head Of Marketing' }
+        ],
+        "M025": [
+            { Name: 'Head of Budget Owner' },
+            { Name: 'Head of Department' },
+            { Name: 'GM Planning' },
+            { Name: 'Receiver Document' },
+            { Name: 'Finance Verification' },
+            { Name: 'Finance Senior Manager' },
+            { Name: 'Payment Confirmation' },
+            { Name: 'Waiting For MIRO' }
+        ]
+    };
+
+
     $scope.OnChangeModule = function () {
         $scope.Items = [];
         if ($scope.ModuleCategory.Name == 'Claim Reimbursement') {
@@ -185,85 +258,87 @@ app.controller('ctrl', function ($scope, svc) {
                 { Name: 'Pending SAP Post' },
             ]
         } else {
-            if ($scope.Module.Code == 'M014') {
-                $scope.tableHead = [
-                    { Name: 'Direct Head/Head Of Department' },
-                    { Name: 'PIC Contract/ Head of Departement MKT' },
-                    { Name: 'PIC Contract MKT' },
-                ]
-            } else if ($scope.Module.Code == 'M016') {
-                $scope.tableHead = [
-                    { Name: 'Direct Head' },
-                    { Name: 'Head of Departement' },
-                    { Name: 'GM Planning' },
-                ]
-            } else if ($scope.Module.Code == 'M017') {
-                $scope.tableHead = [
-                    { Name: 'Head Of Branch' },
-                    { Name: 'Direct Head' },
-                    { Name: 'Head of Departement' },
-                    { Name: 'AGM / GM' },
-                    { Name: 'CFO' },
-                    { Name: 'CEO' }
-                ]
-            } else if ($scope.Module.Code == 'M018') {
-                $scope.tableHead = [
-                    { Name: 'Accounting Manager' },
-                    { Name: 'Receiver Document' },
-                    { Name: 'Verifier Document' },
-                    { Name: 'Finance Verifier 2' },
-                    { Name: 'Tax Verification' },
-                    { Name: 'Pending SAP Post' }
-                ]
-            } else if ($scope.Module.Code == 'M019' || $scope.Module.Code == 'M026') {
-                $scope.tableHead = [
-                    { Name: 'Head Of Service' },
-                    { Name: 'Field Service Manager' },
-                    { Name: 'Finance Verifier - Subcon 1' },
-                    { Name: 'Tax Verifier - Subcon' },
-                    { Name: 'Manager Service Operation' },
-                    { Name: 'Assistant GM Service / Svc. Planning Manager' },
-                    { Name: 'Finance Verifier - Subcon 2' },
-                    { Name: 'Finance Receiver - Subcon' },
-                    { Name: 'Waiting For MIRO' }
-                ]
-            } else if ($scope.Module.Code == 'M010') {
-                $scope.tableHead = [
-                    { Name: 'Direct Head' },
-                    { Name: 'AGM / GM Planning / Head Of Branch' },
-                    { Name: 'Receiver Document' },
-                    { Name: 'Verifier Document' },
-                    { Name: 'Verifier Document 2' },
-                    { Name: 'Tax Verification' },
-                    { Name: 'Pending SAP Post' }
-                ]
-            } else if ($scope.Module.Code == 'M011') {
-                $scope.tableHead = [
-                    { Name: 'Head of Budget Owner' },
-                    { Name: 'AGM / GM Planning / Head Of Branch' },
-                    { Name: 'Receiver Document' },
-                    { Name: 'Finance Verification' },
-                    { Name: 'Finance Verification 2' },
-                    { Name: 'Tax Verification' },
-                    { Name: 'Pending SAP Post' }
-                ]
-            } else if ($scope.Module.Code == 'M020') {
-                $scope.tableHead = [
-                    { Name: 'Direct Head' },
-                    { Name: 'Head Of Marketing' }
-                ]
-            } else if ($scope.Module.Code == 'M025') {
-                $scope.tableHead = [
-                    { Name: 'Head of Budget Owner' },
-                    { Name: 'Head of Department' },
-                    { Name: 'GM Planning' },
-                    { Name: 'Receiver Document' },
-                    { Name: 'Finance Verification' },
-                    { Name: 'Finance Senior Manager' },
-                    { Name: 'Payment Confirmation' },
-                    { Name: 'Waiting For MIRO' }
-                ]
-            }
+            const key = $scope.Module.Code === "M026" ? "M019" : $scope.Module.Code;
+            $scope.tableHead = tableHeadMapping[key];
+            // if ($scope.Module.Code == 'M014') {
+            //     $scope.tableHead = [
+            //         { Name: 'Direct Head/Head Of Department' },
+            //         { Name: 'PIC Contract/ Head of Departement MKT' },
+            //         { Name: 'PIC Contract MKT' },
+            //     ]
+            // } else if ($scope.Module.Code == 'M016') {
+            //     $scope.tableHead = [
+            //         { Name: 'Direct Head' },
+            //         { Name: 'Head of Departement' },
+            //         { Name: 'GM Planning' },
+            //     ]
+            // } else if ($scope.Module.Code == 'M017') {
+            //     $scope.tableHead = [
+            //         { Name: 'Head Of Branch' },
+            //         { Name: 'Direct Head' },
+            //         { Name: 'Head of Departement' },
+            //         { Name: 'AGM / GM' },
+            //         { Name: 'CFO' },
+            //         { Name: 'CEO' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M018') {
+            //     $scope.tableHead = [
+            //         { Name: 'Accounting Manager' },
+            //         { Name: 'Receiver Document' },
+            //         { Name: 'Verifier Document' },
+            //         { Name: 'Finance Verifier 2' },
+            //         { Name: 'Tax Verification' },
+            //         { Name: 'Pending SAP Post' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M019' || $scope.Module.Code == 'M026') {
+            //     $scope.tableHead = [
+            //         { Name: 'Head Of Service' },
+            //         { Name: 'Field Service Manager' },
+            //         { Name: 'Finance Verifier - Subcon 1' },
+            //         { Name: 'Tax Verifier - Subcon' },
+            //         { Name: 'Manager Service Operation' },
+            //         { Name: 'Assistant GM Service / Svc. Planning Manager' },
+            //         { Name: 'Finance Verifier - Subcon 2' },
+            //         { Name: 'Finance Receiver - Subcon' },
+            //         { Name: 'Waiting For MIRO' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M010') {
+            //     $scope.tableHead = [
+            //         { Name: 'Direct Head' },
+            //         { Name: 'AGM / GM Planning / Head Of Branch' },
+            //         { Name: 'Receiver Document' },
+            //         { Name: 'Verifier Document' },
+            //         { Name: 'Verifier Document 2' },
+            //         { Name: 'Tax Verification' },
+            //         { Name: 'Pending SAP Post' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M011') {
+            //     $scope.tableHead = [
+            //         { Name: 'Head of Budget Owner' },
+            //         { Name: 'AGM / GM Planning / Head Of Branch' },
+            //         { Name: 'Receiver Document' },
+            //         { Name: 'Finance Verification' },
+            //         { Name: 'Finance Verification 2' },
+            //         { Name: 'Tax Verification' },
+            //         { Name: 'Pending SAP Post' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M020') {
+            //     $scope.tableHead = [
+            //         { Name: 'Direct Head' },
+            //         { Name: 'Head Of Marketing' }
+            //     ]
+            // } else if ($scope.Module.Code == 'M025') {
+            //     $scope.tableHead = [
+            //         { Name: 'Head of Budget Owner' },
+            //         { Name: 'Head of Department' },
+            //         { Name: 'GM Planning' },
+            //         { Name: 'Receiver Document' },
+            //         { Name: 'Finance Verification' },
+            //         { Name: 'Finance Senior Manager' },
+            //         { Name: 'Payment Confirmation' },
+            //         { Name: 'Waiting For MIRO' }
+            //     ]
+            // }
         }
     }
 

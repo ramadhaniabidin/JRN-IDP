@@ -24,11 +24,9 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
     const moduleCode = NWF$("#" + cvModuleCode).val();
     const formStatus = NWF$("#" + cvFormStatus).val();
     GetWorkflowHistoryList();
-    if (moduleCategory === "Non Commercial") {
-        if (statusRules[moduleCode] && !statusRules[moduleCode].includes(formStatus)) {
-            HideAttachmentControl();
-            AttachmentOpenNewTab();
-        }
+    if (moduleCategory === "Non Commercial" && !statusRules[moduleCode].includes(formStatus)) {
+        HideAttachmentControl();
+        AttachmentOpenNewTab();
     }
     else if (moduleCategory === "PO Subcon") {
         NWF$('#' + Comment).val("");
@@ -47,11 +45,9 @@ NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
     const moduleCode = NWF$("#" + cvModuleCode).val();
     const formStatus = NWF$("#" + cvFormStatus).val();
     GetWorkflowHistoryList();
-    if (moduleCategory === "Non Commercial") {
-        if (statusRules[moduleCode] && !statusRules[moduleCode].includes(formStatus)) {
-            HideAttachmentControl();
-            AttachmentOpenNewTab();
-        }
+    if (moduleCategory === "Non Commercial" && !statusRules[moduleCode].includes(formStatus)) {
+        HideAttachmentControl();
+        AttachmentOpenNewTab();
     }
     else if (moduleCategory === "PO Subcon") {
         NWF$('#' + Comment).val("");

@@ -362,11 +362,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             if (item.Condition_Code.length <= 0) {
                 result = { anyError: true, message: msg + "\n - Condition" };
                 return;
-            } else {
-                if (item.Condition_Code.includes("ZF") && item.Freight_Cost <= 0) {
-                    result = { anyError: true, message: msg + "\n - Freight Cost" };
-                    return;
-                }
+            }
+
+            if (item.Condition_Code.includes("ZF") && item.Freight_Cost <= 0) {
+                result = { anyError: true, message: msg + "\n - Freight Cost" };
+                return;
             }
 
             if (item.VAT_Type !== 'I0' && item.VAT_No.length <= 0) {
@@ -945,19 +945,34 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         });
         for (let x = 0; x < $scope.ddlCondition.length; x++) {
             const item = $scope.ddlCondition[x];
-            if (item.Title !== '') {
-                if ($scope.expenseType.Name == 'INSPECTION COST') {
-                    if (item.Title.includes('ZSG')) {
-                        $scope.FilteredCondition.push(item);
-                    }
-                } else {
-                    if (!item.Title.includes('ZSG')) {
-                        $scope.FilteredCondition.push(item);
-                    }
 
-                }
+            if (!item.Title) continue;
+
+            const isInspection = $scope.expenseType.Name === 'INSPECTION COST';
+            const hasZSG = item.Title.includes('ZSG');
+
+            if (isInspection && hasZSG) {
+                $scope.FilteredCondition.push(item);
+            }
+            else if (!isInspection && !hasZSG) {
+                $scope.FilteredCondition.push(item);
             }
         }
+        // for (let x = 0; x < $scope.ddlCondition.length; x++) {
+        //     const item = $scope.ddlCondition[x];
+        //     if (item.Title !== '') {
+        //         if ($scope.expenseType.Name == 'INSPECTION COST') {
+        //             if (item.Title.includes('ZSG')) {
+        //                 $scope.FilteredCondition.push(item);
+        //             }
+        //         } else {
+        //             if (!item.Title.includes('ZSG')) {
+        //                 $scope.FilteredCondition.push(item);
+        //             }
+
+        //         }
+        //     }
+        // }
         console.log($scope.FilteredCondition, 'filtered ddl condition');
     };
 

@@ -20,12 +20,10 @@ NWF$().ready(function () {
 
         if (NWF$(this).val() == 0) {
             NWF$(this).val(0);
-        } else {
-            if (NWF$(this).val().length > 0) {
-                NWF$(this).val(NWF$(this).val().replace(/,/g, ''));
-                let amount = NWF$(this).val();
-                NWF$(this).val(addCommas(amount));
-            }
+        } else if (NWF$(this).val().length > 0) {
+            NWF$(this).val(NWF$(this).val().replace(/,/g, ''));
+            let amount = NWF$(this).val();
+            NWF$(this).val(addCommas(amount));
         }
     });
 
