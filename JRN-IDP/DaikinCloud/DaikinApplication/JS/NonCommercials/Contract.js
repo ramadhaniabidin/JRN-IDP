@@ -318,10 +318,10 @@ app.service("svc", function ($http) {
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     const now = new Date();
-    const options = {
-        year: "numeric",
-        month: "short",
-    };
+    // const options = {
+    //     year: "numeric",
+    //     month: "short",
+    // };
 
     // let DateNow = now.toLocaleDateString(undefined, options);
 
