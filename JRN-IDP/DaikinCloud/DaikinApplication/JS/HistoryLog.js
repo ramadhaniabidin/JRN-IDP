@@ -19,6 +19,15 @@ const statusRules = {
     "M018": ["", "Revise", "Draft", "Start"]
 };
 
+function ActionControlByStatus(status) {
+    if (["", "Revise", "Draft"].includes(status)) {
+        ShowAttachmentControl();
+    } else {
+        HideAttachmentControl();
+        AttachmentOpenNewTab();
+    }
+};
+
 NWF.FormFiller.Events.RegisterAfterReady(function () {
     const moduleCategory = NWF$("#" + cvModuleCategory).val();
     const moduleCode = NWF$("#" + cvModuleCode).val();
@@ -31,12 +40,7 @@ NWF.FormFiller.Events.RegisterAfterReady(function () {
     else if (moduleCategory === "PO Subcon") {
         NWF$('#' + Comment).val("");
     } else {
-        if (["", "Revise", "Draft"].includes(formStatus)) {
-            ShowAttachmentControl();
-        } else {
-            HideAttachmentControl();
-            AttachmentOpenNewTab();
-        }
+        ActionControlByStatus(formStatus);
     }
 });
 
@@ -52,12 +56,7 @@ NWF.FormFiller.Events.RegisterRepeaterRowAdded(function () {
     else if (moduleCategory === "PO Subcon") {
         NWF$('#' + Comment).val("");
     } else {
-        if (["", "Revise", "Draft"].includes(formStatus)) {
-            ShowAttachmentControl();
-        } else {
-            HideAttachmentControl();
-            AttachmentOpenNewTab();
-        }
+        ActionControlByStatus(formStatus);
     }
 });
 
