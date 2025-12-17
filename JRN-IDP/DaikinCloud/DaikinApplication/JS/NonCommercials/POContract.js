@@ -116,7 +116,7 @@ app.directive("format", [
                 });
 
                 ctrl.$parsers.unshift(function (viewValue) {
-                    let plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, "");
+                    let plainNumber = viewValue.replace(/[^\d+.-]/g, '');
                     elem.val($filter(attrs.format)(plainNumber));
                     return plainNumber;
                 });

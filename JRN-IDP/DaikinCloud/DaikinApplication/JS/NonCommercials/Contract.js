@@ -115,10 +115,12 @@ app.directive('format', ['$filter', function ($filter) {
             });
 
             ctrl.$parsers.unshift(function (viewValue) {
-                const plainNumber = viewValue.replace(/[^\d|\-+|\.+]/g, '')
-                elem.val($filter(attrs.format)(plainNumber))
-                return plainNumber
-            })
+                const plainNumber = viewValue.replace(/[^\d+.-]/g, '');
+
+                elem.val($filter(attrs.format)(plainNumber));
+                return plainNumber;
+            });
+
         }
     };
 }]);

@@ -45,7 +45,7 @@ app.directive('format', ['$filter', function ($filter) {
             });
 
             elem.bind('blur', function (event) {
-                let plainNumber = elem.val().replace(/[^\d|\-+|\.+]/g, '');
+                let plainNumber = elem.val().replace(/[^\d+.-]/g, '');
                 elem.val($filter(attrs.format)(plainNumber));
             });
         }
