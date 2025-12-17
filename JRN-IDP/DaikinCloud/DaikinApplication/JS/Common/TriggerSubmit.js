@@ -655,28 +655,43 @@ async function LoadPopUpData(param) {
     }
 };
 
+function PopUp_InsertDetails(row, data, idx) {
+    $.each(trgtCol, function (index, value) {
+        const selector = "." + trgtID[index] + " input";
+        row.find(selector).val(data[idx].filter(x => x.Key === value)[0].Value);
+        row.find(selector).trigger("click");
+        row.find(selector).trigger("blur");
+    });
+};
+
 function PopUp_SelectItem(id) {
     console.log(dataResult[id]);
-    if (moduleName == "Material Anaplan") {
-        if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
-            $.each(trgtCol, function (index, value) {
-                itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
-            });
-            itemsRS_currSelected = null;
-        }
+    if(moduleName === "Material Anaplan" || moduleName === "Cost Center" || moduleName === "ANC Vendor Bank RS"){
+        if(itemsRS_currSelected) PopUp_InsertDetails(itemsRS_currSelected, dataResult, id);
+        itemsRS_currSelected = null;
     }
-    else if (moduleName == "Cost Center") {
-        if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
-            $.each(trgtCol, function (index, value) {
-                itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
-            });
-            itemsRS_currSelected = null;
-        }
-    }
+
+
+    // if (moduleName == "Material Anaplan") {
+    //     if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
+    //         $.each(trgtCol, function (index, value) {
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
+    //         });
+    //         itemsRS_currSelected = null;
+    //     }
+    // }
+    // else if (moduleName == "Cost Center") {
+    //     if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
+    //         $.each(trgtCol, function (index, value) {
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
+    //         });
+    //         itemsRS_currSelected = null;
+    //     }
+    // }
     else if (moduleName == "ANC Vendor Bank") {
         $.each(trgtCol, function (index, values) {
             let resultValue;
@@ -697,18 +712,18 @@ function PopUp_SelectItem(id) {
             }
         });
     }
-    else if (moduleName == "ANC Vendor Bank RS") {
-        console.log('22222')
-        if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
-            console.log('1111')
-            $.each(trgtCol, function (index, value) {
-                itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
-                itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
-            });
-            itemsRS_currSelected = null;
-        }
-    }
+    // else if (moduleName == "ANC Vendor Bank RS") {
+    //     console.log('22222')
+    //     if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
+    //         console.log('1111')
+    //         $.each(trgtCol, function (index, value) {
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").val(dataResult[id].filter(x => x.Key == value)[0].Value);
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("click");
+    //             itemsRS_currSelected.find("." + trgtID[index] + " input").trigger("blur");
+    //         });
+    //         itemsRS_currSelected = null;
+    //     }
+    // }
 
     popUpDialog.dialog("close");
 
