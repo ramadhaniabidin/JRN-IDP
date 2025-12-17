@@ -340,20 +340,22 @@ app.controller('ctrl', function ($scope, svc) {
                 $scope.ddlModule = [...$scope.ddlModule, ...data.Items];
                 const module_code = GetQueryString()['module'];
                 $scope.ddlBranch = data.listBranch;
-                console.log('GetModuleOptions - Branch: ', data.Branch);
-                let br = data.Branch;
+                // let br = data.Branch;
 
-                if (data.Branch == undefined) {
-                    br = '';
-                } else if (data.Branch == '') {
-                    br = '';
-                }
+                // if (data.Branch == undefined) {
+                //     br = '';
+                // } else if (data.Branch == '') {
+                //     br = '';
+                // }
 
-                if (br == '') {
-                    $scope.Branch = data.listBranch[0];
-                } else {
-                    $scope.Branch = data.listBranch.find(o => o.Name == data.Branch);
-                }
+                // if (br == '') {
+                //     $scope.Branch = data.listBranch[0];
+                // } else {
+                //     $scope.Branch = data.listBranch.find(o => o.Name == data.Branch);
+                // }
+
+                $scope.Branch = data.Branch ? data.listBranch.find(o=>o.Name === data.Branch) : data.listBranch[0];
+
                 console.log($scope.Branch, '$scope.Branch');
 
                 if (module_code == undefined) {
