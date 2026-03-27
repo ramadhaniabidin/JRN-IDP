@@ -30,6 +30,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private readonly string connectionString = Utility.GetSqlConnection();
         private readonly string formUrl = "/_layouts/15/Daikin.Application/Modules/ClaimReimbursement/affiliateclaim.aspx?ID=";
         private readonly string MODULE_CODE = "M027";
+        private readonly string MODULE_CODE_KEY = "@Module_Code";
         private readonly string MODULE_NAME = "Affiliate Fully Claim";
         private readonly string MANAGER_EMAIL_KEY = "Manager Email";
         private readonly string MANAGER_NAME_KEY = "Manager Name";
@@ -46,7 +47,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                     using (var cmd = new SqlCommand("usp_AffiliateClaim_GetTaskAssignee", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
+                        cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, Module_Code));
                         cmd.Parameters.Add(CreateSQLParam("@Claim_Category", typeString, Claim_Category));
                         cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
                         cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Branch));
@@ -72,7 +73,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 using (var cmd = new SqlCommand("usp_AffiliateClaim_GetTaskAssignee", conn, trans))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
+                    cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, Module_Code));
                     cmd.Parameters.Add(CreateSQLParam("@Claim_Category", typeString, Claim_Category));
                     cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
                     cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Branch));
@@ -126,7 +127,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
+                    cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, Module_Code));
                     cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Transaction_ID));
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -145,7 +146,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
+                cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, Module_Code));
                 cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Transaction_ID));
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -331,7 +332,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(CreateSQLParam("@Task_ID", typeString, Guid.NewGuid().ToString()));
-                        cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
+                        cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, "M027"));
                         cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
                         cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
                         cmd.Parameters.Add(CreateSQLParam("@Task_Description", typeString, taskDescription));
@@ -362,7 +363,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(CreateSQLParam("@Task_ID", typeString, Guid.NewGuid().ToString()));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
+                    cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, "M027"));
                     cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
                     cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
                     cmd.Parameters.Add(CreateSQLParam("@Task_Description", typeString, taskDescription));
@@ -533,7 +534,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using(var cmd = new SqlCommand(query, conn, trans))
             {
                 cmd.CommandType = CommandType.Text;
-                cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, MODULE_CODE));
+                cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, MODULE_CODE));
                 using(var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -690,7 +691,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 using (var cmd = new SqlCommand("usp_InsertApprovalLog", conn, trans))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
+                    cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, "M027"));
                     cmd.Parameters.Add(CreateSQLParam("@Module_Name", typeString, MODULE_NAME));
                     cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
                     cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
