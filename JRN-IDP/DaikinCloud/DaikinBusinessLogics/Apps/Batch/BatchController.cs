@@ -16,1007 +16,790 @@ using System.Threading.Tasks;
 
 namespace Daikin.BusinessLogics.Apps.Batch.Controller
 {
-public class AffiliateClaimController
+    public class BatchController
     {
-        private readonly SharePointManager sp = new SharePointManager();
-        private readonly CommonLogic func = new CommonLogic();
-        private readonly BatchController batch = new BatchController();
-        private readonly NintexCloudManager ntx = new NintexCloudManager();
-        private readonly string serverPath = HttpContext.Current.Server.MapPath("~/Commercials/");
-        private readonly string urlSite = SPContext.Current.Web.Url;
-        private readonly Type typeString = typeof(string);
-        private readonly Type typeInt = typeof(int);
-        private readonly Type typeBool = typeof(bool);
-        private readonly string connectionString = Utility.GetSqlConnection();
-        private readonly string formUrl = "/_layouts/15/Daikin.Application/Modules/ClaimReimbursement/affiliateclaim.aspx?ID=";
-        private readonly string MODULE_CODE = "M027";
-        private const string MODULE_NAME = "Affiliate Fully Claim";
-        private readonly string MANAGER_EMAIL_KEY = "Manager Email";
-        private readonly string MANAGER_NAME_KEY = "Manager Name";
-        private readonly string TABLE_HEADER = "AffiliateClaimHeader";
+        private readonly DatabaseManager db = new DatabaseManager();
+        SqlConnection conn = new SqlConnection();
+        private readonly SalesForceController sfc = new SalesForceController();
+        private readonly Utility ut = new Utility();
+        private readonly string PATH_LOCATION_KEY = "Path_Location";
+        private readonly string MODULE_CODE_KEY = "Module_Code";
+        private readonly string HEADER_ID_KEY = "Header_ID";
+        private readonly string BRANCH_CODE_KEY = "BranchCode";
+        private readonly string PROCDEPT_KEY = "ProcDept";
 
-        private List<ApproverRoleModel> GetListApprover(string Module_Code, int Order_ID, string Branch, string Claim_Category)
+        public string GetReportBase64(string Report_ID, string Extension)
         {
-            try
+            string endpoint = ConfigurationManager.AppSettings["SF_BaseURL"] + $"/services/data/v60.0/analytics/reports/{Report_ID}?export=1&encod=UTF-8&xf={Extension}";
+            HttpClient client = new HttpClient
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                Timeout = TimeSpan.FromMinutes(5)
+            };
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sfc.GetAttachmentToken());
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            request.Content = new StringContent("");
+            var response = client.GetAsync(endpoint).Result;
+            byte[] fileBytes = response.Content.ReadAsByteArrayAsync().Result;
+            return Convert.ToBase64String(fileBytes);
+        }
+
+        public async Task<string> GetReportBase64Async(string reportId, string extension)
+        {
+            string baseUrl = ConfigurationManager.AppSettings["SF_BaseURL"];
+            string endpoint = $"{baseUrl}/services/data/v60.0/analytics/reports/{reportId}?export=1&encod=UTF-8&xf={extension}";
+
+            using (var client = new HttpClient { Timeout = TimeSpan.FromMinutes(5) })
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sfc.GetAttachmentToken());
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                try
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateClaim_GetTaskAssignee", con))
+                    using (var response = await client.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead))
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
-                        cmd.Parameters.Add(CreateSQLParam("@Claim_Category", typeString, Claim_Category));
-                        cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                        cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Branch));
-                        using(var reader = cmd.ExecuteReader())
+                        if (!response.IsSuccessStatusCode)
                         {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<ApproverRoleModel>(dt);
+                            string errorBody = await response.Content.ReadAsStringAsync();
+                            throw new HttpRequestException($"Request failed with status {(int)response.StatusCode} ({response.ReasonPhrase}). Body: {errorBody}");
+                        }
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var ms = new MemoryStream())
+                        {
+                            await stream.CopyToAsync(ms);
+                            return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
                         }
                     }
                 }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim List approver | {ex.Message}");
-            }
-        }
-
-        private List<ApproverRoleModel> GetListApprover(string Module_Code, int Order_ID, string Branch, string Claim_Category, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                DataTable dt = new DataTable();
-                using (var cmd = new SqlCommand("usp_AffiliateClaim_GetTaskAssignee", conn, trans))
+                catch (TaskCanceledException ex)
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
-                    cmd.Parameters.Add(CreateSQLParam("@Claim_Category", typeString, Claim_Category));
-                    cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Branch));
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        dt.Load(reader);
-                        return Utility.ConvertDataTableToList<ApproverRoleModel>(dt);
-                    }
+                    throw new TimeoutException("The request timed out after 5 minutes.", ex);
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new HttpRequestException($"HTTP request error: {ex.Message}", ex);
                 }
             }
-            catch (Exception ex)
+        }
+
+
+        public static void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
+        {
+            var credential = new Utility().GetNetworkCredential();
+            using (new ConnectToSharedFolder(FolderPath, credential))
             {
-                throw new Exception($"Error occurred while fetching Affiliate Claim List approver | {ex.Message}");
+                if (!Directory.Exists(FolderPath))
+                {
+                    Directory.CreateDirectory(FolderPath);
+                }
+
+                byte[] fileBytes = Convert.FromBase64String(Base64);
+                string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
+                File.WriteAllBytes(filePath, fileBytes);
             }
         }
 
-        private List<ApprovalListModel> GetListApprover(string Module_Code, int Item_ID)
+
+        public void CreateReportFile(string Folder_ID)
         {
-            try
+            DataTable dt = GetFolderLocation(Folder_ID);
+            foreach (DataRow row in dt.Rows)
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
+                List<ReportModel> reports = GetReportAttribute();
+                foreach (var report in reports)
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateClaim_GetTaskAssignee", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@ModuleCode", typeString, Module_Code));
-                        cmd.Parameters.Add(CreateSQLParam("@ItemID", typeInt, Item_ID));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<ApprovalListModel>(dt);
-                        }
-                    }
+                    UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
                 }
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim List approver | {ex.Message}");
-            }
         }
 
-        private CustomTaskModel GetPreviousDirectHeadTask(int Order_ID, string Module_Code, int Transaction_ID)
+        public void CreateReportFromBase64(string Report_Name, string Report_ID, string Extension)
         {
-            DataTable dt = new DataTable();
-            using (var con = new SqlConnection(connectionString))
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = GetReportBase64(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
+        }
+
+        public async Task CreateReportFromBase64Async(string Report_Name, string Report_ID, string Extension)
+        {
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = await GetReportBase64Async(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
+        }
+
+        public List<ReportModel> GetReportAttribute()
+        {
+            using (var con = new SqlConnection(Utility.GetSQLConnDev()))
             {
                 con.Open();
-                using (var cmd = new SqlCommand("usp_GetPreviousDirectHeadTask", con))
+                string query = "SELECT * FROM [Report_Configuration] WHERE [Active] = @active";
+                using (var cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
+                    using (var _reader = cmd.ExecuteReader())
+                    {
+                        DataTable dt = new DataTable();
+                        dt.Load(_reader);
+                        return Utility.ConvertDataTableToList<ReportModel>(dt);
+                    }
+                }
+            }
+        }
+
+        public void UpdatePOReleaseDetail(int HeaderID)
+        {
+            try
+            {
+                db.OpenConnection(ref conn);
+                db.cmd.CommandText = "usp_UpdatePOReleaseDetail_AfterReadSAP";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, HeaderID);
+
+                db.cmd.ExecuteNonQuery();
+                db.CloseConnection(ref conn);
+            }
+            catch (Exception)
+            {
+                db.CloseConnection(ref conn);
+                throw;
+            }
+        }
+
+        public List<BatchModel> GetBatchFileContentsSC(string moduleCode, int headerID, int No)
+        {
+            DataTable dtBatch = new DataTable();
+            using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
+            {
+                _conn.Open();
+                using (SqlCommand command = _conn.CreateCommand())
+                {
+                    command.CommandText = "usp_Utility_CreateBatchFile";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
+                    command.Parameters.AddWithValue(HEADER_ID_KEY, headerID);
+                    command.Parameters.AddWithValue("No", No);
+
+                    using (SqlDataReader dr = command.ExecuteReader())
+                    {
+                        dtBatch.Load(dr);
+                    }
+                    return Utility.ConvertDataTableToList<BatchModel>(dtBatch);
+                }
+            }
+        }
+
+        public void CreateBatchFileSC(int No, string moduleCode, int headerID,
+            string basePath, string filePath, string fileName)
+        {
+            if (string.IsNullOrEmpty(basePath))
+                basePath = new Utility().GetConfigValue("NetworkPath");
+            try
+            {
+
+                var list = GetBatchFileContentsSC(moduleCode, headerID, No);
+                if (list.Count > 0)
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(basePath, credentials))
+                    {
+                        var formNo = list[0].BatchFile.Split('\t', ';')[0].Substring(0, 10);
+                        string targetPath = basePath + filePath;
+                        var targetFile = System.IO.Path.Combine(targetPath, fileName + ".txt");
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
+
+                        #region Create Batch File
+                        System.IO.Directory.CreateDirectory(targetPath);
+                        using (System.IO.TextWriter tw = new System.IO.StreamWriter(targetFile))
+                            foreach (var row in list)
+                                tw.WriteLine(row.BatchFile);
+                        #endregion
+                    }
+                }
+            }
+            finally
+            {
+                db.CloseConnection(ref conn);
+            }
+
+        }
+
+        public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
+        {
+            DataTable dt = GetFolderLocation(SAPFolderID);
+            foreach (DataRow row in dt.Rows)
+            {
+                string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
+                string filepath = folder + @"\" + FileName + ".txt";
+                if (!File.Exists(filepath))
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(folder, credentials))
+                    {
+                        using (StreamWriter sw = File.CreateText(filepath))
+                        {
+                            sw.WriteLine(Message);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        public DataTable GetFolderLocation(string ID)
+        {
+            try
+            {
+                DataTable dt = new DataTable();
+                db.OpenConnection(ref conn);
+                db.cmd.CommandText = "usp_mastersapfolderlocation_getbyid";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, "id", ID);
+                var reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+                db.CloseConnection(ref conn);
+                return dt;
+            }
+            catch (Exception)
+            {
+                db.CloseConnection(ref conn);
+                throw;
+            }
+        }
+
+        public FolderLocationModel GetFolderLocation_V2(string ID)
+        {
+            string ModuleCode = "";
+            string PathLocation = "";
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
-                    cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Transaction_ID));
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            ModuleCode = reader.GetString(reader.GetOrdinal(MODULE_CODE_KEY));
+                            PathLocation = reader.GetString(reader.GetOrdinal(PATH_LOCATION_KEY));
+                        }
+                    }
+                }
+            }
+            return new FolderLocationModel { ModuleCode = ModuleCode, PathLocation = PathLocation };
+        }
+
+        public DataTable GetProcBranch(string SAPFolderID, int headerID)
+        {
+            DataTable dtx = new DataTable();
+            try
+            {
+                db.OpenConnection(ref conn);
+                db.cmd.CommandText = "usp_Utility_GetProcBranch";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, "SAPFolderID", SAPFolderID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+                var reader = db.cmd.ExecuteReader();
+                dtx.Load(reader);
+                db.CloseDataReader(reader);
+                db.CloseConnection(ref conn);
+                return dtx;
+            }
+            catch (Exception)
+            {
+                db.CloseConnection(ref conn);
+                throw;
+            }
+        }
+
+        public ProcBranchModel GetProcBranch_V2(string SAPFolderID, int HeaderID)
+        {
+            string BranchCode = "";
+            string ProcDept = "";
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_Utility_GetProcBranch", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SAPFolderID", Value = SAPFolderID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            BranchCode = reader.GetString(reader.GetOrdinal(BRANCH_CODE_KEY));
+                            ProcDept = reader.GetString(reader.GetOrdinal(PROCDEPT_KEY));
+                        }
+                    }
+                }
+            }
+            return new ProcBranchModel { BranchCode = BranchCode, ProcDept = ProcDept };
+        }
+
+        public static bool IsModuleNonCommercials(string ModuleCode)
+        {
+            List<string> NonCommercialsCode = new List<string> { "M014", "M015", "M016", "M017", "M018", "M020" };
+            return NonCommercialsCode.Contains(ModuleCode);
+        }
+
+        public string UpdateNonCommercialsPath(string PathLocation, string SAPFolderID, int HeaderID)
+        {
+            string branchCode = "";
+            string procDept = "";
+            var ProcBranch = GetProcBranch_V2(SAPFolderID, HeaderID);
+            branchCode = ProcBranch.BranchCode;
+            procDept = ProcBranch.ProcDept;
+            return Path.Combine(PathLocation, branchCode, procDept);
+        }
+
+        public void WriteBatchFile(string SP_Name, string ModuleCode, int HeaderID, string FileName, string PathLocation)
+        {
+            var list = GetBatchFileContents_V2(SP_Name, ModuleCode, HeaderID);
+            if (list.Count > 0)
+            {
+                var credential = new Utility().GetNetworkCredential();
+                using (new ConnectToSharedFolder(PathLocation, credential))
+                {
+                    string formNo = list[0].BatchFile.Split('\t', ';')[0];
+                    string targetFile = Path.Combine(PathLocation, FileName + ".txt");
+                    SaveBatchFileHistory_V2(ModuleCode, HeaderID, formNo, targetFile);
+                    Directory.CreateDirectory(PathLocation);
+                    using (TextWriter tw = new StreamWriter(targetFile))
+                    {
+                        foreach (var row in list)
+                        {
+                            tw.WriteLine(row.BatchFile);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string FileName)
+        {
+            var FolderLocation = GetFolderLocation_V2(SAPFolderID);
+            string moduleCode = FolderLocation.ModuleCode;
+            string PathLocation = FolderLocation.PathLocation;
+            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID) : PathLocation;
+            WriteBatchFile(SP_Name, moduleCode, HeaderID, FileName, PathLocation);
+        }
+
+        public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
+        {
+            var isTrans = true;
+
+            try
+            {
+                DataTable dt = GetFolderLocation(SAPFolderID);
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
+                    DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
+
+                    //For List Non Commercials Only
+                    foreach (DataRow row in dtInfo.Rows)
+                    {
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
+                        {
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
+                        }
+                    }
+                    //---------------------------------------
+
+
+
+                    db.OpenConnection(ref conn, isTrans);
+
+                    var list = GetBatchFileContents(SP_Name, moduleCode, headerID, true);
+                    if (list.Count > 0)
+                    {
+                        var credentials = new Utility().GetNetworkCredential();
+                        using (new ConnectToSharedFolder(PathLocation, credentials))
+                        {
+                            var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                            var targetPath = PathLocation;
+                            var targetFile = Path.Combine(targetPath, fileName + ".txt");
+
+                            SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
+
+                            #region Create Batch File
+                            Directory.CreateDirectory(targetPath);
+                            using (TextWriter tw = new StreamWriter(targetFile))
+                                foreach (var row in list)
+                                    tw.WriteLine(row.BatchFile);
+                            #endregion
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+        }
+
+        public string CreateBatchFile(string moduleCode, int headerID, string basePath, string filePath, string fileName)
+        {
+            if (string.IsNullOrEmpty(basePath))
+                basePath = new Utility().GetConfigValue("NetworkPath");
+
+            var isTrans = true;
+            var targetFile = "";
+            try
+            {
+                db.OpenConnection(ref conn, isTrans);
+
+                var list = GetBatchFileContents(moduleCode, headerID, true);
+                if (list.Count > 0)
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(basePath, credentials))
+                    {
+                        var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                        var targetPath = basePath + filePath;
+                        targetFile = $"{targetPath}\\{fileName}.txt";
+
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
+
+                        #region Create Batch File
+                        Directory.CreateDirectory(targetPath);
+                        using (TextWriter tw = new StreamWriter(targetFile))
+                            foreach (var row in list)
+                                tw.WriteLine(row.BatchFile);
+                        #endregion
+                    }
+                }
+                return targetFile;
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+
+        }
+
+        //Create Batch File New
+        public void CreateBatchFile(string SAPFolderID, int headerID, string fileName)
+        {
+
+            var isTrans = true;
+            try
+            {
+                DataTable dt = GetFolderLocation(SAPFolderID);
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, "Path_Location");
+                    DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
+
+                    //For List Non Commercials Only
+                    foreach (DataRow row in dtInfo.Rows)
+                    {
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
+                        {
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
+                        }
+                    }
+                    //---------------------------------------
+
+
+
+                    db.OpenConnection(ref conn, isTrans);
+
+                    var list = GetBatchFileContents(moduleCode, headerID, true);
+                    if (list.Count > 0)
+                    {
+                        var credentials = new Utility().GetNetworkCredential();
+                        using (new ConnectToSharedFolder(PathLocation, credentials))
+                        {
+                            var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                            var targetPath = PathLocation;
+                            var targetFile = Path.Combine(targetPath, fileName + ".txt");
+                            SaveBatchFileHistory_V2(moduleCode, headerID, formNo, targetFile);
+
+                            #region Create Batch File
+                            Directory.CreateDirectory(targetPath);
+                            using (TextWriter tw = new StreamWriter(targetFile))
+                                foreach (var row in list)
+                                    tw.WriteLine(row.BatchFile);
+                            #endregion
+                        }
+                    }
+                    db.CloseConnection(ref conn);
+                }
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+
+        }
+
+        //Create Batch File With No = affiliate not claim ada jurnal 1 dan 2
+        public void CreateBatchFileWithNo(string SAPFolderID, int headerID, string fileName, int no)
+        {
+
+            var isTrans = true;
+            try
+            {
+                DataTable dt = GetFolderLocation(SAPFolderID);
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
+                    DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
+
+                    //For List Non Commercials Only
+                    foreach (DataRow row in dtInfo.Rows)
+                    {
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
+                        {
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
+                        }
+                    }
+                    //---------------------------------------
+
+
+
+                    db.OpenConnection(ref conn, isTrans);
+
+                    var list = GetBatchFileContentsWithNo(moduleCode, headerID, no, true);
+                    if (list.Count > 0)
+                    {
+                        var credentials = new Utility().GetNetworkCredential();
+                        using (new ConnectToSharedFolder(PathLocation, credentials))
+                        {
+                            var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                            var targetPath = PathLocation;
+                            var targetFile = Path.Combine(targetPath, fileName + ".txt");
+
+                            SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
+
+                            #region Create Batch File
+                            Directory.CreateDirectory(targetPath);
+                            using (TextWriter tw = new StreamWriter(targetFile))
+                                foreach (var row in list)
+                                    tw.WriteLine(row.BatchFile);
+                            #endregion
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+
+        }
+
+        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID)
+        {
+            DataTable dt = new DataTable();
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand(SP_Name, _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = ModuleCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
                     using (var reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
-                        var list = Utility.ConvertDataTableToList<CustomTaskModel>(dt);
-                        return list.Count > 0 ? list[0] : new CustomTaskModel();
+                        return Utility.ConvertDataTableToList<BatchModel>(dt);
                     }
                 }
             }
         }
 
-        private CustomTaskModel GetPreviousDirectHeadTask(int Order_ID, string Module_Code, int Transaction_ID, SqlConnection conn, SqlTransaction trans)
+        public List<BatchModel> GetBatchFileContents(string SP_Name, string moduleCode, int headerID, bool isOpen = false)
         {
             DataTable dt = new DataTable();
-            using (var cmd = new SqlCommand("usp_GetPreviousDirectHeadTask", conn, trans))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Order_ID));
-                cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, Module_Code));
-                cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Transaction_ID));
-                using (var reader = cmd.ExecuteReader())
-                {
-                    dt.Load(reader);
-                    var list = Utility.ConvertDataTableToList<CustomTaskModel>(dt);
-                    return list.Count > 0 ? list[0] : new CustomTaskModel();
-                }
-            }
-        }
-
-        private Dictionary<string, object> GetManagerData(int Order_ID, int Header_ID, string User_Email)
-        {
-            var previousTask = GetPreviousDirectHeadTask(Order_ID, MODULE_CODE, Header_ID);
-            string getManagerParam = string.IsNullOrEmpty(previousTask.Assignee_Emails) ? User_Email : previousTask.Assignee_Emails;
-            var managerDistinguish = func.GetManagerDistinguishedName(getManagerParam);
-            var managerData = func.GetManagerData(managerDistinguish);
-            return managerData;
-        }
-
-        private Dictionary<string, object> GetManagerData(int Order_ID, int Header_ID, string User_Email, SqlConnection conn, SqlTransaction trans)
-        {
-            var previousTask = GetPreviousDirectHeadTask(Order_ID, MODULE_CODE, Header_ID, conn, trans);
-            string getManagerParam = string.IsNullOrEmpty(previousTask.Assignee_Emails) ? User_Email : previousTask.Assignee_Emails;
-            var managerDistinguish = func.GetManagerDistinguishedName(getManagerParam);
-            var managerData = func.GetManagerData(managerDistinguish);
-            return managerData;
-        }
-
-        private ApproverRoleModel GetDirectHeadPIC(AffiliateClaimHeaderModel Header)
-        {
-            var managerData = GetManagerData(Header.Index_Approver, Header.ID, Header.Requester_Email);
-            return new ApproverRoleModel
-            {
-                Position_ID = 5,
-                Position_Name = "Direct Head",
-                Order_ID = Header.Index_Approver,
-                Module_Code = MODULE_CODE,
-                User_Email = managerData[MANAGER_EMAIL_KEY].ToString(),
-                User_FullName = managerData[MANAGER_NAME_KEY].ToString()
-            };
-        }
-
-        private ApproverRoleModel GetDirectHeadPIC(AffiliateClaimHeaderModel Header, SqlConnection conn, SqlTransaction trans)
-        {
-            var managerData = GetManagerData(Header.Index_Approver, Header.ID, Header.Requester_Email, conn, trans);
-            return new ApproverRoleModel
-            {
-                Position_ID = 5,
-                Position_Name = "Direct Head",
-                Order_ID = Header.Index_Approver,
-                Module_Code = MODULE_CODE,
-                User_Email = managerData[MANAGER_EMAIL_KEY].ToString(),
-                User_FullName = managerData[MANAGER_NAME_KEY].ToString()
-            };
-        }
-
-
-        private ApproverRoleModel GetOtherRolePIC(List<ApproverRoleModel> List_Approver, int Order_ID)
-        {
-            string names = List_Approver[0].User_FullName;
-            string emails = List_Approver[0].User_Email;
-            if(List_Approver.Count > 1)
-            {
-                for(int i = 1; i < List_Approver.Count; i++)
-                {
-                    var app = List_Approver[i];
-                    names += $";{app.User_FullName}";
-                    emails += $";{app.User_Email};";
-                }
-            }
-            return new ApproverRoleModel
-            {
-                Position_ID = List_Approver[0].Position_ID,
-                Position_Name = List_Approver[0].Position_Name,
-                Order_ID = Order_ID,
-                Module_Code = MODULE_CODE,
-                User_Email = emails,
-                User_FullName = names
-            };
-        }
-
-        private ApproverRoleModel GetCurrentApprover(AffiliateClaimHeaderModel Header)
-        {
             try
             {
-                var listApprover = GetListApprover(MODULE_CODE, Header.Index_Approver, Header.Business_Area, Header.Category);
-                int positionID = listApprover[0].Position_ID;
-                return positionID == 5 ? GetDirectHeadPIC(Header) : GetOtherRolePIC(listApprover, Header.Index_Approver);
+                if (!isOpen)
+                    db.OpenConnection(ref conn);
+
+                db.cmd.CommandText = SP_Name;
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+
+                var reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+
+                return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch(Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error occurred while fetching Affiliate Claim current approver | {ex.Message}");
+                db.CloseConnection(ref conn);
+                throw;
+            }
+            finally
+            {
+                if (!isOpen)
+                    db.CloseConnection(ref conn);
             }
         }
 
-        private ApproverRoleModel GetCurrentApprover(AffiliateClaimHeaderModel Header, SqlConnection conn, SqlTransaction trans)
+        public List<BatchModel> GetBatchFileContents(string moduleCode, int headerID, bool isOpen = false)
         {
+            DataTable dt = new DataTable();
             try
             {
-                var listApprover = GetListApprover(MODULE_CODE, Header.Index_Approver, Header.Business_Area, Header.Category, conn, trans);
-                int positionID = listApprover[0].Position_ID;
-                return positionID == 5 ? GetDirectHeadPIC(Header, conn, trans) : GetOtherRolePIC(listApprover, Header.Index_Approver);
+                if (!isOpen)
+                    db.OpenConnection(ref conn);
+
+                db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+
+                var reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+
+                return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error occurred while fetching Affiliate Claim current approver | {ex.Message}");
+                db.CloseConnection(ref conn);
+                throw;
+            }
+            finally
+            {
+                if (!isOpen)
+                    db.CloseConnection(ref conn);
             }
         }
 
-        public void UpdatePendingApprover(ApproverRoleModel Current_Approver, AffiliateClaimHeaderModel Header)
+
+        public List<BatchModel> GetBatchFileContentsWithNo(string moduleCode, int headerID, int no, bool isOpen = false)
         {
+            DataTable dt = new DataTable();
             try
             {
-                if (Header.Requester_Email.ToUpperInvariant().Contains("TEST1"))
-                {
-                    Current_Approver.User_FullName = "Approver1";
-                    Current_Approver.User_Email = "Approver1@daikin.co.id";
-                }
-                using(var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using(var cmd = new SqlCommand("usp_AffiliateClaim_SetApprover", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Current_Index_Approver", typeInt, Header.Index_Approver));
-                        cmd.Parameters.Add(CreateSQLParam("@Pending_Approver_Email", typeString, Current_Approver.User_Email));
-                        cmd.Parameters.Add(CreateSQLParam("@Pending_Approver_Name", typeString, Current_Approver.User_FullName));
-                        cmd.Parameters.Add(CreateSQLParam("@Pending_Approver_Role", typeString, Current_Approver.Position_Name));
-                        cmd.Parameters.Add(CreateSQLParam("@Pending_Approver_Role_ID", typeInt, Current_Approver.Position_ID));
-                        cmd.Parameters.Add(CreateSQLParam("@ID", typeInt, Header.ID));
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                if (!isOpen)
+                    db.OpenConnection(ref conn);
+
+                db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+                db.AddInParameter(db.cmd, "No", no);
+
+                var reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+
+                return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch(Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error occurred while fetching Affiliate Claim current approver | {ex.Message}");
+                db.CloseConnection(ref conn);
+                throw;
+            }
+            finally
+            {
+                if (!isOpen)
+                    db.CloseConnection(ref conn);
             }
         }
 
-        public void StartApproval(string Module_Code, string Form_No)
+        public static void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
         {
-            try
+            string connString = Utility.GetSqlConnection();
+            using (SqlConnection _conn = new SqlConnection(connString))
             {
-                var header = GetHeaderData(Form_No);
-                var currentApprover = GetCurrentApprover(header);
-                UpdatePendingApprover(currentApprover, header);
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while starting Affiliate Claim approval | {ex.Message}");
-            }
-        }
-
-        private void UpdateFlaggingApprovalQueue(string Task_ID, SqlConnection con, SqlTransaction trans)
-        {
-            try
-            {
-                using (var cmd = new SqlCommand("usp_ApprovalQueue_UpdateFlag", con, trans))
+                _conn.Open();
+                using (SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@Task_ID", Value = Task_ID, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.VarChar });
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
+                    cmd.Parameters.AddWithValue("@Header_ID", headerID);
+                    cmd.Parameters.AddWithValue("@Form_No", formNo);
+                    cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred while updating Approval queue flag | {ex.Message}");
-            }
         }
 
-        public void InsertApprovalQueue(AffiliateClaimHeaderModel Header)
+        public void SaveBatchFileHistory(string moduleCode, int headerID, string formNo, string targetFile, bool isOpen = false)
         {
-            var currentApprover = GetCurrentApprover(Header);
-            var taskDescription = $"{MODULE_NAME} - Item ID: {Header.Item_ID} - {Header.Form_No} - {currentApprover.Position_Name}";
-            var taskUrl = $"http://spdev:3473{formUrl}{Header.Form_No}";
+            var isTrans = true;
             try
             {
-                using (var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_InsertApprovalQueue", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Task_ID", typeString, Guid.NewGuid().ToString()));
-                        cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
-                        cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
-                        cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
-                        cmd.Parameters.Add(CreateSQLParam("@Task_Description", typeString, taskDescription));
-                        cmd.Parameters.Add(CreateSQLParam("@Assignee_Names", typeString, currentApprover.User_FullName));
-                        cmd.Parameters.Add(CreateSQLParam("@Assignee_Emails", typeString, currentApprover.User_Email));
-                        cmd.Parameters.Add(CreateSQLParam("@Assignee_Role", typeString, currentApprover.Position_Name));
-                        cmd.Parameters.Add(CreateSQLParam("@Assignee_Role_ID", typeInt, currentApprover.Position_ID));
-                        cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Header.Index_Approver));
-                        cmd.Parameters.Add(CreateSQLParam("@Task_Url", typeString, taskUrl));
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                if (!isOpen)
+                    db.OpenConnection(ref conn, isTrans);
+                db.cmd.CommandText = "usp_BatchFileHistory_Save";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+                db.AddInParameter(db.cmd, "Form_No", formNo);
+                db.AddInParameter(db.cmd, "Generated_File_Path", targetFile);
+
+                db.cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error occurred while inserting Affiliate Claim approval queue | {ex.Message}");
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                if (!isOpen)
+                    db.CloseConnection(ref conn, isTrans);
             }
         }
-
-        public void InsertApprovalQueue(AffiliateClaimHeaderModel Header, SqlConnection conn, SqlTransaction trans)
-        {
-            var currentApprover = GetCurrentApprover(Header, conn, trans);
-            var taskDescription = $"{MODULE_NAME} - Item ID: {Header.Item_ID} - {Header.Form_No} - {currentApprover.Position_Name}";
-            var taskUrl = $"http://spdev:3473{formUrl}{Header.Form_No}";
-            try
-            {
-                using (var cmd = new SqlCommand("usp_InsertApprovalQueue", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Task_ID", typeString, Guid.NewGuid().ToString()));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
-                    cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
-                    cmd.Parameters.Add(CreateSQLParam("@Task_Description", typeString, taskDescription));
-                    cmd.Parameters.Add(CreateSQLParam("@Assignee_Names", typeString, currentApprover.User_FullName));
-                    cmd.Parameters.Add(CreateSQLParam("@Assignee_Emails", typeString, currentApprover.User_Email));
-                    cmd.Parameters.Add(CreateSQLParam("@Assignee_Role", typeString, currentApprover.Position_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@Assignee_Role_ID", typeInt, currentApprover.Position_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Order_ID", typeInt, Header.Index_Approver));
-                    cmd.Parameters.Add(CreateSQLParam("@Task_Url", typeString, taskUrl));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred while inserting Affiliate Claim approval queue | {ex.Message}");
-            }
-        }
-
-
-        private int GetTotalApprovalLayer(string Module_Code, int Item_ID)
-        {
-            try
-            {
-                int totalLayer = 0;
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_NWC_GetApproverList", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@ItemID", typeInt, Item_ID));
-                        cmd.Parameters.Add(CreateSQLParam("@ModuleCode", typeString, Module_Code));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                totalLayer++;
-                            }
-                        }
-                    }
-                }
-                return totalLayer;
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim total layer approval | {ex.Message}");
-            }
-        }
-
-        public void UpdateTaskResponder(int Header_ID, TaskActionModel Action, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using(var cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@List_Name", MODULE_NAME);
-                    cmd.Parameters.AddWithValue("@Header_ID", Header_ID);
-                    cmd.Parameters.AddWithValue("@Comments", Action.Comment);
-                    cmd.Parameters.AddWithValue("@Approver_Name", Action.Approver_Name);
-                    cmd.Parameters.AddWithValue("@Approver_Account", Action.Approver_Account);
-                    cmd.Parameters.AddWithValue("@Approver_Email", Action.Approver_Email);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred at UpdateTaskResponder() | {ex.Message}");
-            }
-        }
-
-        public CommonResponseModel ExecuteApprovalAction_NAC(AffiliateClaimHeaderModel Header, TaskActionModel Action, VendorBankModel Vendor_Bank, List<AffiliateClaimDetail> Details)
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                SqlTransaction trans = conn.BeginTransaction();
-                try
-                {
-                    UpdateTaskResponder(Header.ID, Action, conn, trans);
-                    if (Header.Pending_Approver_Role_ID == 1)        // Receiver Document
-                    {
-                        UpdateDocumentReceived(Header, Action.IsDocumentReceived, conn, trans);
-                    }
-                    if (Header.Pending_Approver_Role_ID == 48)       // Verifier Document
-                    {
-                        UpdatePartnerBankID(Header.ID, Vendor_Bank, conn, trans);
-                    }
-                    if (Header.Pending_Approver_Role_ID == 15)       // Tax verifier
-                    {
-                        UpdateWHT(Header.ID, Details, conn, trans);
-                    }
-                    var taskAssignmentResponse = ntx.GetTaskAssignment(Header.Task_ID, Header.Form_No);
-                    var response = NintexCloudManager.ProcessNACTask(taskAssignmentResponse.TaskAssignments, Action.Approver_Email, Action.Action_Name);
-                    trans.Commit();
-                    return response;
-                }
-                catch (Exception ex)
-                {
-                    trans.Rollback();
-                    throw new Exception($"Error occurred ExecuteApprovalAction_NAC() | {ex.Message}");
-                }
-            }
-        }
-
-        public void ExecuteApprovalAction(AffiliateClaimHeaderModel Header, TaskActionModel Action, VendorBankModel Vendor_Bank, List<AffiliateClaimDetail> Details)
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                SqlTransaction trans = conn.BeginTransaction();
-                try
-                {
-                    InsertHistoryLog(Header, Action, conn, trans);
-                    ApprovalAction(Header, Action, conn, trans);
-                    CompleteTaskApproval(Action.Approver_Email, Action.Action_Name, Action.Comment, Header.Task_ID, conn, trans);
-                    if(Header.Pending_Approver_Role_ID == 1)        // Receiver Document
-                    {
-                        UpdateDocumentReceived(Header, Action.IsDocumentReceived, conn, trans);
-                    }
-                    if(Header.Pending_Approver_Role_ID == 48)       // Verifier Document
-                    {
-                        UpdatePartnerBankID(Header.ID, Vendor_Bank, conn, trans);
-                    }
-                    if(Header.Pending_Approver_Role_ID == 15)       // Tax verifier
-                    {
-                        UpdateWHT(Header.ID, Details, conn, trans);
-                    }
-                    if(Action.Action_ID == 7 && (Header.Index_Approver + 1) <= Header.Total_Layer_Approval)
-                    {
-                        Header.Index_Approver++;
-                        InsertApprovalQueue(Header, conn, trans);
-                    }
-                    else if(Action.Action_ID == 7 && (Header.Index_Approver + 1) > Header.Total_Layer_Approval)
-                    {
-                        FinalizeApproval(Header.Item_ID, conn, trans);
-                        UpdateSPListStatus(Header.Item_ID);
-                        CreateBatchFile(Header.Form_No, Header.ID, conn, trans);
-                    }
-                    trans.Commit();
-                }
-                catch (Exception ex)
-                {
-                    trans.Rollback();
-                    throw new Exception($"Error occurred ExecuteApprovalAction() | {ex.Message}");
-                }
-            }
-        }
-
-
-
-        private void FinalizeApproval(int Item_ID, SqlConnection conn, SqlTransaction trans)
-        {
-            using(var cmd = new SqlCommand("usp_NWC_completeApproval", conn, trans))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@ItemID", typeInt, Item_ID));
-                cmd.Parameters.Add(CreateSQLParam("@TableHeader", typeString, TABLE_HEADER));
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        private int GetBatchFileFolderID(SqlConnection conn, SqlTransaction trans)
-        {
-            string query = "SELECT TOP 1 CAST(ID AS INT) AS ID FROM MasterSAPFolderLocation WHERE Module_Code = @Module_Code ORDER BY ID DESC";
-            int folderID = -1;
-            using(var cmd = new SqlCommand(query, conn, trans))
-            {
-                cmd.CommandType = CommandType.Text;
-                cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, MODULE_CODE));
-                using(var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        folderID = reader.GetInt32(reader.GetOrdinal("ID"));
-                    }
-                    return folderID;
-                }
-            }
-        }
-
-        private void CreateBatchFile(string Form_No, int Header_ID, SqlConnection conn, SqlTransaction trans)
-        {
-            int folderID = GetBatchFileFolderID(conn, trans);
-            batch.CreateBatchFileDynamic_V2("SAP.[usp_Utility_CreateBatchFile]", folderID.ToString(), Header_ID, Form_No, conn, trans);
-        }
-
-        private void UpdateSPListStatus(int Item_ID)
-        {
-            SPWeb web = new SPSite(urlSite).OpenWeb();
-            SPList list = web.Lists[MODULE_NAME];
-            web.AllowUnsafeUpdates = true;
-            SPListItem item = list.GetItemById(Item_ID);
-            item["Approval Status"] = "Approved";
-            item["Approval Status ID"] = 7;
-            item["Workflow Status"] = "Completed";
-            item.Update();
-        }
-
-        private void CompleteTaskApproval(string Responder, string Outcome, string Comment, string Task_ID, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using (var cmd = new SqlCommand("usp_CompleteTaskApproval", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Responder_Email", typeString, Responder));
-                    cmd.Parameters.Add(CreateSQLParam("@Outcome", typeString, Outcome));
-                    cmd.Parameters.Add(CreateSQLParam("@Comment", typeString, Comment));
-                    cmd.Parameters.Add(CreateSQLParam("@Task_ID", typeString, Task_ID));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred while completing task {Task_ID} | {ex.Message}");
-            }
-        }
-
-        private void ApprovalAction(AffiliateClaimHeaderModel Header, TaskActionModel Action, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using (var cmd = new SqlCommand("[usp_NWC_ApprovalAction]", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@ItemID", typeInt, Header.Item_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@TableHeader", typeString, "AffiliateClaimHeader"));
-                    cmd.Parameters.Add(CreateSQLParam("@ApprovalIndex", typeInt, Header.Index_Approver));
-                    cmd.Parameters.Add(CreateSQLParam("@ApprovalAction", typeString, Action.Action_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@ApproverName", typeString, Action.Approver_Name));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while saving Affiliate Claim approval action | {ex.Message}");
-            }
-        }
-
-        private void UpdateDocumentReceived(AffiliateClaimHeaderModel Header, bool IsDocumentReceived, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using (var cmd = new SqlCommand("usp_AffiliateClaim_UpdateDocumentReceived", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@ID", typeInt, Header.ID));
-                    cmd.Parameters.Add(CreateSQLParam("@IsReceived", typeBool, IsDocumentReceived));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while updating Affiliate Claim document received | {ex.Message}");
-            }
-        }
-
-        private void UpdatePartnerBankID(int Header_ID, VendorBankModel Vendor_Bank, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using(var cmd = new SqlCommand("usp_AffiliateClaim_UpdateVendorBank", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Bank_Name", typeString, Vendor_Bank.Bank_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@Partner_Bank", typeString, Vendor_Bank.Partner_Bank));
-                    cmd.Parameters.Add(CreateSQLParam("@Account_No", typeString, Vendor_Bank.Bank_Account_No));
-                    cmd.Parameters.Add(CreateSQLParam("@Account_Name", typeString, Vendor_Bank.Bank_Account_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@ID", typeInt, Header_ID));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while updating Affiliate Claim bank info | {ex.Message}");
-            }
-        }
-
-        private void UpdateWHT(int Header_ID, List<AffiliateClaimDetail> Details, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                DataTable dTable = new DataTable();
-                dTable.Columns.Add("Header_ID", typeof(int));
-                dTable.Columns.Add("Customer_Type", typeof(string));
-                dTable.Columns.Add("Customer_No", typeof(string));
-                dTable.Columns.Add("Tax_Base", typeof(decimal));
-                dTable.Columns.Add("VAT", typeof(string));
-                dTable.Columns.Add("GL", typeof(string));
-                dTable.Columns.Add("VAT_Amount", typeof(decimal));
-                dTable.Columns.Add("Tax_Invoice_No", typeof(string));
-                dTable.Columns.Add("Description", typeof(string));
-                dTable.Columns.Add("WHT_Description", typeof(string));
-                dTable.Columns.Add("WHT_Amount", typeof(decimal));
-                dTable.Columns.Add("Total_Amount", typeof(decimal));
-                foreach (var d in Details)
-                {
-                    dTable.Rows.Add(Header_ID, d.Customer_Name, d.Customer_No,
-                        d.Tax_Base, d.Tax_Code, "", d.VAT_Amount, d.Tax_Invoice_Number,
-                        d.Texting, d.WHT_Type, d.WHT_Amount, d.Total_Amount);
-
-                }
-                using (SqlCommand cmd = new SqlCommand("[usp_AffiliateClaimDetailSaveWHT]", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p = cmd.Parameters.AddWithValue("@Details", dTable);
-                    p.SqlDbType = SqlDbType.Structured;
-                    p.TypeName = "AffiliateClaimDetailType";
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while updating Affiliate Claim WHT | {ex.Message}");
-            }
-        }
-
-        private void InsertHistoryLog(AffiliateClaimHeaderModel Header, TaskActionModel Action, SqlConnection conn, SqlTransaction trans)
-        {
-            try
-            {
-                using (var cmd = new SqlCommand("usp_InsertApprovalLog", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Name", typeString, MODULE_NAME));
-                    cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
-                    cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Header.Business_Area));
-                    cmd.Parameters.Add(CreateSQLParam("@Personal_Name", typeString, Action.Approver_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@Personal_Account", typeString, Action.Approver_Account));
-                    cmd.Parameters.Add(CreateSQLParam("@Position", typeString, Action.Approver_Role));
-                    cmd.Parameters.Add(CreateSQLParam("@Comments", typeString, Action.Comment));
-                    cmd.Parameters.Add(CreateSQLParam("@Action", typeInt, Action.Action_ID));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while inserting Affiliate Claim history log | {ex.Message}");
-            }
-        }
-
-        public AffiliateClaimHeaderModel GetHeaderData(string Form_No)
-        {
-            try
-            {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateClaimHeader_GetData", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Form_No", typeof(string), Form_No));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateClaimHeaderModel>(dt)[0];
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim Header records | {ex.Message}");
-            }
-        }
-
-        public List<AffiliateClaimDetail> GetDetailData(int Header_ID)
-        {
-            try
-            {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateClaimDetail_GetData", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeof(int), Header_ID));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateClaimDetail>(dt);
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim Detail records | {ex.Message}");
-            }
-        }
-
-        public List<AffiliateClaimAttachment> GetAttachmentsData(int Header_ID)
-        {
-            try
-            {
-                DataTable dt = new DataTable();
-                using(var con = new SqlConnection(connectionString))
-                {
-                    con.Open();
-                    using(var cmd = new SqlCommand("usp_AffiliateClaimAttachment_GetData", con))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeof(int), Header_ID));
-                        using(var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateClaimAttachment>(dt);
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred while fetching Affiliate Claim Detail records | {ex.Message}");
-            }
-        }
-
-        private void TriggerNAC(string Module_Code, int Item_ID, int Transaction_ID, string List_Name)
-        {
-            Task.Run(async () =>
-            {
-                var nwc = ntx.GenerateNACPayload(Transaction_ID, Item_ID, Module_Code, List_Name);
-                await ntx.StartNWC(nwc);
-            }).Wait();
-        }
-
-        public void Save(AffiliateClaimHeaderModel header, List<AffiliateClaimDetail> details, List<AffiliateClaimAttachment> attachments)
-        {
-            //if (header.Item_ID == 0) header.Item_ID = InsertToSPList(header);
-            header.Item_ID = InsertToSPList(header);
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                SqlTransaction trans = conn.BeginTransaction();
-                try
-                {
-                    int Header_ID = InsertHeader(conn, trans, header);
-                    InsertDetails(conn, trans, details, Header_ID);
-                    InsertAttachments(conn, trans, attachments, Header_ID, header.Item_ID);
-                    trans.Commit();
-                    if (header.Approval_Status == 5)
-                    {
-                        TriggerNAC(MODULE_CODE, header.Item_ID, header.ID, MODULE_NAME);
-                    }
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
-            }
-        }
-
-        private void InsertDetails(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimDetail> details, int Header_ID)
-        {
-            try
-            {
-                DataTable dTable = new DataTable();
-                dTable.Columns.Add("Header_ID", typeof(int));
-                dTable.Columns.Add("Customer_Type", typeof(string));
-                dTable.Columns.Add("Customer_No", typeof(string));
-                dTable.Columns.Add("Tax_Base", typeof(decimal));
-                dTable.Columns.Add("VAT", typeof(string));
-                dTable.Columns.Add("GL", typeof(string));
-                dTable.Columns.Add("VAT_Amount", typeof(decimal));
-                dTable.Columns.Add("Tax_Invoice_No", typeof(string));
-                dTable.Columns.Add("Description", typeof(string));
-                dTable.Columns.Add("WHT_Description", typeof(string));
-                dTable.Columns.Add("WHT_Amount", typeof(decimal));
-                dTable.Columns.Add("Total_Amount", typeof(decimal));
-                foreach (var d in details)
-                {
-                    dTable.Rows.Add(Header_ID, d.Customer_Name, d.Customer_No,
-                        d.Tax_Base, d.Tax_Code, "", d.VAT_Amount, d.Tax_Invoice_Number,
-                        d.Texting, d.WHT_Type, d.WHT_Amount, d.Total_Amount);
-
-                }
-                using (SqlCommand cmd = new SqlCommand("[usp_AffiliateClaimDetailSave]", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p = cmd.Parameters.AddWithValue("@Details", dTable);
-                    p.SqlDbType = SqlDbType.Structured;
-                    p.TypeName = "AffiliateClaimDetailType";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred in InsertDetails() while saving Affiliate Claim Detail records | {ex.Message}");
-            }
-        }
-
-        private void InsertAttachments(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimAttachment> attachments, int Header_ID, int Item_ID)
-        {
-            try
-            {
-                DataTable dTable = new DataTable();
-                dTable.Columns.Add("Header_ID", typeof(int));
-                dTable.Columns.Add("Doc_Type", typeof(string));
-                dTable.Columns.Add("Is_Mandatory", typeof(int));
-                dTable.Columns.Add("Attachment_Url", typeof(string));
-                dTable.Columns.Add("Attachment_Name", typeof(string));
-                foreach (var att in attachments)
-                {
-                    if (!string.IsNullOrEmpty(att.Attachment_Name))
-                    {
-                        string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
-                        dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
-                        sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
-                    }
-                }
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateClaimSaveAttachment", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p = cmd.Parameters.AddWithValue("@Attachments", dTable);
-                    p.SqlDbType = SqlDbType.Structured;
-                    p.TypeName = "AffiliateClaimAttachmentType";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred in InsertAttachments() while saving Affiliate Claim Attachment records | {ex.Message}");
-            }
-        }
-
-        private SqlParameter CreateSQLParam(string key, Type type, object value)
-        {
-            SqlParameter param = new SqlParameter { ParameterName = key, Value = value, Direction = ParameterDirection.Input };
-            if(type == typeof(string))
-            {
-                param.SqlDbType = SqlDbType.VarChar;
-            }
-            else if(type == typeof(int))
-            {
-                param.SqlDbType = SqlDbType.Int;
-            }
-            else if(type == typeof(decimal))
-            {
-                param.SqlDbType = SqlDbType.Decimal;
-            }
-            else if(type == typeof(DateTime))
-            {
-                param.SqlDbType = SqlDbType.DateTime;
-            }
-            else if(type == typeof(bool))
-            {
-                param.SqlDbType = SqlDbType.Bit;
-            }
-            return param;
-        }
-
-        private int InsertHeader(SqlConnection conn, SqlTransaction trans, AffiliateClaimHeaderModel header)
-        {
-            try
-            {
-                string query = "usp_AffiliateClaimHeaderSaveUpdate";
-                //if (header.Item_ID == 0) header.Item_ID = InsertToSPList(header);
-                using (SqlCommand cmd = new SqlCommand(query, conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeof(string), header.Form_No));
-                    cmd.Parameters.Add(CreateSQLParam("@Item_ID", typeof(int), header.Item_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@Request_Date", typeof(DateTime), Convert.ToDateTime(header.Request_Date)));
-                    cmd.Parameters.Add(CreateSQLParam("@Branch", typeof(string), header.Branch));
-                    cmd.Parameters.Add(CreateSQLParam("@Department", typeof(string), header.Department));
-                    cmd.Parameters.Add(CreateSQLParam("@Requester_Account", typeof(string), header.Requester_Account));
-                    cmd.Parameters.Add(CreateSQLParam("@Requester_Email", typeof(string), header.Requester_Email));
-                    cmd.Parameters.Add(CreateSQLParam("@Category", typeof(string), header.Category));
-                    cmd.Parameters.Add(CreateSQLParam("@Document_Date", typeof(DateTime), Convert.ToDateTime(header.Document_Date)));
-                    cmd.Parameters.Add(CreateSQLParam("@Vendor", typeof(string), header.Vendor));
-                    cmd.Parameters.Add(CreateSQLParam("@Vendor_Invoice_No", typeof(string), header.Vendor_Invoice_No));
-                    cmd.Parameters.Add(CreateSQLParam("@Assignment", typeof(string), header.Assignment));
-                    cmd.Parameters.Add(CreateSQLParam("@Claim_Type", typeof(string), header.Claim_Type));
-                    cmd.Parameters.Add(CreateSQLParam("@Total_Tax", typeof(decimal), header.Total_Tax));
-                    cmd.Parameters.Add(CreateSQLParam("@Total_VAT", typeof(decimal), header.Total_VAT));
-                    cmd.Parameters.Add(CreateSQLParam("@Total_WHT", typeof(decimal), header.Total_WHT));
-                    cmd.Parameters.Add(CreateSQLParam("@Grand_Total", typeof(decimal), header.Grand_Total));
-                    cmd.Parameters.Add(CreateSQLParam("@Requester_Name", typeof(string), header.Requester_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@Business_Area", typeof(string), header.Business_Area));
-                    cmd.Parameters.Add(CreateSQLParam("@Cost_Center", typeof(string), header.Cost_Center));
-                    cmd.Parameters.Add(CreateSQLParam("@Requester_Business_Area", typeof(string), header.Requester_Business_Area));
-                    cmd.Parameters.Add(CreateSQLParam("@Vendor_Code", typeof(string), header.Vendor_Code));
-                    cmd.Parameters.Add(CreateSQLParam("@Vendor_Name", typeof(string), header.Vendor_Name));
-                    cmd.Parameters.Add(CreateSQLParam("@Recon_Account", typeof(string), header.Recon_Account));
-                    SqlParameter outId = new SqlParameter("@OutID", SqlDbType.Int)
-                    {
-                        Direction = ParameterDirection.Output
-                    };
-                    cmd.Parameters.Add(outId);
-                    cmd.ExecuteNonQuery();
-                    return (int)outId.Value;
-                }
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Error occurred in InsertHeader() while saving Affiliate Claim Header record | {ex.Message}");
-            }
-        }
-        
-        private int InsertToSPList(AffiliateClaimHeaderModel header)
-        {
-            int Item_ID = Convert.ToInt32(header.Item_ID);
-            SPWeb web = new SPSite(urlSite).OpenWeb();
-            SPList list = web.Lists[MODULE_NAME];
-            web.AllowUnsafeUpdates = true;
-            SPListItem item = Item_ID == 0 ? list.Items.Add() : list.GetItemById(Item_ID);
-            item["Title"] = header.Form_No;
-            item["Request Date"] = Convert.ToDateTime(header.Request_Date);
-            item["Requester Branch"] = header.Branch;
-            item["Requester Department"] = header.Department;
-            item["Requester Account"] = header.Requester_Account;
-            item["Requester Email"] = header.Requester_Email;
-            item["Claim Category"] = header.Category;
-            item["Document Date"] = Convert.ToDateTime(header.Document_Date);
-            item["Vendor"] = header.Vendor;
-            item["Vendor Invoice No"] = header.Vendor_Invoice_No;
-            item["Assignment"] = header.Assignment;
-            item["Claim Type"] = header.Claim_Type;
-            item["Total Tax"] = header.Total_Tax;
-            item["Total VAT"] = header.Total_VAT;
-            item["Total WHT"] = header.Total_WHT;
-            item["Grand Total"] = header.Grand_Total;
-            item["Form Status"] = header.Form_Status;
-            item["Approval Status"] = header.Approval_Status_Name;
-            item["Approval Status ID"] = header.Approval_Status;
-            item["Requester Name"] = header.Requester_Name;
-            item["Requester Business Area"] = header.Requester_Business_Area;
-            item["Cost Center"] = header.Cost_Center;
-            item["Business Area"] = header.Business_Area_Item_ID;
-            item["Vendor Code"] = header.Vendor_Code;
-            item["Vendor Name"] = header.Vendor_Name;
-            item["Recon Account"] = header.Recon_Account;
-            item["Transaction ID"] = 0;
-            //item["Author"] = header.Requester_Account;
-            item.Update();
-            return item.ID;
-        }
-
-        private byte[] DownloadFileFromUrl(string fileUrl)
-        {
-            using(var client = new WebClient())
-            {
-                return client.DownloadData(fileUrl);
-            }
-        }
-
     }
-
 }

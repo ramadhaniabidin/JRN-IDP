@@ -554,7 +554,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private void UpdateSPListStatus(int Item_ID)
         {
             SPWeb web = new SPSite(urlSite).OpenWeb();
-            SPList list = web.Lists["Affiliate Fully Claim"];
+            SPList list = web.Lists[MODULE_NAME];
             web.AllowUnsafeUpdates = true;
             SPListItem item = list.GetItemById(Item_ID);
             item["Approval Status"] = "Approved";
@@ -691,7 +691,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(CreateSQLParam("@Module_Code", typeString, "M027"));
-                    cmd.Parameters.Add(CreateSQLParam("@Module_Name", typeString, "Affiliate Fully Claim"));
+                    cmd.Parameters.Add(CreateSQLParam("@Module_Name", typeString, MODULE_NAME));
                     cmd.Parameters.Add(CreateSQLParam("@Transaction_ID", typeInt, Header.ID));
                     cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Header.Form_No));
                     cmd.Parameters.Add(CreateSQLParam("@Branch", typeString, Header.Business_Area));
@@ -876,9 +876,9 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 {
                     if (!string.IsNullOrEmpty(att.Attachment_Name))
                     {
-                        string attachment_url = $"/Lists/Affiliate Fully Claim/Attachments/{Item_ID}/{att.Attachment_Name}";
+                        string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
                         dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
-                        sp.UploadFileInCustomList("Affiliate Fully Claim", Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
+                        sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
                     }
                 }
                 using (SqlCommand cmd = new SqlCommand("usp_AffiliateClaimSaveAttachment", conn, trans))
@@ -974,7 +974,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         {
             int Item_ID = Convert.ToInt32(header.Item_ID);
             SPWeb web = new SPSite(urlSite).OpenWeb();
-            SPList list = web.Lists["Affiliate Fully Claim"];
+            SPList list = web.Lists[MODULE_NAME];
             web.AllowUnsafeUpdates = true;
             SPListItem item = Item_ID == 0 ? list.Items.Add() : list.GetItemById(Item_ID);
             item["Title"] = header.Form_No;
