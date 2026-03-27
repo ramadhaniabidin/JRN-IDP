@@ -30,7 +30,7 @@ public class AffiliateClaimController
         private readonly string connectionString = Utility.GetSqlConnection();
         private readonly string formUrl = "/_layouts/15/Daikin.Application/Modules/ClaimReimbursement/affiliateclaim.aspx?ID=";
         private readonly string MODULE_CODE = "M027";
-        private readonly string MODULE_NAME = "Affiliate Fully Claim";
+        private const string MODULE_NAME = "Affiliate Fully Claim";
         private readonly string MANAGER_EMAIL_KEY = "Manager Email";
         private readonly string MANAGER_NAME_KEY = "Manager Name";
         private readonly string TABLE_HEADER = "AffiliateClaimHeader";
