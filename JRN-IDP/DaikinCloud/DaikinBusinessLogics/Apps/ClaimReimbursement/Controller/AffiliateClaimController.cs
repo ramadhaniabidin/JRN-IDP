@@ -799,7 +799,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public void Save(AffiliateClaimHeaderModel header, List<AffiliateClaimDetail> details, List<AffiliateClaimAttachment> attachments)
         {
-            //if (header.Item_ID == 0) header.Item_ID = InsertToSPList(header);
             header.Item_ID = InsertToSPList(header);
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
@@ -928,7 +927,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             try
             {
                 string query = "usp_AffiliateClaimHeaderSaveUpdate";
-                //if (header.Item_ID == 0) header.Item_ID = InsertToSPList(header);
                 using (SqlCommand cmd = new SqlCommand(query, conn, trans))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -1005,7 +1003,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             item["Vendor Name"] = header.Vendor_Name;
             item["Recon Account"] = header.Recon_Account;
             item["Transaction ID"] = 0;
-            //item["Author"] = header.Requester_Account;
             item.Update();
             return item.ID;
         }
