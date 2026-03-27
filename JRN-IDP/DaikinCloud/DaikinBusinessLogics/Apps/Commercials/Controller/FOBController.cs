@@ -540,7 +540,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     var BP_Name = listBussPlace.Where(w => w.Code.ToUpper() == BP_Code.ToUpper());
                     if (BP_Name.Any())
                     {
-                        string Name = BP_Name.FirstOrDefault().Name;
+                        string Name = BP_Name.First().Name;
                         row["Business_Place_Name"] = Name;
                     }
                     else

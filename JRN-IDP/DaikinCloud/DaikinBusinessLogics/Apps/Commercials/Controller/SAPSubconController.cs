@@ -325,19 +325,11 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             List<string> listPurchasingDoc = new List<string>();
             foreach(string file in System.IO.Directory.EnumerateFiles(FolderPath, "*.txt"))
             {
-                try
+                string[] lines = System.IO.File.ReadAllLines(file);
+                foreach (string line in lines)
                 {
-                    string[] lines = System.IO.File.ReadAllLines(file);
-                    foreach(string line in lines)
-                    {
-                        ProcessEachLineSubconGR(file, line);
-                    }
+                    ProcessEachLineSubconGR(file, line);
                 }
-                catch
-                {
-
-                }
-
             }
         }
 

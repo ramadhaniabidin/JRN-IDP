@@ -35,51 +35,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             return dates[2] + "-" + dates[1] + "-" + dates[0];
         }
 
-        public int UpdateBatchHistory(string formNo, string documentNumberSAP, string postingDate, 
-                                      string amount, string status, string filePath, string Due_Date, 
-                                      string Document_SAP_Date)
-        {
-            dt = new DataTable();
-            try
-            {
-                db.OpenConnection(ref conn, true);
-
-                db.cmd.CommandText = "usp_BatchFileHistory_UpdateSAPFeedback";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "formNo", formNo);
-                db.AddInParameter(db.cmd, "status", status);
-                db.AddInParameter(db.cmd, "documentNumberSAP", documentNumberSAP);
-                db.AddInParameter(db.cmd, "postingDate", postingDate);
-                db.AddInParameter(db.cmd, "filePath", filePath);
-                db.AddInParameter(db.cmd, "amount", amount);
-                db.AddInParameter(db.cmd, "isPosting", 1);
-                db.AddInParameter(db.cmd, "Due_Date", Due_Date);
-                db.AddInParameter(db.cmd, "Document_SAP_Date", Document_SAP_Date);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-
-                db.CloseConnection(ref conn, true);
-
-                if (dt.Rows.Count < 1)
-                {
-                    db.CloseConnection(ref conn);
-                    throw new Exception("There is no item with Form_No \"" + formNo + "\" in BatchFileHistory");
-                }
-
-                var itemID = Convert.ToInt32(dt.Rows[0][0].ToString());
-                return itemID;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         //public void ReadBatchFeedbacks(ref int total, ref int count)
         //{
         //    var filePaths = Directory.GetFiles(sapPath);
