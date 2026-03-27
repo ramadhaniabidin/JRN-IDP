@@ -71,7 +71,7 @@ function RepeatingSectionPopUp() {
 };
 
 function PopUp_GenerateTableHeaders(module) {
-    if (module === "ANC Vendor Bank" || module === "ANC Vendor Bank RS") {
+    if (module === "ANC Vendor Bank") {
         tblHeaders = [
             { db_col: "Vendor_Name", name: "Vendor Name" },
             { db_col: "Vendor_Number", name: "Vendor Number" },
@@ -82,18 +82,34 @@ function PopUp_GenerateTableHeaders(module) {
             { db_col: "Partner_Bank", name: "Partner Bank" },
         ];
     }
+
+    if (module === "ANC Vendor Bank RS") {
+        tblHeaders = [
+            { db_col: "Vendor_Name", name: "Vendor Name" },
+            { db_col: "Vendor_Number", name: "Vendor Number" },
+            { db_col: "Recon_Account", name: "Recon Account" },
+        ];
+    }
 };
 
 function PopUp_GenerateOptions(module) {
-    if (module === "ANC Vendor Bank" || module === "ANC Vendor Bank RS") {
+    if (module === "ANC Vendor Bank") {
         options = [
+            { value: "Bank_Account_Name", name: "Account Name" },
             { value: "Vendor_Name", name: "Vendor Name" },
             { value: "Vendor_Number", name: "Vendor Number" },
             { value: "Bank_Key", name: "Bank Key" },
             { value: "Bank_Account_No", name: "Account No" },
-            { value: "Bank_Account_Name", name: "Account Name" },
             { value: "Bank_Name", name: "Bank Name" },
             { value: "Partner_Bank", name: "Partner Bank" },
+        ];
+    }
+
+    if (module === "ANC Vendor Bank RS") {
+        options = [
+            { value: "Vendor_Name", name: "Vendor Name" },
+            { value: "Vendor_Number", name: "Vendor Number" },
+            { value: "Recon_Account", name: "Recon Account" },
         ];
     }
 };
@@ -334,8 +350,11 @@ function PopUp_ValidateKeywords(keywords, moduleName) {
     if ((keywords === null) || (keywords === undefined)) {
         keywords = "";
     }
-    if (moduleName === "ANC Vendor Bank" || moduleName === "ANC Vendor Bank RS") {
+    if (moduleName === "ANC Vendor Bank") {
         keywords += ";bea cukai;1";
+    }
+    if(moduleName === "ANC Vendor Bank RS"){
+        keywords += ";1"
     }
     return keywords;
 };
@@ -344,8 +363,11 @@ function PopUp_ValidateSearchBy(searchBy, moduleName) {
     if (searchBy === null || searchBy === undefined) {
         searchBy = "";
     }
-    if (moduleName === "ANC Vendor Bank" || moduleName === "ANC Vendor Bank RS") {
+    if (moduleName === "ANC Vendor Bank") {
         searchBy += ";Vendor_Name;Active";
+    }
+    if(moduleName === "ANC Vendor Bank RS"){
+        searchBy += ";Active";
     }
     return searchBy;
 };
@@ -356,7 +378,10 @@ function PopUp_GetTargetIDnColumns(module) {
         trgtID = [VendorName, VendorNumber, BankKey, BankAccountNo, BankAccountName, BankName, PartnerBank];
         trgtCol = ["Vendor_Name", "Vendor_Number", "Bank_Key", "Bank_Account_No", "Bank_Account_Name", "Bank_Name", "Partner_Bank"];
     } else if (module === "ANC Vendor Bank RS") {
-        tblName = "MasterVendorBankAffiliate";
+        // tblName = "MasterVendorBankAffiliate";
+        // trgtID = ["VendorName"];
+        // trgtCol = ["Vendor_Name"];
+        tblName = "MasterVendorAffiliate";
         trgtID = ["VendorName"];
         trgtCol = ["Vendor_Name"];
     }

@@ -264,7 +264,8 @@ function HandlePopUpSuccess(data, param, tBodyHTML) {
     logs.forEach((rowValues, index) => {
         const dataRow = document.createElement("tr");
         tblHeaders.forEach((header, _) => {
-            const valueObj = rowValues.filter(x => x.Key === header.db_col)[0];
+            // const valueObj = rowValues.filter(x => x.Key === header.db_col)[0];
+            const valueObj = rowValues.find(row => row.Key === header.db_col);
             const value = FormatValue(valueObj ? valueObj.Value : "");
             const dataCol = GenerateDataColumn(value);
             dataRow.appendChild(dataCol);
@@ -310,33 +311,41 @@ function PopUp_SelectItem(id) {
     console.log(id + " module name: " + moduleName)
     if (moduleName == "Product") {
         if ((itemsRS_currSelected !== null) && (itemsRS_currSelected !== undefined)) {
-
             $.each(trgtID, function (index, values) {
-                if (values == "product_name") {
-                    itemsRS_currSelected.find("." + values + " textarea").val(dataResult[id].filter(e => e.Key == trgtCol[index])[0].Value);
-                }
-                else {
-                    itemsRS_currSelected.find("." + values + " input").val(dataResult[id].filter(e => e.Key == trgtCol[index])[0].Value);
-                }
-                console.log(moduleName + " | set TargetID: " + values + " = " + dataResult[id].filter(e =>
-                    e.Key == trgtCol[index]
-                )[0].Value)
+                const fieldValue = dataResult[id].find(d => d.Key === trgtCol[index]).Value;
+                const fieldControl = (values === "product_name") ? " textarea" : " input";
+                itemsRS_currSelected.find("." + values + fieldControl).val(fieldValue);
+                console.log(moduleName + " | set TargetID: " + values + " = " + fieldValue);
 
-                itemsRS_currSelected.find("." + values + " input.nf-associated-control").prop('readonly', true);
+
+
+                // if (values == "product_name") {
+                //     itemsRS_currSelected.find("." + values + " textarea").val(dataResult[id].filter(e => e.Key == trgtCol[index])[0].Value);
+                // }
+                // else {
+                //     itemsRS_currSelected.find("." + values + " input").val(dataResult[id].filter(e => e.Key == trgtCol[index])[0].Value);
+                // }
+                // console.log(moduleName + " | set TargetID: " + values + " = " + dataResult[id].filter(e =>
+                //     e.Key == trgtCol[index]
+                // )[0].Value)
+
+                // itemsRS_currSelected.find("." + values + " input.nf-associated-control").prop('readonly', true);
             })
             itemsRS_currSelected = null;
         }
     }
     else if (moduleName == "UnloadingFee") {
         $.each(trgtCol, function (index, values) {
-            let resultValue;
-            if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
-                resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
-            }
+            // let resultValue;
+            const dataObj = dataResult[id].find(d => d.Key === values);
+            const resultValue = (dataObj) ? dataObj.Value : "";
+            // if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
+            //     resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
+            // }
 
-            else if ((dataResult[id].filter(e => e.Key == values)[0] == null) || (dataResult[id].filter(e => e.Key == values)[0] == undefined)) {
-                resultValue = "";
-            }
+            // else if ((dataResult[id].filter(e => e.Key == values)[0] == null) || (dataResult[id].filter(e => e.Key == values)[0] == undefined)) {
+            //     resultValue = "";
+            // }
 
             //let resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
 
@@ -384,8 +393,11 @@ function PopUp_SelectItem(id) {
                 console.log('JSON data : ', jsonData);
 
                 dataResult = jsonData.Logs[0];
-                NWF$("#" + BankKeyName).val(dataResult.filter(x => x.Key == "Description")[0].Value);
-                NWF$("#" + BankName).val(dataResult.filter(x => x.Key == "Description")[0].Value);
+                const value = dataResult.find(d => d.Key === "Description").Value;
+                NWF$("#" + BankKeyName).val(value);
+                NWF$("#" + BankName).val(value);
+                // NWF$("#" + BankKeyName).val(dataResult.filter(x => x.Key == "Description")[0].Value);
+                // NWF$("#" + BankName).val(dataResult.filter(x => x.Key == "Description")[0].Value);
                 //NWF$("#" + Desc).html(('Unloading Fee - ') + vendorName);
 
                 //NWF$(".desc label").html(('Unloading Fee - ') + vendorName);
@@ -407,14 +419,16 @@ function PopUp_SelectItem(id) {
 
     else {
         $.each(trgtCol, function (index, values) {
-            let resultValue;
-            if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
-                resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
-            }
+            const dataObj = dataResult[id].find(d => d.Key === values);
+            const resultValue = (dataObj) ? dataObj.Value : "";
 
-            else if ((dataResult[id].filter(e => e.Key == values)[0] == null) || (dataResult[id].filter(e => e.Key == values)[0] == undefined)) {
-                resultValue = "";
-            }
+            // if ((dataResult[id].filter(e => e.Key == values)[0] !== null) && (dataResult[id].filter(e => e.Key == values)[0] !== undefined)) {
+            //     resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
+            // }
+
+            // else if ((dataResult[id].filter(e => e.Key == values)[0] == null) || (dataResult[id].filter(e => e.Key == values)[0] == undefined)) {
+            //     resultValue = "";
+            // }
 
             //let resultValue = dataResult[id].filter(e => e.Key == values)[0].Value;
 

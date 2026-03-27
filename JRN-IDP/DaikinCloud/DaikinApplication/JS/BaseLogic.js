@@ -189,3 +189,55 @@ function onSuccessGetWorkflowHistoryLog(response) {
     });
     $("#tblHistory > tbody").append(trHTML);
 };
+
+
+const ddlExpenseType = [
+    { 'Active': 1, 'Expense Type': 'Please Select', 'GL': '', 'GL Description': '', 'Material Code': '', 'Material Description': '' },
+    { 'Active': 1, 'Expense Type': 'Biaya Pengiriman', 'GL': '5271100000', 'GL Description': 'SHIPPING AND HANDLING EXPENSE', 'Material Code': 'ZGA010000005', 'Material Description': 'Shipping and Handling Expense' },
+    { 'Active': 0, 'Expense Type': 'Biaya Materai', 'GL': '5271700000', 'GL Description': 'OFFICE SUPPLIES EXPENSE', 'Material Code': 'ZGA010005002', 'Material Description': 'Stamp Duty' }
+];
+
+const arr = [
+    { db_col: "Vendor_Name", name: "Vendor Name" },
+    { db_col: "Vendor_Number", name: "Vendor Number" },
+    { db_col: "Bank_Key", name: "Bank Key" },
+    { db_col: "Bank_Account_No", name: "Account No" },
+    { db_col: "Bank_Account_Name", name: "Account Name" },
+    { db_col: "Bank_Name", name: "Bank Name" },
+    { db_col: "Partner_Bank", name: "Partner Bank" },
+];
+
+
+const PO = (nintexNo) => {
+    return {
+        "Quote": {
+            "base64": "",
+            "fileName": "filename.ext",
+        },
+        "PO": {
+            "vendorName": "",
+            "vendorCode": "",
+            "createdDate": "YYYY-MM-DD hh:mm:ss",
+            "poSAPNumber": "",
+            "base64": "",
+            "fileName": "filename.ext",
+            "poStatus": "status dari PO Release",
+            "contract": {
+                "contractNumber": "CT25xxxx",
+                "periodStart": "YYYY-MM-DD",
+                "periodEnd": "YYYY-MM-DD"
+            }
+        },
+    };
+};
+
+const Invoice = (nintexNo) => {
+    return {
+        "Invoice": {
+            "invoiceNumber": "",
+            "invoiceSubmitDate": "(ambil dari tanggal submit PO Release) YYYY-MM-DD hh:mm:ss",
+            "fileName": "filename.ext",
+            "base64": ""
+        }
+    };
+};
