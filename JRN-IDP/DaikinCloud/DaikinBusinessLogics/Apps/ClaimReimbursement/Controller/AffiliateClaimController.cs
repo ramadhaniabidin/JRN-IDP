@@ -923,15 +923,14 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             dTable.Columns.Add("Is_Mandatory", typeof(int));
             dTable.Columns.Add("Attachment_Url", typeof(string));
             dTable.Columns.Add("Attachment_Name", typeof(string));
-            foreach (var att in attachments)
+
+            foreach (var att in attachments.Where(att => !string.IsNullOrEmpty(att.Attachment_Name)))
             {
-                if (!string.IsNullOrEmpty(att.Attachment_Name))
-                {
-                    string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
-                    dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
-                    sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
-                }
+                string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
+                dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
+                sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
             }
+
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateClaimSaveAttachment", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
