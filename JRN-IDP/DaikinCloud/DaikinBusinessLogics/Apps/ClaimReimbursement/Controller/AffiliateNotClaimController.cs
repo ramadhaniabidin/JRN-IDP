@@ -38,6 +38,9 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private readonly string MANAGER_EMAIL_KEY = "Manager Email";
         private readonly string MANAGER_NAME_KEY = "Manager Name";
         private readonly string TABLE_HEADER = "AffiliateClaimHeader";
+        private readonly string DETAILS_KEY = "@Details";
+        private readonly string SQL_PARAM_TYPE = "AffiliateNotClaimDetailType";
+        private readonly string HEADER_ID_KEY = "@Header_ID";
         private const bool configureAwait = false;
 
 
@@ -251,9 +254,9 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_Save", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                var param = cmd.Parameters.AddWithValue("@Details", dt);
+                var param = cmd.Parameters.AddWithValue(DETAILS_KEY, dt);
                 param.SqlDbType = SqlDbType.Structured;
-                param.TypeName = "AffiliateNotClaimDetailType";
+                param.TypeName = SQL_PARAM_TYPE;
                 cmd.ExecuteNonQuery();
             }
         }
@@ -264,9 +267,9 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_Save", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                var p = cmd.Parameters.AddWithValue("@Details", dt);
+                var p = cmd.Parameters.AddWithValue(DETAILS_KEY, dt);
                 p.SqlDbType = SqlDbType.Structured;
-                p.TypeName = "AffiliateNotClaimDetailType";
+                p.TypeName = SQL_PARAM_TYPE;
                 await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait);
             }
         }
@@ -407,7 +410,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 using (var cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
                     using (var reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
@@ -431,7 +434,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 using (var cmd = new SqlCommand("usp_AffiliateNotClaimAttachment_GetData", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
                     using (var reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
@@ -455,7 +458,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 using (var cmd = new SqlCommand("[usp_AffiliateNotClaimRemarks_ListByID]", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
                     using (var reader = cmd.ExecuteReader())
                     {
                         dt.Load(reader);
@@ -531,7 +534,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@List_Name", MODULE_NAME);
-                cmd.Parameters.AddWithValue("@Header_ID", Header_ID);
+                cmd.Parameters.AddWithValue(HEADER_ID_KEY, Header_ID);
                 cmd.Parameters.AddWithValue("@Comments", Action.Comment);
                 cmd.Parameters.AddWithValue("@Approver_Name", Action.Approver_Name);
                 cmd.Parameters.AddWithValue("@Approver_Account", Action.Approver_Account);
@@ -546,7 +549,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@List_Name", MODULE_NAME);
-                cmd.Parameters.AddWithValue("@Header_ID", Header_ID);
+                cmd.Parameters.AddWithValue(HEADER_ID_KEY, Header_ID);
                 cmd.Parameters.AddWithValue("@Comments", Action.Comment);
                 cmd.Parameters.AddWithValue("@Approver_Name", Action.Approver_Name);
                 cmd.Parameters.AddWithValue("@Approver_Account", Action.Approver_Account);
@@ -583,10 +586,10 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_SaveWHT", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                var param = cmd.Parameters.AddWithValue("@Details", dt);
+                cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
+                var param = cmd.Parameters.AddWithValue(DETAILS_KEY, dt);
                 param.SqlDbType = SqlDbType.Structured;
-                param.TypeName = "AffiliateNotClaimDetailType";
+                param.TypeName = SQL_PARAM_TYPE;
                 cmd.ExecuteNonQuery();
             }
         }
@@ -597,10 +600,10 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_SaveWHT", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                var param = cmd.Parameters.AddWithValue("@Details", t);
+                cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
+                var param = cmd.Parameters.AddWithValue(DETAILS_KEY, t);
                 param.SqlDbType = SqlDbType.Structured;
-                param.TypeName = "AffiliateNotClaimDetailType";
+                param.TypeName = SQL_PARAM_TYPE;
                 await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
@@ -611,7 +614,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaim_SaveRemarks", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
                 var param = cmd.Parameters.AddWithValue("@Remarks", dt);
                 param.SqlDbType = SqlDbType.Structured;
                 param.TypeName = "AffiliateNotClaimRemarksType";
@@ -625,7 +628,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaim_SaveRemarks", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                cmd.Parameters.Add(CreateSQLParam(HEADER_ID_KEY, typeInt, Header_ID));
                 var param = cmd.Parameters.AddWithValue("@Remarks", dt);
                 param.SqlDbType = SqlDbType.Structured;
                 param.TypeName = "AffiliateNotClaimRemarksType";
