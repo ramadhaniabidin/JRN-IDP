@@ -877,7 +877,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             }
         }
 
-        private void InsertDetails(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimDetail> details, int Header_ID)
+        private static void InsertDetails(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimDetail> details, int Header_ID)
         {
             using (SqlCommand cmd = new SqlCommand("[usp_AffiliateClaimDetailSave]", conn, trans))
             {
