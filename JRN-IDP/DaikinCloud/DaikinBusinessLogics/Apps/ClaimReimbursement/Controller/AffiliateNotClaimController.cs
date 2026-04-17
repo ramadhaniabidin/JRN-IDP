@@ -86,7 +86,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             item["Requester Email"] = header.Requester_Email;
             item["Requester Name"] = header.Requester_Name;
             item["BPN Paid By"] = header.BPN_Paid_By;
-            //item["PPJK"] = header.PPJK;
             item["Requester Business Area"] = header.Requester_Business_Area;
             item["Cost Center"] = header.Cost_Center;
             item["Document Date"] = Convert.ToDateTime(header.PPJK_Invoice_Date);
@@ -157,21 +156,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             {
                 await TriggerNACAsync(MODULE_CODE, Header.Item_ID, headerId, MODULE_NAME).ConfigureAwait(configureAwait);
             }
-            #region commented out code - not confident to delete yet
-            //Header.Item_ID = InsertToSPList(Header);
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    await conn.OpenAsync().ConfigureAwait(configureAwait);
-            //    using (SqlTransaction trans = conn.BeginTransaction())
-            //    {
-            //        int Header_ID = await InsertHeaderAsync(conn, trans, Header).ConfigureAwait(configureAwait);
-            //        await InsertDetailsAsync(conn, trans, Details, Header_ID).ConfigureAwait(configureAwait);
-            //        await InsertAttachmentsAsync(conn, trans, attachments, Header_ID, Header.Item_ID).ConfigureAwait(configureAwait);
-            //        trans.Commit();
-            //        if (Header.Approval_Status == 5) await TriggerNACAsync(MODULE_CODE, Header.Item_ID, Header.ID, MODULE_NAME).ConfigureAwait(configureAwait);
-            //    }
-            //}
-            #endregion
         }
 
         private void TriggerNAC(string Module_Code, int Item_ID, int Transaction_ID, string List_Name)
