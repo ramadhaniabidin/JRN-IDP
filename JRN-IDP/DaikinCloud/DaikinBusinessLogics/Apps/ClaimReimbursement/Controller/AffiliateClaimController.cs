@@ -345,7 +345,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private int GetTotalApprovalLayer(string Module_Code, int Item_ID)
         {
             int totalLayer = 0;
-            DataTable dt = new DataTable();
             using (var con = new SqlConnection(connectionString))
             {
                 con.Open();
