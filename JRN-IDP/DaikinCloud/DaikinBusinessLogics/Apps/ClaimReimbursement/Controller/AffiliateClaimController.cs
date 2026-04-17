@@ -193,6 +193,18 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private ApproverRoleModel GetOtherRolePIC(List<ApproverRoleModel> List_Approver, int Order_ID)
         {
+            //string names = List_Approver[0].User_FullName;
+            //string emails = List_Approver[0].User_Email;
+            //if(List_Approver.Count > 1)
+            //{
+            //    for(int i = 1; i < List_Approver.Count; i++)
+            //    {
+            //        var app = List_Approver[i];
+            //        names += $";{app.User_FullName}";
+            //        emails += $";{app.User_Email};";
+            //    }
+            //}
+
             if (List_Approver == null || List_Approver.Count == 0) return null;
 
             return new ApproverRoleModel
@@ -423,7 +435,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             using (SqlConnection _conn = new SqlConnection(connectionString))
             {
                 await _conn.OpenAsync().ConfigureAwait(false);
-                using(SqlTransaction _trans = _conn.BeginTransaction())
+                using (SqlTransaction _trans = _conn.BeginTransaction())
                 {
                     var taskAssignmentResponse = await ntx.GetTaskAssignmentAsync(Header.Task_ID, Header.Form_No).ConfigureAwait(false);
                     await UpdateTaskResponderAsync(Header.ID, Action, _conn, _trans).ConfigureAwait(false);
@@ -453,24 +465,24 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                     InsertHistoryLog(Header, Action, conn, trans);
                     ApprovalAction(Header, Action, conn, trans);
                     CompleteTaskApproval(Action.Approver_Email, Action.Action_Name, Action.Comment, Header.Task_ID, conn, trans);
-                    if(Header.Pending_Approver_Role_ID == 1)        // Receiver Document
+                    if (Header.Pending_Approver_Role_ID == 1)        // Receiver Document
                     {
                         UpdateDocumentReceived(Header, Action.IsDocumentReceived, conn, trans);
                     }
-                    if(Header.Pending_Approver_Role_ID == 48)       // Verifier Document
+                    if (Header.Pending_Approver_Role_ID == 48)       // Verifier Document
                     {
                         UpdatePartnerBankID(Header.ID, Vendor_Bank, conn, trans);
                     }
-                    if(Header.Pending_Approver_Role_ID == 15)       // Tax verifier
+                    if (Header.Pending_Approver_Role_ID == 15)       // Tax verifier
                     {
                         UpdateWHT(Header.ID, Details, conn, trans);
                     }
-                    if(Action.Action_ID == 7 && (Header.Index_Approver + 1) <= Header.Total_Layer_Approval)
+                    if (Action.Action_ID == 7 && (Header.Index_Approver + 1) <= Header.Total_Layer_Approval)
                     {
                         Header.Index_Approver++;
                         InsertApprovalQueue(Header, conn, trans);
                     }
-                    else if(Action.Action_ID == 7 && (Header.Index_Approver + 1) > Header.Total_Layer_Approval)
+                    else if (Action.Action_ID == 7 && (Header.Index_Approver + 1) > Header.Total_Layer_Approval)
                     {
                         FinalizeApproval(Header.Item_ID, conn, trans);
                         UpdateSPListStatus(Header.Item_ID);
@@ -490,7 +502,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void FinalizeApproval(int Item_ID, SqlConnection conn, SqlTransaction trans)
         {
-            using(var cmd = new SqlCommand("usp_NWC_completeApproval", conn, trans))
+            using (var cmd = new SqlCommand("usp_NWC_completeApproval", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(CreateSQLParam(ITEM_ID_KEY, typeInt, Item_ID));
@@ -503,11 +515,11 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         {
             string query = "SELECT TOP 1 CAST(ID AS INT) AS ID FROM MasterSAPFolderLocation WHERE Module_Code = @Module_Code ORDER BY ID DESC";
             int folderID = -1;
-            using(var cmd = new SqlCommand(query, conn, trans))
+            using (var cmd = new SqlCommand(query, conn, trans))
             {
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.Add(CreateSQLParam(MODULE_CODE_KEY, typeString, MODULE_CODE));
-                using(var reader = cmd.ExecuteReader())
+                using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
@@ -662,7 +674,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             t.Columns.Add("WHT_Amount", typeof(decimal));
             t.Columns.Add("Total_Amount", typeof(decimal));
 
-            foreach(var d in Details)
+            foreach (var d in Details)
             {
                 t.Rows.Add(Header_ID, d.Customer_Name, d.Customer_No,
                     d.Tax_Base, d.Tax_Code, "", d.VAT_Amount, d.Tax_Invoice_Number,
@@ -868,6 +880,18 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void InsertDetails(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimDetail> details, int Header_ID)
         {
+            using (SqlCommand cmd = new SqlCommand("[usp_AffiliateClaimDetailSave]", conn, trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                SqlParameter p = cmd.Parameters.AddWithValue("@Details", InsertDetailParameter(details, Header_ID));
+                p.SqlDbType = SqlDbType.Structured;
+                p.TypeName = "AffiliateClaimDetailType";
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private DataTable InsertDetailParameter(List<AffiliateClaimDetail> details, int header_id)
+        {
             DataTable dTable = new DataTable();
             dTable.Columns.Add("Header_ID", typeof(int));
             dTable.Columns.Add("Customer_Type", typeof(string));
@@ -883,19 +907,12 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             dTable.Columns.Add("Total_Amount", typeof(decimal));
             foreach (var d in details)
             {
-                dTable.Rows.Add(Header_ID, d.Customer_Name, d.Customer_No,
+                dTable.Rows.Add(header_id, d.Customer_Name, d.Customer_No,
                     d.Tax_Base, d.Tax_Code, "", d.VAT_Amount, d.Tax_Invoice_Number,
                     d.Texting, d.WHT_Type, d.WHT_Amount, d.Total_Amount);
 
             }
-            using (SqlCommand cmd = new SqlCommand("[usp_AffiliateClaimDetailSave]", conn, trans))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                SqlParameter p = cmd.Parameters.AddWithValue("@Details", dTable);
-                p.SqlDbType = SqlDbType.Structured;
-                p.TypeName = "AffiliateClaimDetailType";
-                cmd.ExecuteNonQuery();
-            }
+            return dTable;
         }
 
         private void InsertAttachments(SqlConnection conn, SqlTransaction trans, List<AffiliateClaimAttachment> attachments, int Header_ID, int Item_ID)
@@ -928,23 +945,23 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private SqlParameter CreateSQLParam(string key, Type type, object value)
         {
             SqlParameter param = new SqlParameter { ParameterName = key, Value = value, Direction = ParameterDirection.Input };
-            if(type == typeof(string))
+            if (type == typeof(string))
             {
                 param.SqlDbType = SqlDbType.VarChar;
             }
-            else if(type == typeof(int))
+            else if (type == typeof(int))
             {
                 param.SqlDbType = SqlDbType.Int;
             }
-            else if(type == typeof(decimal))
+            else if (type == typeof(decimal))
             {
                 param.SqlDbType = SqlDbType.Decimal;
             }
-            else if(type == typeof(DateTime))
+            else if (type == typeof(DateTime))
             {
                 param.SqlDbType = SqlDbType.DateTime;
             }
-            else if(type == typeof(bool))
+            else if (type == typeof(bool))
             {
                 param.SqlDbType = SqlDbType.Bit;
             }
@@ -991,7 +1008,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 return (int)outId.Value;
             }
         }
-        
+
         private int InsertToSPList(AffiliateClaimHeaderModel header)
         {
             int Item_ID = Convert.ToInt32(header.Item_ID);
@@ -1032,7 +1049,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private byte[] DownloadFileFromUrl(string fileUrl)
         {
-            using(var client = new WebClient())
+            using (var client = new WebClient())
             {
                 return client.DownloadData(fileUrl);
             }
