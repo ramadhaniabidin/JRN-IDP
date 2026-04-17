@@ -193,18 +193,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private ApproverRoleModel GetOtherRolePIC(List<ApproverRoleModel> List_Approver, int Order_ID)
         {
-            //string names = List_Approver[0].User_FullName;
-            //string emails = List_Approver[0].User_Email;
-            //if(List_Approver.Count > 1)
-            //{
-            //    for(int i = 1; i < List_Approver.Count; i++)
-            //    {
-            //        var app = List_Approver[i];
-            //        names += $";{app.User_FullName}";
-            //        emails += $";{app.User_Email};";
-            //    }
-            //}
-
             if (List_Approver == null || List_Approver.Count == 0) return null;
 
             return new ApproverRoleModel
@@ -922,17 +910,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             dTable.Columns.Add("Is_Mandatory", typeof(int));
             dTable.Columns.Add("Attachment_Url", typeof(string));
             dTable.Columns.Add("Attachment_Name", typeof(string));
-            #region commented out code - not confident to delete yet
-            //foreach (var att in attachments)
-            //{
-            //    if (!string.IsNullOrEmpty(att.Attachment_Name))
-            //    {
-            //        string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
-            //        dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
-            //        sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
-            //    }
-            //}
-            #endregion
 
             foreach (var att in attachments.Where(att => !string.IsNullOrEmpty(att.Attachment_Name)))
             {

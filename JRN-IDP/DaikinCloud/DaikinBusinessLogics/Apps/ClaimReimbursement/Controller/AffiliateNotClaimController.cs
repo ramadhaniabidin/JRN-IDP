@@ -67,19 +67,9 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             return param;
         }
 
-        private void SetField(SPListItem item, string fieldName, object value)
+        private static void SetField(SPListItem item, string fieldName, object value)
         {
-            try
-            {
-                item[fieldName] = value;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(
-                    $"Error updating SharePoint field '{fieldName}' with value '{value}'",
-                    ex
-                );
-            }
+            item[fieldName] = value;
         }
 
         private int InsertToSPList(AffiliateNotClaimHeader header)
@@ -241,24 +231,17 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private int InsertHeader(SqlConnection conn, SqlTransaction trans, AffiliateNotClaimHeader Header)
         {
-            try
+            using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimHeader_SaveUpdate", conn, trans))
             {
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimHeader_SaveUpdate", conn, trans))
+                cmd.CommandType = CommandType.StoredProcedure;
+                AssignHeaderParameters(cmd, Header);
+                SqlParameter outId = new SqlParameter("@OutID", SqlDbType.Int)
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    AssignHeaderParameters(cmd, Header);
-                    SqlParameter outId = new SqlParameter("@OutID", SqlDbType.Int)
-                    {
-                        Direction = ParameterDirection.Output
-                    };
-                    cmd.Parameters.Add(outId);
-                    cmd.ExecuteNonQuery();
-                    return (int)outId.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in InsertHeader() | {ex.Message}", ex);
+                    Direction = ParameterDirection.Output
+                };
+                cmd.Parameters.Add(outId);
+                cmd.ExecuteNonQuery();
+                return (int)outId.Value;
             }
         }
 
@@ -280,21 +263,14 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void InsertDetails(SqlConnection conn, SqlTransaction trans, List<AffiliateNotClaimDetail> Details, int Header_ID)
         {
-            try
+            var dt = InsertDetailGetType(Details, Header_ID);
+            using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_Save", conn, trans))
             {
-                var dt = InsertDetailGetType(Details, Header_ID);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_Save", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    var param = cmd.Parameters.AddWithValue("@Details", dt);
-                    param.SqlDbType = SqlDbType.Structured;
-                    param.TypeName = "AffiliateNotClaimDetailType";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in InsertDetails() | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                var param = cmd.Parameters.AddWithValue("@Details", dt);
+                param.SqlDbType = SqlDbType.Structured;
+                param.TypeName = "AffiliateNotClaimDetailType";
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -313,35 +289,28 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void InsertAttachments(SqlConnection conn, SqlTransaction trans, List<AffiliateNotClaimAttachment> attachments, int Header_ID, int Item_ID)
         {
-            try
+            DataTable dTable = new DataTable();
+            dTable.Columns.Add("Header_ID", typeof(int));
+            dTable.Columns.Add("Doc_Type", typeof(string));
+            dTable.Columns.Add("Is_Mandatory", typeof(int));
+            dTable.Columns.Add("Attachment_Url", typeof(string));
+            dTable.Columns.Add("Attachment_Name", typeof(string));
+            foreach (var att in attachments)
             {
-                DataTable dTable = new DataTable();
-                dTable.Columns.Add("Header_ID", typeof(int));
-                dTable.Columns.Add("Doc_Type", typeof(string));
-                dTable.Columns.Add("Is_Mandatory", typeof(int));
-                dTable.Columns.Add("Attachment_Url", typeof(string));
-                dTable.Columns.Add("Attachment_Name", typeof(string));
-                foreach (var att in attachments)
+                if (!string.IsNullOrEmpty(att.Attachment_Name))
                 {
-                    if (!string.IsNullOrEmpty(att.Attachment_Name))
-                    {
-                        string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
-                        dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
-                        sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
-                    }
-                }
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimSaveAttachment", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p = cmd.Parameters.AddWithValue("@Attachments", dTable);
-                    p.SqlDbType = SqlDbType.Structured;
-                    p.TypeName = "AffiliateClaimAttachmentType";
-                    cmd.ExecuteNonQuery();
+                    string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
+                    dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
+                    sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
                 }
             }
-            catch (Exception ex)
+            using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimSaveAttachment", conn, trans))
             {
-                throw new Exception($"Error occurred in InsertAttachments() while saving Affiliate Claim Attachment records | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                SqlParameter p = cmd.Parameters.AddWithValue("@Attachments", dTable);
+                p.SqlDbType = SqlDbType.Structured;
+                p.TypeName = "AffiliateClaimAttachmentType";
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -423,27 +392,20 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public AffiliateNotClaimHeader GetHeaderData(string Form_No)
         {
-            try
+            DataTable dt = new DataTable();
+            using (var con = new SqlConnection(connectionString))
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                con.Open();
+                using (var cmd = new SqlCommand("usp_AffiliateNotClaimHeader_GetData", con))
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateNotClaimHeader_GetData", con))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateNotClaimHeader>(dt)[0];
-                        }
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<AffiliateNotClaimHeader>(dt)[0];
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in GetHeaderData() | {ex.Message}");
             }
         }
 
@@ -454,27 +416,20 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public List<AffiliateNotClaimDetail> GetDetailData(int Header_ID)
         {
-            try
+            DataTable dt = new DataTable();
+            using (var con = new SqlConnection(connectionString))
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                con.Open();
+                using (var cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", con))
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", con))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateNotClaimDetail>(dt);
-                        }
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<AffiliateNotClaimDetail>(dt);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in GetDetailData() | {ex.Message}");
             }
         }
 
@@ -485,27 +440,20 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public List<AffiliateNotClaimAttachment> GetAttachmentsData(int Header_ID)
         {
-            try
+            DataTable dt = new DataTable();
+            using (var con = new SqlConnection(connectionString))
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                con.Open();
+                using (var cmd = new SqlCommand("usp_AffiliateNotClaimAttachment_GetData", con))
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("usp_AffiliateNotClaimAttachment_GetData", con))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<AffiliateNotClaimAttachment>(dt);
-                        }
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<AffiliateNotClaimAttachment>(dt);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in GetAttachmentsData() | {ex.Message}");
             }
         }
 
@@ -516,27 +464,20 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public List<ServiceCostRemarks> GetRemarksData(int Header_ID)
         {
-            try
+            DataTable dt = new DataTable();
+            using (var con = new SqlConnection(connectionString))
             {
-                DataTable dt = new DataTable();
-                using (var con = new SqlConnection(connectionString))
+                con.Open();
+                using (var cmd = new SqlCommand("[usp_AffiliateNotClaimRemarks_ListByID]", con))
                 {
-                    con.Open();
-                    using (var cmd = new SqlCommand("[usp_AffiliateNotClaimRemarks_ListByID]", con))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<ServiceCostRemarks>(dt);
-                        }
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<ServiceCostRemarks>(dt);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in GetAttachmentsData() | {ex.Message}");
             }
         }
 
@@ -561,7 +502,6 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                     }
                     if (Header.Pending_Approver_Role_ID == 48)       // Verifier Document
                     {
-                        //UpdatePartnerBankID(Header.ID, Vendor_Bank, conn, trans);
                         UpdateRemarks(conn, trans, Remarks, Header.ID, Header.Form_No);
                     }
                     if (Header.Pending_Approver_Role_ID == 15)       // Tax verifier
@@ -573,10 +513,10 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                     trans.Commit();
                     return response;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     trans.Rollback();
-                    throw new Exception($"Error occurred ExecuteApprovalAction() | {ex.Message}");
+                    throw;
                 }
             }
         }
@@ -603,23 +543,16 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public void UpdateTaskResponder(int Header_ID, TaskActionModel Action, SqlConnection conn, SqlTransaction trans)
         {
-            try
+            using (var cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", conn, trans))
             {
-                using (var cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@List_Name", MODULE_NAME);
-                    cmd.Parameters.AddWithValue("@Header_ID", Header_ID);
-                    cmd.Parameters.AddWithValue("@Comments", Action.Comment);
-                    cmd.Parameters.AddWithValue("@Approver_Name", Action.Approver_Name);
-                    cmd.Parameters.AddWithValue("@Approver_Account", Action.Approver_Account);
-                    cmd.Parameters.AddWithValue("@Approver_Email", Action.Approver_Email);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in UpdateTaskResponder() | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@List_Name", MODULE_NAME);
+                cmd.Parameters.AddWithValue("@Header_ID", Header_ID);
+                cmd.Parameters.AddWithValue("@Comments", Action.Comment);
+                cmd.Parameters.AddWithValue("@Approver_Name", Action.Approver_Name);
+                cmd.Parameters.AddWithValue("@Approver_Account", Action.Approver_Account);
+                cmd.Parameters.AddWithValue("@Approver_Email", Action.Approver_Email);
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -640,19 +573,12 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void UpdateDocumentReceived(int Header_ID, bool IsDocumentReceived, SqlConnection conn, SqlTransaction trans)
         {
-            try
+            using (var cmd = new SqlCommand("usp_AffiliateNotClaim_UpdateDocumentReceived", conn, trans))
             {
-                using (var cmd = new SqlCommand("usp_AffiliateNotClaim_UpdateDocumentReceived", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@ID", typeInt, Header_ID));
-                    cmd.Parameters.Add(CreateSQLParam("@IsReceived", typeBool, IsDocumentReceived));
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in UpdateDocumentReceived() | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(CreateSQLParam("@ID", typeInt, Header_ID));
+                cmd.Parameters.Add(CreateSQLParam("@IsReceived", typeBool, IsDocumentReceived));
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -669,22 +595,15 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void UpdateWHT(SqlConnection conn, SqlTransaction trans, List<AffiliateNotClaimDetail> Details, int Header_ID)
         {
-            try
+            var dt = InsertDetailGetType(Details, Header_ID);
+            using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_SaveWHT", conn, trans))
             {
-                var dt = InsertDetailGetType(Details, Header_ID);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_SaveWHT", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    var param = cmd.Parameters.AddWithValue("@Details", dt);
-                    param.SqlDbType = SqlDbType.Structured;
-                    param.TypeName = "AffiliateNotClaimDetailType";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in UpdateWHT() | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                var param = cmd.Parameters.AddWithValue("@Details", dt);
+                param.SqlDbType = SqlDbType.Structured;
+                param.TypeName = "AffiliateNotClaimDetailType";
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -704,22 +623,15 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         private void UpdateRemarks(SqlConnection conn, SqlTransaction trans, List<ServiceCostRemarks> Remarks, int Header_ID, string Form_No)
         {
-            try
+            var dt = UpdateRemarksGetType(Remarks, Form_No);
+            using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaim_SaveRemarks", conn, trans))
             {
-                var dt = UpdateRemarksGetType(Remarks, Form_No);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaim_SaveRemarks", conn, trans))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    var param = cmd.Parameters.AddWithValue("@Remarks", dt);
-                    param.SqlDbType = SqlDbType.Structured;
-                    param.TypeName = "AffiliateNotClaimRemarksType";
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error occurred in UpdateRemarks() | {ex.Message}");
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                var param = cmd.Parameters.AddWithValue("@Remarks", dt);
+                param.SqlDbType = SqlDbType.Structured;
+                param.TypeName = "AffiliateNotClaimRemarksType";
+                cmd.ExecuteNonQuery();
             }
         }
 
