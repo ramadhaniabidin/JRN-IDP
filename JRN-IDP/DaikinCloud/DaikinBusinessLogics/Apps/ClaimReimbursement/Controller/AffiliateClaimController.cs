@@ -206,7 +206,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             };
         }
 
-        private string GetPICApproverNames(List<ApproverRoleModel> List_Approver)
+        private static string GetPICApproverNames(List<ApproverRoleModel> List_Approver)
         {
             return String.Join(";",
                 List_Approver
@@ -215,7 +215,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             );
         }
 
-        private string GetPICApproverEmails(List<ApproverRoleModel> List_Approver)
+        private static string GetPICApproverEmails(List<ApproverRoleModel> List_Approver)
         {
             return String.Join(";",
                 List_Approver
