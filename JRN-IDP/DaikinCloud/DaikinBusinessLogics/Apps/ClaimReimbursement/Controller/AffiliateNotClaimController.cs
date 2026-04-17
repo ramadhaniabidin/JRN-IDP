@@ -1,4 +1,6 @@
 using Daikin.BusinessLogics.Apps.ClaimReimbursement.Model;
+using Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository;
+using Daikin.BusinessLogics.Apps.ClaimReimbursement.Service;
 using Daikin.BusinessLogics.Apps.Commercials.Model;
 using Daikin.BusinessLogics.Common;
 using Daikin.BusinessLogics.Common.Model;
@@ -20,6 +22,8 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         private readonly CommonLogic func = new CommonLogic();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
         private readonly SharePointManager sp = new SharePointManager();
+        private readonly AffiliateNotClaimRepository repo = new AffiliateNotClaimRepository();
+        private readonly AffiliateNotClaimSharepointService spService = new AffiliateNotClaimSharepointService();
         private readonly string serverPath = HttpContext.Current.Server.MapPath("~/Commercials/");
         private readonly string urlSite = SPContext.Current.Web.Url;
         private readonly Type typeString = typeof(string);
@@ -149,19 +153,35 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public async Task SaveAsync(AffiliateNotClaimHeader Header, List<AffiliateNotClaimDetail> Details, List<AffiliateNotClaimAttachment> attachments)
         {
-            Header.Item_ID = InsertToSPList(Header);
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            // insert to sharepoint list
+            Header.Item_ID = spService.InsertToSharePointList(Header);
+
+            // save header, details, and attachments meta data to database
+            int headerId = await repo.SaveAsync(Header, Details, attachments).ConfigureAwait(configureAwait);
+
+            // upload physical attachment file to sharepoint list
+            spService.UploadAttachments(attachments, Header.Item_ID);
+
+            // resume approval if current status is revised (5)
+            if (Header.Approval_Status == 5)
             {
-                await conn.OpenAsync().ConfigureAwait(configureAwait);
-                using (SqlTransaction trans = conn.BeginTransaction())
-                {
-                    int Header_ID = await InsertHeaderAsync(conn, trans, Header).ConfigureAwait(configureAwait);
-                    await InsertDetailsAsync(conn, trans, Details, Header_ID).ConfigureAwait(configureAwait);
-                    await InsertAttachmentsAsync(conn, trans, attachments, Header_ID, Header.Item_ID).ConfigureAwait(configureAwait);
-                    trans.Commit();
-                    if (Header.Approval_Status == 5) await TriggerNACAsync(MODULE_CODE, Header.Item_ID, Header.ID, MODULE_NAME).ConfigureAwait(configureAwait);
-                }
+                await TriggerNACAsync(MODULE_CODE, Header.Item_ID, headerId, MODULE_NAME).ConfigureAwait(configureAwait);
             }
+            #region commented out code - not confident to delete yet
+            //Header.Item_ID = InsertToSPList(Header);
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    await conn.OpenAsync().ConfigureAwait(configureAwait);
+            //    using (SqlTransaction trans = conn.BeginTransaction())
+            //    {
+            //        int Header_ID = await InsertHeaderAsync(conn, trans, Header).ConfigureAwait(configureAwait);
+            //        await InsertDetailsAsync(conn, trans, Details, Header_ID).ConfigureAwait(configureAwait);
+            //        await InsertAttachmentsAsync(conn, trans, attachments, Header_ID, Header.Item_ID).ConfigureAwait(configureAwait);
+            //        trans.Commit();
+            //        if (Header.Approval_Status == 5) await TriggerNACAsync(MODULE_CODE, Header.Item_ID, Header.ID, MODULE_NAME).ConfigureAwait(configureAwait);
+            //    }
+            //}
+            #endregion
         }
 
         private void TriggerNAC(string Module_Code, int Item_ID, int Transaction_ID, string List_Name)
@@ -429,21 +449,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public async Task<AffiliateNotClaimHeader> GetHeaderDataAsync(string Form_No)
         {
-            using (var con = new SqlConnection(connectionString))
-            {
-                await con.OpenAsync().ConfigureAwait(configureAwait);
-                using (var cmd = new SqlCommand("usp_AffiliateNotClaimHeader_GetData", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
-                    using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
-                    {
-                        var list = await Utility.MapReaderToList<AffiliateNotClaimHeader>(reader).ConfigureAwait(configureAwait);
-                        if (list != null && list.Count > 0) return list[0];
-                        return null;
-                    }
-                }
-            }
+            return await repo.GetHeaderDataAsync(Form_No).ConfigureAwait(configureAwait);
         }
 
         public List<AffiliateNotClaimDetail> GetDetailData(int Header_ID)
@@ -474,19 +480,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public async Task<List<AffiliateNotClaimDetail>> GetDetailDataAsync(int Header_ID)
         {
-            using (SqlConnection _conn = new SqlConnection(connectionString))
-            {
-                await _conn.OpenAsync().ConfigureAwait(configureAwait);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", _conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
-                    {
-                        return await Utility.MapReaderToList<AffiliateNotClaimDetail>(r).ConfigureAwait(configureAwait);
-                    }
-                }
-            }
+            return await repo.GetDetailDataAsync(Header_ID).ConfigureAwait(configureAwait);
         }
 
         public List<AffiliateNotClaimAttachment> GetAttachmentsData(int Header_ID)
@@ -517,19 +511,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public async Task<List<AffiliateNotClaimAttachment>> GetAttachmentsDataAsync(int Header_ID)
         {
-            using (SqlConnection _conn = new SqlConnection(connectionString))
-            {
-                await _conn.OpenAsync().ConfigureAwait(configureAwait);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimAttachment_GetData", _conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
-                    {
-                        return await Utility.MapReaderToList<AffiliateNotClaimAttachment>(r);
-                    }
-                }
-            }
+            return await repo.GetAttachmentsDataAsync(Header_ID).ConfigureAwait(configureAwait);
         }
 
         public List<ServiceCostRemarks> GetRemarksData(int Header_ID)
@@ -560,19 +542,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
         public async Task<List<ServiceCostRemarks>> GetRemarksDataAsync(int Header_ID)
         {
-            using (SqlConnection _conn = new SqlConnection(connectionString))
-            {
-                await _conn.OpenAsync().ConfigureAwait(false);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimRemarks_ListByID", _conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        return await Utility.MapReaderToList<ServiceCostRemarks>(r).ConfigureAwait(false);
-                    }
-                }
-            }
+            return await repo.GetRemarksDataAsync(Header_ID).ConfigureAwait(configureAwait);
         }
 
         public CommonResponseModel ExecuteApprovalAction(AffiliateNotClaimHeader Header, TaskActionModel Action,
