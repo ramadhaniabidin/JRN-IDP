@@ -890,7 +890,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             }
         }
 
-        private DataTable InsertDetailParameter(List<AffiliateClaimDetail> details, int header_id)
+        private static DataTable InsertDetailParameter(List<AffiliateClaimDetail> details, int header_id)
         {
             DataTable dTable = new DataTable();
             dTable.Columns.Add("Header_ID", typeof(int));
@@ -923,6 +923,17 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             dTable.Columns.Add("Is_Mandatory", typeof(int));
             dTable.Columns.Add("Attachment_Url", typeof(string));
             dTable.Columns.Add("Attachment_Name", typeof(string));
+            #region commented out code - not confident to delete yet
+            //foreach (var att in attachments)
+            //{
+            //    if (!string.IsNullOrEmpty(att.Attachment_Name))
+            //    {
+            //        string attachment_url = $"/Lists/{MODULE_NAME}/Attachments/{Item_ID}/{att.Attachment_Name}";
+            //        dTable.Rows.Add(Header_ID, att.Doc_Type, att.Is_Mandatory, attachment_url, att.Attachment_Name);
+            //        sp.UploadFileInCustomList(MODULE_NAME, Item_ID, Path.Combine(serverPath, att.Attachment_Name), urlSite);
+            //    }
+            //}
+            #endregion
 
             foreach (var att in attachments.Where(att => !string.IsNullOrEmpty(att.Attachment_Name)))
             {
@@ -1046,7 +1057,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
             return item.ID;
         }
 
-        private byte[] DownloadFileFromUrl(string fileUrl)
+        private static byte[] DownloadFileFromUrl(string fileUrl)
         {
             using (var client = new WebClient())
             {
