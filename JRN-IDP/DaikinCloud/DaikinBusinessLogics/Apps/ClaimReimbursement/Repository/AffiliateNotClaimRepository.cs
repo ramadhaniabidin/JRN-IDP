@@ -191,20 +191,27 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository
 
         public async Task<AffiliateNotClaimHeader> GetHeaderDataAsync(string Form_No)
         {
-            using (var con = new SqlConnection(connectionString))
+            try
             {
-                await con.OpenAsync().ConfigureAwait(configAwait);
-                using (var cmd = new SqlCommand("usp_AffiliateNotClaimHeader_GetData", con))
+                using (var con = new SqlConnection(connectionString))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
-                    using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
+                    await con.OpenAsync().ConfigureAwait(configAwait);
+                    using (var cmd = new SqlCommand("usp_AffiliateNotClaimHeader_GetData", con))
                     {
-                        var list = await Utility.MapReaderToList<AffiliateNotClaimHeader>(reader).ConfigureAwait(configAwait);
-                        if (list != null && list.Count > 0) return list[0];
-                        return null;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
+                        using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
+                        {
+                            var list = await Utility.MapReaderToList<AffiliateNotClaimHeader>(reader).ConfigureAwait(configAwait);
+                            if (list != null && list.Count > 0) return list[0];
+                            return null;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
