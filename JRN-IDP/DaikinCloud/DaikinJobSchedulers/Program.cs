@@ -323,7 +323,7 @@ namespace Daikin.JobSchedulers
                         //Console.ReadKey();
                         var dict = new CommonLogic().GetAllAdAttributesByEmail("test1@daikin.co.id", "LDAP://DC=daikin,DC=co,DC=id",
                             "DAIKIN\\nintex2021", "Mq151k.$rqUd");
-                        foreach(var key in dict.Keys)
+                        foreach (var key in dict.Keys)
                         {
                             Console.WriteLine($"{key}: {dict[key].ToString()}");
                         }
@@ -373,7 +373,7 @@ namespace Daikin.JobSchedulers
                         }
                         Console.ReadKey();
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         Console.ReadKey();
@@ -382,13 +382,13 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region Get user groups
-                else if(F_Code == "GET USER GROUPS")
+                else if (F_Code == "GET USER GROUPS")
                 {
                     Console.Write("GET USER GROUPS\n");
                     Console.Write("Insert user email: ");
                     string account = Console.ReadLine();
                     var groups = func.GetUserGroups(account);
-                    foreach(var group in groups)
+                    foreach (var group in groups)
                     {
                         Console.WriteLine($"Group name: {group}");
                     }
@@ -397,7 +397,7 @@ namespace Daikin.JobSchedulers
                 }
 
                 #region Get all groups
-                else if(F_Code == "GET ALL GROUPS")
+                else if (F_Code == "GET ALL GROUPS")
                 {
                     Console.WriteLine(F_Code);
                     var groups = func.GetAllADGroups();
@@ -411,7 +411,7 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region Get User Manager
-                else if(F_Code == "GET USER MANAGER")
+                else if (F_Code == "GET USER MANAGER")
                 {
                     Console.WriteLine(F_Code);
                     Console.Write("Insert user email: ");
@@ -544,11 +544,11 @@ namespace Daikin.JobSchedulers
 
         public async static Task AutoCodeUpdateFlag(int id, string message, int code, SqlConnection _conn, SqlTransaction _trans)
         {
-            if(_conn.State == ConnectionState.Closed)
+            if (_conn.State == ConnectionState.Closed)
             {
                 await _conn.OpenAsync().ConfigureAwait(false);
             }
-            using(var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
+            using (var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -605,7 +605,7 @@ namespace Daikin.JobSchedulers
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
                 using (var _reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    if(await _reader.ReadAsync().ConfigureAwait(false))
+                    if (await _reader.ReadAsync().ConfigureAwait(false))
                     {
                         code = await _reader.IsDBNullAsync(_reader.GetOrdinal("AutoCode")) ? "" : Convert.ToString(_reader["AutoCode"]);
                     }
@@ -650,7 +650,8 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(string SiteUrl, AutoCodeBatch item, string autoCode)
         {
-            SPSecurity.RunWithElevatedPrivileges(delegate () {
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
                 SPSite spSite = new SPSite(SiteUrl);
                 SPWeb spWeb = spSite.OpenWeb();
                 SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -670,7 +671,7 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(AutoCodeBatch item, string autoCode)
         {
-            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];            
+            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];
             SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
                 using (SPSite site = new SPSite(siteUrl))
@@ -695,7 +696,7 @@ namespace Daikin.JobSchedulers
         public static void InsertHistoryLog(AutoCodeBatch item, string SiteUrl)
         {
             HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
-            SPWeb web = new SPSite(SiteUrl).OpenWeb(); 
+            SPWeb web = new SPSite(SiteUrl).OpenWeb();
             SPList listData = web.Lists[item.ListName];
             SPListItem listItem = listData.GetItemById(item.ItemID.Value);
             if (!ModuleHL.Contains(item.ModuleCode))
@@ -753,7 +754,7 @@ namespace Daikin.JobSchedulers
         {
             var total = 0;
             var count = 0;
-            foreach(var item in GetListData())
+            foreach (var item in GetListData())
             {
                 total++;
                 try
@@ -766,7 +767,7 @@ namespace Daikin.JobSchedulers
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
                     count++;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
                     WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
@@ -883,7 +884,8 @@ namespace Daikin.JobSchedulers
 
 
                     #region Update ListItem
-                    SPSecurity.RunWithElevatedPrivileges(delegate () {
+                    SPSecurity.RunWithElevatedPrivileges(delegate ()
+                    {
                         spSite = new SPSite(SiteUrl);
                         SPWeb spWeb = spSite.OpenWeb();
                         SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -947,72 +949,7 @@ namespace Daikin.JobSchedulers
 
                     #region Start Workflow
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
-                    
-                    #region Commented-Out Code
-                    //if (item.ModuleCode == "M016")
-                    //{
-                    //    #region Better way to trigger workflow
-                    //    //NintexCloudManager ntxCloudManager = new NintexCloudManager();
-                    //    //Task.Run(async () =>
-                    //    //{
-                    //    //    await ntxCloudManager.NonCommercial_StartWorkflow_V2((int)item.ItemID, (int)item.TransID, item.ModuleCode, item.ListName);
-                    //    //}).Wait();
-                    //    #endregion
 
-                    //    #region Risky way to trigger workflow, but works fine so far
-                    //    //StartData startData = new StartData();
-                    //    //startData.se_itemid = (int)item.ItemID;
-                    //    //startData.se_listname = item.ListName;
-                    //    //startData.se_headerid = (int)item.TransID;
-                    //    //startData.se_modulecode = item.ModuleCode;
-                    //    //NWCParamModel nwcParamModel = new NWCParamModel();
-                    //    //nwcParamModel.startData = startData;
-                    //    //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                    //    ////nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
-                    //    //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances?token=GniSz54QFGNBeRa6c0suYL33oZkRFX44jF0hglrl6t5P55STREgkm1kvBG93IpY8MPxCCX";
-                    //    //nwc.param = nwcParamModel;
-                    //    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
-                    //    #endregion
-                    //}
-
-                    //else if(item.ModuleCode == "M025")
-                    //{
-                    //    Console.WriteLine("Start trigger workflow");
-                    //    Task.Run(async () =>
-                    //    {
-                    //        await new NintexCloudManager().Commercial_StartWorkflow(
-                    //            (int)item.ItemID, (int)item.TransID, item.ModuleCode, item.NAC_Workflow_ID);
-                    //    }).Wait();
-                    //    Console.WriteLine("End trigger workflow");
-                    //}
-
-                    //else
-                    //{
-                    //    #region The old way to trigger workflow
-                    //    //StartData startData = new StartData();
-                    //    //startData.se_headerid = (int)item.ItemID;
-                    //    //startData.se_tablename = item.ModuleCode;
-
-                    //    //NWCParamModel nwcParamModel = new NWCParamModel();
-                    //    //nwcParamModel.startData = startData;
-
-                    //    //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                    //    //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
-                    //    //nwc.param = nwcParamModel;
-
-                    //    ////StartWorkflowBySystemAccount(nwc);
-                    //    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
-                    //    #endregion
-
-                    //    #region Better way to trigger workflow
-                    //    Task.Run(async () =>
-                    //    {
-                    //        await new NintexCloudManager().ClaimReimbursement_StartWorkflow((int)item.ItemID, item.ModuleCode);
-                    //    }).Wait();
-                    //    #endregion
-                    //}
-                    #endregion
-                    
                     #endregion
 
 
@@ -1064,37 +1001,8 @@ namespace Daikin.JobSchedulers
                 else
                 {
                     #region Start Workflow
-                    //var StartData = new
-                    //{
-                    //    se_headerid = item.ItemID,
-                    //    se_tablename = item.TableName
-                    //};
-
-                    //var NWCParamModel = new
-                    //{
-                    //    StartData
-                    //};
-
-                    //var NintexWorkflowCloud = new
-                    //{
-                    //    url = "https://daikin.workflowcloud.com/api/v1/workflow/published/e13eb321-e44c-4242-a21e-ae024e620017/swagger.json?token=CL9crPPiU0OJMX16I2Imuqm61SlxPsXNYNw4zePxxT3l0K1j5umw8PIafK5BpoYpL4fitN",
-                    //    NWCParamModel
-                    //};
-
-                    StartData startData = new StartData();
-                    startData.se_headerid = (int)item.ItemID;
-                    startData.se_tablename = item.TableName;
-
-                    NWCParamModel nwcParamModel = new NWCParamModel();
-                    nwcParamModel.startData = startData;
-
-                    //string token = Program.GetToken();
-                    NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                    nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
-                    nwc.param = nwcParamModel;
-
-                    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
-                    //StartWorkflowBySystemAccount(nwc);
+                    NintexWorkflowCloud nwc = ntxManager.GenerateNACPayload((int)item.TransID, (int)item.ItemID, item.ModuleCode, item.ListName);
+                    ntxManager.StartNWC(nwc).GetAwaiter().GetResult();
                     #endregion
                 }
 
