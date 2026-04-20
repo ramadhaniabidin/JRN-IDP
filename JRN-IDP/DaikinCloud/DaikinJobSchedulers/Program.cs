@@ -1,0 +1,1242 @@
+﻿using Daikin.JobSchedulers.Common;
+using Daikin.JobSchedulersLogic.Common.Model;
+using Daikin.JobSchedulersLogic.Model;
+using Microsoft.SharePoint;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Web.Script.Serialization;
+using System.Text;
+using System.Threading.Tasks;
+using RestSharp;
+using RestSharp.Authenticators;
+using Newtonsoft.Json;
+using Daikin.JobSchedulersLogic.Controller;
+using Daikin.JobSchedulersLogic.Common;
+
+namespace Daikin.JobSchedulers
+{
+    class Program
+    {
+        static DatabaseManager db = new DatabaseManager();
+        static SqlConnection conn = new SqlConnection();
+        static SqlDataReader reader = null;
+        static DataTable dt = new DataTable();
+        private readonly static NintexCloudManager ntxManager = new NintexCloudManager();
+
+        public static string GetSiteURL()
+        {
+            try
+            {
+                return ConfigurationManager.AppSettings["SiteUrl_DEV"];
+            }
+            catch
+            {
+                return "http://spdev:3473";
+            }
+        }
+        public static string GetFunctionCode()
+        {
+            try
+            {
+                return ConfigurationManager.AppSettings["FunctionCode"];
+            }
+            catch
+            {
+                return "0";
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            try
+            {
+                string F_Code = GetFunctionCode();
+                SAPController sap = new SAPController();
+                SAPSubconController sapSubcon = new SAPSubconController();
+                POSubconController poSubcon = new POSubconController();
+                CommonLogic func = new CommonLogic();
+                string ldap = ConfigurationManager.AppSettings["LDAP"];
+                string user = ConfigurationManager.AppSettings["NetworkUser"];
+                string pass = ConfigurationManager.AppSettings["NetworkPass"];
+                #region Generate Autocode
+                if (F_Code == "0")
+                {
+                    //var siteURL = GetSiteURL();
+                    //var result = GenerateCode(siteURL);
+                    var siteURL = ConfigurationManager.AppSettings["SiteUrl"];
+                    var result = GenerateCode_V2(siteURL);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Generate Code " + result + " items");
+                }
+                #endregion
+
+                #region FOB, LC / SERVICE COST
+                else if (F_Code == "1") // Commercials Inbound
+                {
+                    new SAPController().Read_SAP_Inbound();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
+                }
+                else if (F_Code == "2") // Commercials AP
+                {
+                    new SAPController().Read_SAP_OutstandingAP();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
+                }
+                else if (F_Code == "3") //Rebate AP
+                {
+                    new SAPController().Read_SAP_Rebate();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
+                }
+                else if (F_Code == "4") //Feedback SAP LC (Landed Cost or Service Cost)
+                {
+                    new SAPController().ReadFeedbackSAP_ServiceCost();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
+                }
+                #endregion  
+
+                else if (F_Code == "Update XML Subcon")
+                {
+                    string data = "8300214714;8300214721;8300214728;8300214730;8300214732;8300214738;8300214742;8300214837;8300214838;8300214840;8300214843;8300214844;8300214847;8300214848;8300214852;8300214853";
+                    new SAPSubconController().Update_XML_Subcon(data);
+                }
+
+                #region Sync Sharepoint to Database
+                else if (F_Code == "5")
+                {
+                    new SyncSharePointList().Sync("https://sp3.daikin.co.id:3473");
+                }
+                #endregion
+
+                #region NON COMMERCIAL
+                else if (F_Code == "9")
+                {
+                    //After get info success from SAP, continue to PO Release Process
+                    //new SAPController().ReadFeedbackPOCreate("2");
+                    sap.ReadFeedbackPOCreate(2);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback PO Create");
+
+                    //PO Data & Vendor Data Non Commercial then continue to DigiSign (F_Code == 14)
+                    //Collect Vendor data first
+                    //new SAPController().ReadSAPVendorData("5");
+                    sap.ReadSAPVendorData(5);
+
+                    //Inside this below logic will update vendor name each purchasing docs
+                    //new SAPController().ReadSAPPOData("4");
+                    sap.ReadSAPPOData("4");
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP PO & Vendor Data");
+                }
+                else if (F_Code == "14") //Non Comm DigiSign
+                {
+                    //new SAPController().ProcessDigiSign("3"); //PO Data Print Out PDF
+                    sap.ProcessDigiSign(3);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully DigiSign Process PO Non Comm");
+                }
+
+                else if (F_Code == "8") //PO Non Comm MIRO
+                {
+                    new SAPController().ReadFeedbackMIRO("16");
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback MIRO");
+                }
+                else if (F_Code == "17") //PO GR Data Non Commercial / MIGO GR
+                {
+                    //new SAPController().ReadSAPPOGR("13");
+                    sap.ReadSAPPOGR(13).GetAwaiter().GetResult();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read PO GR Data Non Commercials");
+                }
+                else if (F_Code == "18") //Read Feedback SAP PO Release 
+                {
+                    //(After accounting manager approve, workflow stop then nintex send release to sap)
+                    //new SAPController().ReadFeedbackPORelease("17");
+                    sap.ReadFeedbackPORelease(17).GetAwaiter().GetResult();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback SAP PO Release");
+                }
+                else if (F_Code == "20")
+                {
+                    new POHeaderController().InsertVendorBankToSPList();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Insert Vendor Bank to SP List");
+                }
+                #endregion
+
+                #region COMMERCIAL SUBCON
+                else if (F_Code == "6")
+                {
+                    // Read PO Subcon Vendor Data
+                    /*new SAPController().ReadSAPVendorData("12");*/    // Folder ID = 34 for testing, 12 for production
+                    //new SAPController().ReadSAPVendorData(12);
+                    sap.ReadSAPVendorData(12);
+                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+
+                    // Read PO Subcon Data
+                    //new SAPSubconController().ReadCommercialSubcon("10");   // Folder ID = 33 for testing, 10 for production
+                    //new SAPSubconController().ReadCommercialSubcon(10);
+                    sapSubcon.ReadCommercialSubcon(10);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+
+                }
+
+                else if (F_Code == "7")
+                {
+                    // Save bulk SPList and trigger Get Attachment Workflow for the first time
+                    //new POSubconController().SaveBulkSPList_DEV();
+                    //new POSubconController().SaveBulkSPList_V2();
+                    poSubcon.SaveBulkSPList_V2();
+                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Save SP List Commercial Subcon");
+                }
+
+                else if (F_Code == "15")
+                {
+                    //new SAPSubconController().SaveAttachmentPOSubcon();
+                    //new SAPSubconController().SaveAttachmentPOSubcon(7);
+                    sapSubcon.SaveAttachmentPOSubcon(7);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Save Attachment PO Subcon");
+                }
+
+                else if (F_Code == "16") //Subcon Feedback MIRO after Accounting Manager approve
+                {
+                    /*new SAPSubconController().ReadFeedbackMIRO("6");*/      // Folder ID = 37 for testing, 6 for production
+                    //new SAPSubconController().ReadFeedbackMIRO(6);
+                    sapSubcon.ReadFeedbackMIRO(6);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback MIRO Subcon");
+                }
+
+                else if (F_Code == "13") //GR Data PO Subcon (MIGO), continue to Admin Service
+                {
+                    //new SAPSubconController().ReadCommercialSubconGR("11");      // Folder ID = 36 for testing, 11 for production
+                    sapSubcon.ReadCommercialSubconGR(11);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Commercial Subcon GR");
+                    //Task.Run(async () => { await Start_Approval_Workflow(); }).Wait();
+                }
+
+                else if (F_Code == "30") //Business Partner, Trigger Workflow
+                {
+                    new BusinessPartnerController().ProcessPendingBP();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Process Pending Business Partner");
+                    //Task.Run(async () => { await Start_Approval_Workflow(); }).Wait();
+                    Console.Read();
+                }
+                #endregion
+
+                #region Batch 1 Feedback
+                else if (F_Code == "33") //Batch 1 Feedback 
+                {
+                    var count = 0;
+                    var total = 0;
+                    SAP2Controller ctrl = new SAP2Controller();
+                    try
+                    {
+                        ctrl.ReadBatchFeedbacks(ref total, ref count);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile(ex.ToString());
+                    }
+                    finally
+                    {
+                        Utility.WriteToFile("Batch 1 - Successfully Read SAP Posting Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
+                    }
+
+                }
+                #endregion
+
+                #region Batch 2 Feedback
+                else if (F_Code == "34") //Batch 2 Feedback
+                {
+                    SAP3Controller ctrl = new SAP3Controller();
+
+                    var count = 0;
+                    var total = 0;
+
+                    try
+                    {
+                        ctrl.ReadBatchFeedbacks(ref total, ref count);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile(ex.ToString());
+                    }
+                    finally
+                    {
+                        Utility.WriteToFile("Batch 2 - Successfully Read SAP Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
+                    }
+                }
+                #endregion
+
+                #region PIB SAP Feedback
+                else if (F_Code == "36") //PIB SAP Feedback
+                {
+                    try
+                    {
+                        new SAPPIBController().ReadFeedback_BM("22");
+                        new SAPPIBController().ReadFeedback_Tax("23");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile("Failed to read PIB SAP Feedback " + ex.Message);
+
+                    }
+                }
+                #endregion
+
+                #region SAP BP Feedback
+                else if (F_Code == "40")
+                {
+                    try
+                    {
+                        new SAPController().ReadFeedbackSAP_PAL("33");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile("Failed to read PAL SAP Feedback " + ex.Message);
+                    }
+                }
+                #endregion
+
+                #region Start Custom Task
+                else if (F_Code == "CUSTOM TASK")
+                {
+                    try
+                    {
+                        //var list = new AffiliateClaimController().CreateBulkTaskApproval("AC25120003");
+                        //foreach (var model in list)
+                        //{
+                        //    Console.WriteLine(
+                        //        $"Task_ID={model.Task_ID}, Module_Code={model.Module_Code}, Module_Name={model.Module_Name}, " +
+                        //        $"Transaction_ID={model.Transaction_ID}, Form_No={model.Form_No}, Task_Description={model.Task_Description}, " +
+                        //        $"Assignee_Names={model.Assignee_Names}, Assignee_Emails={model.Assignee_Emails}, Assignee_Role={model.Assignee_Role}, " +
+                        //        $"Assignee_Role_ID={model.Assignee_Role_ID}, Order_ID={model.Order_ID}, Task_Url={model.Task_Url}, " +
+                        //        $"CreatedBy_Name={model.CreatedBy_Name}, CreatedBy_Email={model.CreatedBy_Email}, " +
+                        //        $"Task_Status={model.Task_Status}"
+                        //    );
+                        //}
+                        //new CustomTaskController().StartApprovalBatch();
+                        //var c = new CommonLogic();
+                        //var email = c.GetManagerDistinguishedName("Approver1@daikin.co.id");
+                        //Console.WriteLine(email);
+                        //var manager = c.GetManagerData(email);
+                        //Console.WriteLine(manager["Manager Name"].ToString());
+                        //Console.WriteLine(manager["Manager Email"].ToString());
+                        //Console.ReadKey();
+                        var dict = new CommonLogic().GetAllAdAttributesByEmail("test1@daikin.co.id", "LDAP://DC=daikin,DC=co,DC=id",
+                            "DAIKIN\\nintex2021", "Mq151k.$rqUd");
+                        foreach(var key in dict.Keys)
+                        {
+                            Console.WriteLine($"{key}: {dict[key].ToString()}");
+                        }
+                        Console.ReadKey();
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile("Failed to start custom task " + ex.Message);
+                    }
+                }
+                #endregion
+
+                #region Send Revise/Reject Notification
+                else if (F_Code == "SEND EMAIL")
+                {
+                    try
+                    {
+                        new CustomTaskController().SendEmailNotification();
+                        Console.WriteLine("Success send email");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utility.WriteToFile("Failed to start send approval email notification " + ex.Message);
+                    }
+                }
+                #endregion
+
+                #region Get All user properties
+                else if (F_Code == "GET USER PROPS")
+                {
+                    try
+                    {
+                        Console.Write("Insert email: ");
+                        string email = Console.ReadLine();
+                        var attributes = func.GetAllAdAttributesByEmail(email, ldap, user, pass);
+                        Console.WriteLine($"Job Title: {attributes["title"]}");
+                        Console.WriteLine($"Department: {attributes["department"]}");
+                        var manager = attributes["manager"];
+                        var managerData = func.GetManagerData(manager.ToString());
+                        Console.WriteLine($"Manager distinguisnedName: {manager}");
+                        Console.WriteLine($"Email: {managerData["Manager Email"]}");
+                        Console.WriteLine($"Full Name: {managerData["Manager Name"]}");
+                        Console.WriteLine();
+                        foreach (var key in attributes.Keys)
+                        {
+                            Console.WriteLine($"{key}: {attributes[key]}");
+                        }
+                        Console.ReadKey();
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        Console.ReadKey();
+                    }
+                }
+                #endregion
+
+                #region Get user groups
+                else if(F_Code == "GET USER GROUPS")
+                {
+                    Console.Write("GET USER GROUPS\n");
+                    Console.Write("Insert user email: ");
+                    string account = Console.ReadLine();
+                    var groups = func.GetUserGroups(account);
+                    foreach(var group in groups)
+                    {
+                        Console.WriteLine($"Group name: {group}");
+                    }
+                    Console.WriteLine("Complete");
+                    Console.ReadKey();
+                }
+
+                #region Get all groups
+                else if(F_Code == "GET ALL GROUPS")
+                {
+                    Console.WriteLine(F_Code);
+                    var groups = func.GetAllADGroups();
+                    foreach (var group in groups)
+                    {
+                        Console.WriteLine($"Group name: {group}");
+                    }
+                    Console.WriteLine("Complete");
+                    Console.ReadKey();
+                }
+                #endregion
+
+                #region Get User Manager
+                else if(F_Code == "GET USER MANAGER")
+                {
+                    Console.WriteLine(F_Code);
+                    Console.Write("Insert user email: ");
+                    string email = Console.ReadLine();
+                    string managerDistinguish = func.GetManagerDistinguishedName(email);
+                    var managerData = func.GetManagerData(managerDistinguish);
+                    Console.WriteLine($"Manager name: {managerData["Manager Name"]}");
+                    Console.WriteLine($"Manager email: {managerData["Manager Email"]}");
+                    Console.WriteLine("Complete");
+                    Console.ReadKey();
+                }
+                #endregion
+
+                #endregion
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - " + ex);
+            }
+            finally
+            {
+                //Console.ReadLine();
+            }
+
+        }
+
+        public static List<AutoCodeBatch> GetListData()
+        {
+            dt = new DataTable();
+            try
+            {
+                db.OpenConnection(ref conn);
+                //db.cmd.CommandText = "usp_AutoCodeBatch_GetList"; //dev
+                db.cmd.CommandText = "usp_NWC_AutoCodeBatch_GetList"; //prod
+                db.cmd.CommandType = CommandType.StoredProcedure;
+
+                db.cmd.Parameters.Clear();
+
+                reader = db.cmd.ExecuteReader();
+                dt.Load(reader);
+                db.CloseDataReader(reader);
+                db.CloseConnection(ref conn);
+
+                var list = Utility.ConvertDataTableToList<AutoCodeBatch>(dt);
+                return list;
+            }
+            catch (Exception ex)
+            {
+                db.CloseConnection(ref conn);
+                throw ex;
+            }
+        }
+
+        public async static Task<List<AutoCodeBatch>> GetListDataAsync(SqlConnection _conn, SqlTransaction _trans)
+        {
+            if (_conn.State == ConnectionState.Closed) await _conn.OpenAsync().ConfigureAwait(false);
+            using (var cmd = new SqlCommand("usp_NWC_AutoCodeBatch_GetList", _conn, _trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                using (var _r = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                using (var _t = new DataTable())
+                {
+                    _t.Load(_r);
+                    return Utility.ConvertDataTableToList<AutoCodeBatch>(_t);
+                }
+            }
+        }
+
+        public static void StartWorkflowAfterGenerateCode(string Module_Code, int Item_ID, int Transaction_ID, string List_Name)
+        {
+            Task.Run(async () =>
+            {
+                var nwc = ntxManager.GenerateNACPayload(Transaction_ID, Item_ID, Module_Code, List_Name);
+                await ntxManager.StartNWC(nwc);
+            }).Wait();
+            #region Commented-out code
+            //if(Module_Code == "M016")
+            //{
+            //    Task.Run(async () =>
+            //    {
+            //        await ntxManager.NonCommercial_StartWorkflow_V2(Item_ID, Transaction_ID, Module_Code, List_Name);
+            //    }).Wait();
+            //}
+            //else if(Module_Code == "M025")
+            //{
+            //    Task.Run(async () =>
+            //    {
+            //        await ntxManager.Commercial_StartWorkflow(Item_ID, Transaction_ID, Module_Code, Workflow_ID);
+            //    }).Wait();
+            //}
+            //else if(Module_Code == "M029")
+            //{
+            //    Task.Run(async () => { await ntxManager.PAL_StartWorkflow(Item_ID, Module_Code); }).Wait();
+            //}
+            //else
+            //{
+            //    Task.Run(async () =>
+            //    {
+            //        await ntxManager.ClaimReimbursement_StartWorkflow(Item_ID, Module_Code);
+            //    }).Wait();
+            //}
+            #endregion
+        }
+
+        public async static Task StartWorkflowAfterGenerateCode(string Module_Code, int Item_ID, int Transaction_ID, string List_Name, SqlConnection _conn, SqlTransaction _trans)
+        {
+            var nwc = await ntxManager.GenerateNACPayload(Transaction_ID, Item_ID, Module_Code, List_Name, _conn, _trans)
+                .ConfigureAwait(false);
+            await ntxManager.StartNWC(nwc, _conn, _trans).ConfigureAwait(false);
+        }
+
+        public static void AutoCodeUpdateFlag(int id, string message, int code)
+        {
+            using (var _con = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _con.Open();
+                using (var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@Generated", Value = code, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SysMessage", Value = message, SqlDbType = SqlDbType.VarChar, Size = -1, Direction = ParameterDirection.Input });
+                    cmd.ExecuteNonQuery();
+                }
+                _con.Close();
+            }
+        }
+
+        public async static Task AutoCodeUpdateFlag(int id, string message, int code, SqlConnection _conn, SqlTransaction _trans)
+        {
+            if(_conn.State == ConnectionState.Closed)
+            {
+                await _conn.OpenAsync().ConfigureAwait(false);
+            }
+            using(var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@Generated", Value = code, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@SysMessage", Value = message, SqlDbType = SqlDbType.VarChar, Size = -1, Direction = ParameterDirection.Input });
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+
+        public static string GenerateAutoCode(AutoCodeBatch item)
+        {
+            try
+            {
+                using (var _con = new SqlConnection(Utility.GetSqlConnection()))
+                {
+                    _con.Open();
+                    using (var cmd = new SqlCommand("usp_Utility_AutoCounter", _con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldCriteria", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@ValueCriteria", Value = item.Format, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                        using (var _reader = cmd.ExecuteReader())
+                        {
+                            dt = new DataTable();
+                            dt.Load(_reader);
+                            return Utility.ConvertDataTableToList<GeneratedCode>(dt)[0].AutoCode;
+                        }
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                AutoCodeUpdateFlag(item.ID, ex.Message, 2);
+                return string.Empty;
+            }
+        }
+
+        public async static Task<string> GenerateAutoCode(AutoCodeBatch item, SqlConnection _conn, SqlTransaction _trans)
+        {
+            string code = "";
+            if (_conn.State == ConnectionState.Closed) await _conn.OpenAsync().ConfigureAwait(false);
+            using (var cmd = new SqlCommand("usp_Utility_AutoCounter", _conn, _trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldCriteria", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@ValueCriteria", Value = item.Format, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                using (var _reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    if(await _reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        code = await _reader.IsDBNullAsync(_reader.GetOrdinal("AutoCode")) ? "" : Convert.ToString(_reader["AutoCode"]);
+                    }
+                }
+            }
+            return code;
+        }
+
+        public static void UpdateTransactionItem(AutoCodeBatch item, string autoCode)
+        {
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_NWC_AutoCodeBatch_UpdateItem", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@TransID", Value = item.TransID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@DetailName", Value = item.DetailName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@ColumnName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@AutoCode", Value = autoCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.ExecuteNonQuery();
+                }
+                _conn.Close();
+            }
+        }
+
+        public async static Task UpdateTransactionItem(AutoCodeBatch item, string autoCode, SqlConnection _conn, SqlTransaction _trans)
+        {
+            if (_conn.State == ConnectionState.Closed) await _conn.OpenAsync().ConfigureAwait(false);
+            using (var cmd = new SqlCommand("usp_NWC_AutoCodeBatch_UpdateItem", _conn, _trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@TransID", Value = item.TransID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@DetailName", Value = item.DetailName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@ColumnName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@AutoCode", Value = autoCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+
+        public static void UpdateListItem(string SiteUrl, AutoCodeBatch item, string autoCode)
+        {
+            SPSecurity.RunWithElevatedPrivileges(delegate () {
+                SPSite spSite = new SPSite(SiteUrl);
+                SPWeb spWeb = spSite.OpenWeb();
+                SPList spList = spWeb.Lists.TryGetList(item.ListName);
+
+                spWeb.AllowUnsafeUpdates = true;
+                SPListItem spItem = spList.GetItemById(item.ItemID.Value);
+                spItem["Title"] = autoCode;
+                spItem["Request No"] = autoCode;
+                spItem["Approval Status"] = "Generated";
+                spItem["Approval Status ID"] = 3;
+                spItem["Workflow Status"] = "Approval";
+                spItem["Form Status"] = "Start";
+                spItem.Update();
+                spWeb.AllowUnsafeUpdates = false;
+            });
+        }
+
+        public static void UpdateListItem(AutoCodeBatch item, string autoCode)
+        {
+            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];            
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
+                using (SPSite site = new SPSite(siteUrl))
+                using (SPWeb web = site.OpenWeb())
+                {
+                    web.AllowUnsafeUpdates = true;
+                    SPList list = web.Lists.TryGetList(item.ListName);
+                    SPListItem spItem = list.GetItemById(item.ItemID.Value);
+                    spItem["Title"] = autoCode;
+                    spItem["Request No"] = autoCode;
+                    spItem["Approval Status"] = "Generated";
+                    spItem["Approval Status ID"] = 3;
+                    spItem["Workflow Status"] = "Approval";
+                    spItem["Form Status"] = "Start";
+                    spItem.Update();
+                    web.AllowUnsafeUpdates = false;
+                }
+            });
+        }
+
+
+        public static void InsertHistoryLog(AutoCodeBatch item, string SiteUrl)
+        {
+            HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
+            SPWeb web = new SPSite(SiteUrl).OpenWeb(); 
+            SPList listData = web.Lists[item.ListName];
+            SPListItem listItem = listData.GetItemById(item.ItemID.Value);
+            if (!ModuleHL.Contains(item.ModuleCode))
+            {
+                try
+                {
+                    using (var _con = new SqlConnection(Utility.GetSqlConnection()))
+                    {
+                        _con.Open();
+                        using (var cmd = new SqlCommand("usp_NWC_insertHistoryLog", _con))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@listName", Value = item.ListName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@listItemID", Value = item.ItemID.Value, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@action", Value = 1, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLogin", Value = listItem["Author"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLoginName", Value = listItem["Requester_x0020_Name"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLayer", Value = "0", SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                            cmd.ExecuteNonQuery();
+                        }
+                        _con.Close();
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async static Task InsertHistoryLog(AutoCodeBatch item, SqlConnection _conn, SqlTransaction _trans)
+        {
+            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];
+            HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
+            using (SPSite site = new SPSite(siteUrl))
+            using (SPWeb web = site.OpenWeb())
+            {
+                SPListItem listItem = web.Lists[item.ListName].GetItemById(item.ItemID.Value);
+                if (_conn.State == ConnectionState.Closed) await _conn.OpenAsync().ConfigureAwait(false);
+                using (var cmd = new SqlCommand("usp_NWC_insertHistoryLog", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@listName", Value = item.ListName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@listItemID", Value = item.ItemID.Value, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@action", Value = 1, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLogin", Value = listItem["Author"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLoginName", Value = listItem["Requester_x0020_Name"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLayer", Value = "0", SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        public static string GenerateCode_V2(string SiteUrl)
+        {
+            var total = 0;
+            var count = 0;
+            foreach(var item in GetListData())
+            {
+                total++;
+                try
+                {
+                    string generatedCode = GenerateAutoCode(item);
+                    AutoCodeUpdateFlag(item.ID, "Generated", 1);
+                    UpdateTransactionItem(item, generatedCode);
+                    UpdateListItem(SiteUrl, item, generatedCode);
+                    InsertHistoryLog(item, SiteUrl);
+                    StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
+                    count++;
+                }
+                catch(Exception ex)
+                {
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
+                    WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
+                    WriteToFile("   " + item.TableName + " - " + item.DetailName + " - " + item.TransID);
+                    AutoCodeUpdateFlag(item.ID, ex.Message, 2);
+                }
+            }
+            return $"{count} of {total}";
+        }
+
+        public async static Task<string> GenerateCode()
+        {
+            var count = 0;
+            var total = 0;
+            string SiteUrl = ConfigurationManager.AppSettings["SiteUrl"];
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                await _conn.OpenAsync().ConfigureAwait(false);
+                var list = await GetListDataAsync(_conn, null).ConfigureAwait(false);
+                foreach (var item in list)
+                {
+                    total++;
+                    using (var _trans = _conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            string generatedCode = await GenerateAutoCode(item, _conn, _trans).ConfigureAwait(false);
+                            await AutoCodeUpdateFlag(item.ID, "Generated", 1, _conn, _trans).ConfigureAwait(false);
+                            await UpdateTransactionItem(item, generatedCode, _conn, _trans);
+                            UpdateListItem(SiteUrl, item, generatedCode);
+                            await InsertHistoryLog(item, _conn, _trans);
+                            await StartWorkflowAfterGenerateCode(item.ModuleCode, item.ItemID.Value, item.ID, item.ListName, _conn, _trans).ConfigureAwait(false);
+                            _trans.Commit();
+                            count++;
+                        }
+                        catch (Exception ex)
+                        {
+                            WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
+                            WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
+                            WriteToFile("   " + item.TableName + " - " + item.DetailName + " - " + item.TransID);
+                            await AutoCodeUpdateFlag(item.ID, ex.Message, 2, _conn, _trans).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+            return $"{count} of {total}";
+        }
+
+        public static string GenerateCode(string SiteUrl)
+        {
+            var list = GetListData();
+            var total = list.Count;
+            var count = 0;
+            foreach (var item in list)
+            {
+                var isError = false;
+                var errorMessage = "";
+
+                SPSite spSite = null;
+                SPListItem spItem = null;
+
+                var isTrans = true;
+                try
+                {
+                    db.OpenConnection(ref conn, isTrans);
+                    #region GenerateCode
+                    db.cmd.CommandText = "usp_Utility_AutoCounter";
+                    db.cmd.CommandType = CommandType.StoredProcedure;
+
+                    db.cmd.Parameters.Clear();
+                    db.AddInParameter(db.cmd, "FieldName", item.ColumnName);
+                    db.AddInParameter(db.cmd, "TableName", item.TableName);
+                    db.AddInParameter(db.cmd, "FieldCriteria", item.ColumnName);
+                    db.AddInParameter(db.cmd, "ValueCriteria", item.Format);
+                    db.AddInParameter(db.cmd, "LengthOfString", item.LengthOfString);
+                    //db.AddOutParameter(db.cmd, "AutoCode", SqlDbType.VarChar);
+
+                    reader = db.cmd.ExecuteReader();
+                    dt = new DataTable();
+                    dt.Load(reader);
+                    db.CloseDataReader(reader);
+
+                    string autoCode = Utility.ConvertDataTableToList<GeneratedCode>(dt)[0].AutoCode;
+                    #endregion
+
+                    #region Update AutoCodeBatch
+                    db.cmd.CommandText = "usp_AutoCodeBatch_UpdateFlag";
+                    db.cmd.CommandType = CommandType.StoredProcedure;
+
+                    db.cmd.Parameters.Clear();
+                    db.AddInParameter(db.cmd, "ID", item.ID);
+                    db.AddInParameter(db.cmd, "Generated", 1);
+                    db.AddInParameter(db.cmd, "SysMessage", "Generated");
+
+                    db.cmd.ExecuteNonQuery();
+                    #endregion
+
+                    #region Update Item
+                    db.cmd.CommandText = "usp_NWC_AutoCodeBatch_UpdateItem"; //prod
+                    //db.cmd.CommandText = "usp_AutoCodeBatch_UpdateItem"; //dev
+                    db.cmd.CommandType = CommandType.StoredProcedure;
+
+                    db.cmd.Parameters.Clear();
+                    db.AddInParameter(db.cmd, "TransID", item.TransID);
+                    db.AddInParameter(db.cmd, "TableName", item.TableName);
+                    db.AddInParameter(db.cmd, "DetailName", item.DetailName);
+                    db.AddInParameter(db.cmd, "ColumnName", item.ColumnName);
+                    db.AddInParameter(db.cmd, "AutoCode", autoCode);
+
+                    db.cmd.ExecuteNonQuery();
+                    #endregion
+
+                    db.CloseConnection(ref conn, isTrans);
+
+
+                    #region Update ListItem
+                    SPSecurity.RunWithElevatedPrivileges(delegate () {
+                        spSite = new SPSite(SiteUrl);
+                        SPWeb spWeb = spSite.OpenWeb();
+                        SPList spList = spWeb.Lists.TryGetList(item.ListName);
+
+                        spWeb.AllowUnsafeUpdates = true;
+                        spItem = spList.GetItemById(item.ItemID.Value);
+                        spItem["Title"] = autoCode;
+                        spItem["Request No"] = autoCode;
+                        spItem["Approval Status"] = "Generated";
+                        spItem["Approval Status ID"] = 3;
+                        spItem["Workflow Status"] = "Approval";
+                        spItem["Form Status"] = "Start";
+                        spItem.Update();
+                        spWeb.AllowUnsafeUpdates = false;
+                    });
+                    Console.WriteLine(autoCode);
+                    #endregion
+
+                    #region InsertHistoryLog
+                    SPWeb web = new SPSite(Utility.SpSiteUrl_DEV).OpenWeb();
+                    SPList listData = web.Lists[item.ListName];
+                    web.AllowUnsafeUpdates = true;
+
+                    SPListItem listItem = listData.GetItemById(item.ItemID.Value);
+
+                    string CurrentLogin = listItem["Author"].ToString();
+                    string CurrentLoginName = listItem["Requester_x0020_Name"].ToString();
+
+
+                    HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
+
+                    #region Untuk module selain Purchase Request
+                    if (!ModuleHL.Contains(item.ModuleCode)) // Selain Module PR dan Claim Reimburse, karena untuk module PR dan modul2 non comm yg lain insert history log ada di web service save update
+                    {
+                        try
+                        {
+                            db.OpenConnection(ref conn);
+                            db.cmd.CommandText = "[dbo].[usp_NWC_insertHistoryLog]";
+                            db.cmd.CommandType = CommandType.StoredProcedure;
+                            db.cmd.Parameters.Clear();
+
+                            db.AddInParameter(db.cmd, "listName", item.ListName);
+                            db.AddInParameter(db.cmd, "listItemID", item.ItemID.Value);
+                            db.AddInParameter(db.cmd, "action", 1);
+                            db.AddInParameter(db.cmd, "currentLogin", CurrentLogin);
+                            db.AddInParameter(db.cmd, "currentLoginName", CurrentLoginName);
+                            db.AddInParameter(db.cmd, "currentLayer", "0");
+
+                            db.cmd.ExecuteNonQuery();
+                            db.CloseConnection(ref conn);
+                        }
+
+                        catch (Exception ex)
+                        {
+                            db.CloseConnection(ref conn);
+                            throw ex;
+                        }
+                    }
+                    #endregion
+                    #endregion
+
+                    #region Start Workflow
+                    StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
+                    
+                    #region Commented-Out Code
+                    //if (item.ModuleCode == "M016")
+                    //{
+                    //    #region Better way to trigger workflow
+                    //    //NintexCloudManager ntxCloudManager = new NintexCloudManager();
+                    //    //Task.Run(async () =>
+                    //    //{
+                    //    //    await ntxCloudManager.NonCommercial_StartWorkflow_V2((int)item.ItemID, (int)item.TransID, item.ModuleCode, item.ListName);
+                    //    //}).Wait();
+                    //    #endregion
+
+                    //    #region Risky way to trigger workflow, but works fine so far
+                    //    //StartData startData = new StartData();
+                    //    //startData.se_itemid = (int)item.ItemID;
+                    //    //startData.se_listname = item.ListName;
+                    //    //startData.se_headerid = (int)item.TransID;
+                    //    //startData.se_modulecode = item.ModuleCode;
+                    //    //NWCParamModel nwcParamModel = new NWCParamModel();
+                    //    //nwcParamModel.startData = startData;
+                    //    //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
+                    //    ////nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
+                    //    //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances?token=GniSz54QFGNBeRa6c0suYL33oZkRFX44jF0hglrl6t5P55STREgkm1kvBG93IpY8MPxCCX";
+                    //    //nwc.param = nwcParamModel;
+                    //    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
+                    //    #endregion
+                    //}
+
+                    //else if(item.ModuleCode == "M025")
+                    //{
+                    //    Console.WriteLine("Start trigger workflow");
+                    //    Task.Run(async () =>
+                    //    {
+                    //        await new NintexCloudManager().Commercial_StartWorkflow(
+                    //            (int)item.ItemID, (int)item.TransID, item.ModuleCode, item.NAC_Workflow_ID);
+                    //    }).Wait();
+                    //    Console.WriteLine("End trigger workflow");
+                    //}
+
+                    //else
+                    //{
+                    //    #region The old way to trigger workflow
+                    //    //StartData startData = new StartData();
+                    //    //startData.se_headerid = (int)item.ItemID;
+                    //    //startData.se_tablename = item.ModuleCode;
+
+                    //    //NWCParamModel nwcParamModel = new NWCParamModel();
+                    //    //nwcParamModel.startData = startData;
+
+                    //    //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
+                    //    //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
+                    //    //nwc.param = nwcParamModel;
+
+                    //    ////StartWorkflowBySystemAccount(nwc);
+                    //    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
+                    //    #endregion
+
+                    //    #region Better way to trigger workflow
+                    //    Task.Run(async () =>
+                    //    {
+                    //        await new NintexCloudManager().ClaimReimbursement_StartWorkflow((int)item.ItemID, item.ModuleCode);
+                    //    }).Wait();
+                    //    #endregion
+                    //}
+                    #endregion
+                    
+                    #endregion
+
+
+                    count++;
+                }
+                catch (Exception ex)
+                {
+                    isTrans = false;
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
+                    WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
+                    WriteToFile("   " + item.TableName + " - " + item.DetailName + " - " + item.TransID);
+
+                    isError = true;
+                    errorMessage = ex.ToString();
+                }
+                finally
+                {
+                    db.CloseConnection(ref conn, isTrans);
+                }
+
+                if (isError)
+                {
+                    isTrans = true;
+                    db.OpenConnection(ref conn, isTrans);
+                    try
+                    {
+                        #region Update AutoCodeBatch if error
+                        db.cmd.CommandText = "usp_AutoCodeBatch_UpdateFlag";
+                        db.cmd.CommandType = CommandType.StoredProcedure;
+
+                        db.cmd.Parameters.Clear();
+                        db.AddInParameter(db.cmd, "ID", item.ID);
+                        db.AddInParameter(db.cmd, "Generated", 2);
+                        db.AddInParameter(db.cmd, "SysMessage", errorMessage);
+
+                        db.cmd.ExecuteNonQuery();
+                        #endregion
+                    }
+                    catch (Exception ex)
+                    {
+                        isTrans = false;
+                        WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - " + ex.Message);
+                    }
+                    finally
+                    {
+                        db.CloseConnection(ref conn, isTrans);
+                    }
+                }
+                else
+                {
+                    #region Start Workflow
+                    //var StartData = new
+                    //{
+                    //    se_headerid = item.ItemID,
+                    //    se_tablename = item.TableName
+                    //};
+
+                    //var NWCParamModel = new
+                    //{
+                    //    StartData
+                    //};
+
+                    //var NintexWorkflowCloud = new
+                    //{
+                    //    url = "https://daikin.workflowcloud.com/api/v1/workflow/published/e13eb321-e44c-4242-a21e-ae024e620017/swagger.json?token=CL9crPPiU0OJMX16I2Imuqm61SlxPsXNYNw4zePxxT3l0K1j5umw8PIafK5BpoYpL4fitN",
+                    //    NWCParamModel
+                    //};
+
+                    StartData startData = new StartData();
+                    startData.se_headerid = (int)item.ItemID;
+                    startData.se_tablename = item.TableName;
+
+                    NWCParamModel nwcParamModel = new NWCParamModel();
+                    nwcParamModel.startData = startData;
+
+                    //string token = Program.GetToken();
+                    NintexWorkflowCloud nwc = new NintexWorkflowCloud();
+                    nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
+                    nwc.param = nwcParamModel;
+
+                    //Task.Run(async () => { await new Program().StartNWC(nwc); }).Wait();
+                    //StartWorkflowBySystemAccount(nwc);
+                    #endregion
+                }
+
+            }
+
+            return count + " of " + total;
+        }
+
+        public static void WriteToFile(string Message)
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory + "\\Logs";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\SchedulerLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
+            if (!File.Exists(filepath))
+            {
+                using (StreamWriter sw = File.CreateText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = File.AppendText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
+        }
+
+        public async static void StartWorkflowBySystemAccount(NintexWorkflowCloud nwc)
+        {
+            try
+            {
+                //string sBody = JsonConvert.SerializeObject(nwc.param);
+                string sBody = new JavaScriptSerializer().Serialize(nwc.param);
+
+                HttpClient client = new HttpClient();
+                client.BaseAddress = new Uri(nwc.url);
+
+                client.DefaultRequestHeaders
+                    .Accept
+                    .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
+
+                //HttpContent request1 = new StringContent(sBody, Encoding.UTF8, "application/json");
+                //string jsonContent = request1.ReadAsStringAsync().Result;
+
+                request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
+
+                using (var response = await client.SendAsync(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var result = await response.Content.ReadAsStringAsync();
+                    //return result; //instance guid
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task StartNWC(NintexWorkflowCloud nwc)
+        {
+
+            string sBody = new JavaScriptSerializer().Serialize(nwc.param);
+
+            HttpClient client = new HttpClient();
+            client.BaseAddress = new Uri(nwc.url);
+
+            client.DefaultRequestHeaders
+                .Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
+            //string token = Program.GetToken();
+            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
+
+            request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
+
+            using (var response = await client.SendAsync(request))
+            {
+                response.EnsureSuccessStatusCode();
+                var result = await response.Content.ReadAsStringAsync();
+                //return result; //instance guid
+            }
+
+        }
+
+        public void InsertApprovalLog(string listName, int listItemID, int action, string CurrentLogin, string CurrentLoginName, string currentLayer)
+        {
+            try
+            {
+                db.OpenConnection(ref conn);
+                db.cmd.CommandText = "[dbo].[usp_NWC_insertHistoryLog]";
+                db.cmd.CommandType = CommandType.StoredProcedure;
+                db.cmd.Parameters.Clear();
+
+                db.AddInParameter(db.cmd, "listName", listName);
+                db.AddInParameter(db.cmd, "listItemID", listItemID);
+                db.AddInParameter(db.cmd, "action", action);
+                db.AddInParameter(db.cmd, "currentLogin", CurrentLogin);
+                db.AddInParameter(db.cmd, "currentLoginName", CurrentLoginName);
+                db.AddInParameter(db.cmd, "currentLayer", currentLayer);
+
+                db.cmd.ExecuteNonQuery();
+                db.CloseConnection(ref conn);
+            }
+
+            catch (Exception ex)
+            {
+                db.CloseConnection(ref conn);
+                throw ex;
+            }
+        }
+
+        public static string GetToken()
+        {
+            string url = "https://us.nintex.io/authentication/v1/token";
+
+            HttpClient client = new HttpClient();
+            var requestBody = new
+            {
+                client_id = "bd3797e5-2c76-4834-90f1-70060fe10844",
+                client_secret = "sKtUsKRNNtWsJLROQtUsPMtWVsMNtRTsLOtWRWsPtVsRtRsNtSPsMLItT2IsRtVsFRtTsNtUsFMOtUsOFtRsQRJFtT2utUsItRsOtSVsO2N",
+                grant_type = "client_credentials"
+            };
+            var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
+            var HttpContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var response = client.PostAsync(url, HttpContent).Result;
+            var responseJson = response.Content.ReadAsStringAsync().Result;
+            var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
+            Console.WriteLine(responseObject);
+            string accessToken = responseObject["access_token"];
+
+            return accessToken;
+        }
+
+    }
+}
