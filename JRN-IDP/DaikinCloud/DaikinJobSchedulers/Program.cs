@@ -323,7 +323,7 @@ namespace Daikin.JobSchedulers
                         //Console.ReadKey();
                         var dict = new CommonLogic().GetAllAdAttributesByEmail("test1@daikin.co.id", "LDAP://DC=daikin,DC=co,DC=id",
                             "DAIKIN\\nintex2021", "Mq151k.$rqUd");
-                        foreach (var key in dict.Keys)
+                        foreach(var key in dict.Keys)
                         {
                             Console.WriteLine($"{key}: {dict[key].ToString()}");
                         }
@@ -373,7 +373,7 @@ namespace Daikin.JobSchedulers
                         }
                         Console.ReadKey();
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         Console.ReadKey();
@@ -382,13 +382,13 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region Get user groups
-                else if (F_Code == "GET USER GROUPS")
+                else if(F_Code == "GET USER GROUPS")
                 {
                     Console.Write("GET USER GROUPS\n");
                     Console.Write("Insert user email: ");
                     string account = Console.ReadLine();
                     var groups = func.GetUserGroups(account);
-                    foreach (var group in groups)
+                    foreach(var group in groups)
                     {
                         Console.WriteLine($"Group name: {group}");
                     }
@@ -397,7 +397,7 @@ namespace Daikin.JobSchedulers
                 }
 
                 #region Get all groups
-                else if (F_Code == "GET ALL GROUPS")
+                else if(F_Code == "GET ALL GROUPS")
                 {
                     Console.WriteLine(F_Code);
                     var groups = func.GetAllADGroups();
@@ -411,7 +411,7 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region Get User Manager
-                else if (F_Code == "GET USER MANAGER")
+                else if(F_Code == "GET USER MANAGER")
                 {
                     Console.WriteLine(F_Code);
                     Console.Write("Insert user email: ");
@@ -438,6 +438,77 @@ namespace Daikin.JobSchedulers
                 //Console.ReadLine();
             }
 
+        }
+
+        static void FOBServiceCostActions(string F_Code)
+        {
+            SAPController sap = new SAPController();
+            switch (F_Code)
+            {
+                case "1":
+                    sap.Read_SAP_Inbound();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
+                    break;
+
+                case "2":
+                    sap.Read_SAP_OutstandingAP();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
+                    break;
+
+                case "3":
+                    sap.Read_SAP_Rebate();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
+                    break;
+
+                case "4":
+                    sap.ReadFeedbackSAP_ServiceCost();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
+                    break;
+            }
+        }
+
+        static void NonCommercialActions(string F_Code)
+        {
+            SAPController sap = new SAPController();
+            POHeaderController po = new POHeaderController();
+            switch (F_Code)
+            {
+                case "9":
+                    sap.ReadFeedbackPOCreate(2);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback PO Create");
+
+                    sap.ReadSAPVendorData(5);
+
+                    sap.ReadSAPPOData("4");
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP PO & Vendor Data");
+
+                    break;
+
+                case "14":
+                    sap.ProcessDigiSign(3);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully DigiSign Process PO Non Comm");
+                    break;
+
+                case "8":
+                    sap.ReadFeedbackMIRO("16");
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback MIRO");
+                    break;
+
+                case "17":
+                    sap.ReadSAPPOGR(13).GetAwaiter().GetResult();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read PO GR Data Non Commercials");
+                    break;
+
+                case "18":
+                    sap.ReadFeedbackPORelease(17).GetAwaiter().GetResult();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback SAP PO Release");
+                    break;
+
+                case "20":
+                    po.InsertVendorBankToSPList();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Insert Vendor Bank to SP List");
+                    break;
+            }
         }
 
         public static List<AutoCodeBatch> GetListData()
@@ -544,11 +615,11 @@ namespace Daikin.JobSchedulers
 
         public async static Task AutoCodeUpdateFlag(int id, string message, int code, SqlConnection _conn, SqlTransaction _trans)
         {
-            if (_conn.State == ConnectionState.Closed)
+            if(_conn.State == ConnectionState.Closed)
             {
                 await _conn.OpenAsync().ConfigureAwait(false);
             }
-            using (var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
+            using(var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -605,7 +676,7 @@ namespace Daikin.JobSchedulers
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
                 using (var _reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    if (await _reader.ReadAsync().ConfigureAwait(false))
+                    if(await _reader.ReadAsync().ConfigureAwait(false))
                     {
                         code = await _reader.IsDBNullAsync(_reader.GetOrdinal("AutoCode")) ? "" : Convert.ToString(_reader["AutoCode"]);
                     }
@@ -650,8 +721,7 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(string SiteUrl, AutoCodeBatch item, string autoCode)
         {
-            SPSecurity.RunWithElevatedPrivileges(delegate ()
-            {
+            SPSecurity.RunWithElevatedPrivileges(delegate () {
                 SPSite spSite = new SPSite(SiteUrl);
                 SPWeb spWeb = spSite.OpenWeb();
                 SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -671,7 +741,7 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(AutoCodeBatch item, string autoCode)
         {
-            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];
+            string siteUrl = ConfigurationManager.AppSettings["SiteUrl"];            
             SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
                 using (SPSite site = new SPSite(siteUrl))
@@ -696,7 +766,7 @@ namespace Daikin.JobSchedulers
         public static void InsertHistoryLog(AutoCodeBatch item, string SiteUrl)
         {
             HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
-            SPWeb web = new SPSite(SiteUrl).OpenWeb();
+            SPWeb web = new SPSite(SiteUrl).OpenWeb(); 
             SPList listData = web.Lists[item.ListName];
             SPListItem listItem = listData.GetItemById(item.ItemID.Value);
             if (!ModuleHL.Contains(item.ModuleCode))
@@ -754,7 +824,7 @@ namespace Daikin.JobSchedulers
         {
             var total = 0;
             var count = 0;
-            foreach (var item in GetListData())
+            foreach(var item in GetListData())
             {
                 total++;
                 try
@@ -767,7 +837,7 @@ namespace Daikin.JobSchedulers
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
                     count++;
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
                     WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
@@ -884,8 +954,7 @@ namespace Daikin.JobSchedulers
 
 
                     #region Update ListItem
-                    SPSecurity.RunWithElevatedPrivileges(delegate ()
-                    {
+                    SPSecurity.RunWithElevatedPrivileges(delegate () {
                         spSite = new SPSite(SiteUrl);
                         SPWeb spWeb = spSite.OpenWeb();
                         SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -949,7 +1018,7 @@ namespace Daikin.JobSchedulers
 
                     #region Start Workflow
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
-
+                    
                     #endregion
 
 
