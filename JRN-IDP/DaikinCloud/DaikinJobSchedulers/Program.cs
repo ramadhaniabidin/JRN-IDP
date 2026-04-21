@@ -403,11 +403,11 @@ namespace Daikin.JobSchedulers
 
         public async static Task AutoCodeUpdateFlag(int id, string message, int code, SqlConnection _conn, SqlTransaction _trans)
         {
-            if(_conn.State == ConnectionState.Closed)
+            if (_conn.State == ConnectionState.Closed)
             {
                 await _conn.OpenAsync().ConfigureAwait(false);
             }
-            using(var cmd = new SqlCommand(SP_AUTOCODE_UPDATEFLAG, _conn, _trans))
+            using (var cmd = new SqlCommand(SP_AUTOCODE_UPDATEFLAG, _conn, _trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -464,7 +464,7 @@ namespace Daikin.JobSchedulers
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
                 using (var _reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    if(await _reader.ReadAsync().ConfigureAwait(false))
+                    if (await _reader.ReadAsync().ConfigureAwait(false))
                     {
                         code = await _reader.IsDBNullAsync(_reader.GetOrdinal("AutoCode")) ? "" : Convert.ToString(_reader["AutoCode"]);
                     }
@@ -509,7 +509,8 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(string SiteUrl, AutoCodeBatch item, string autoCode)
         {
-            SPSecurity.RunWithElevatedPrivileges(delegate () {
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
                 SPSite spSite = new SPSite(SiteUrl);
                 SPWeb spWeb = spSite.OpenWeb();
                 SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -554,7 +555,7 @@ namespace Daikin.JobSchedulers
         public static void InsertHistoryLog(AutoCodeBatch item, string SiteUrl)
         {
             HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
-            SPWeb web = new SPSite(SiteUrl).OpenWeb(); 
+            SPWeb web = new SPSite(SiteUrl).OpenWeb();
             SPList listData = web.Lists[item.ListName];
             SPListItem listItem = listData.GetItemById(item.ItemID.Value);
             if (!ModuleHL.Contains(item.ModuleCode))
@@ -588,7 +589,6 @@ namespace Daikin.JobSchedulers
         public async static Task InsertHistoryLog(AutoCodeBatch item, SqlConnection _conn, SqlTransaction _trans)
         {
             string siteUrl = GetSiteURL();
-            HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
             using (SPSite site = new SPSite(siteUrl))
             using (SPWeb web = site.OpenWeb())
             {
@@ -612,7 +612,7 @@ namespace Daikin.JobSchedulers
         {
             var total = 0;
             var count = 0;
-            foreach(var item in GetListData())
+            foreach (var item in GetListData())
             {
                 total++;
                 try
@@ -625,7 +625,7 @@ namespace Daikin.JobSchedulers
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
                     count++;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
                     WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
@@ -740,7 +740,8 @@ namespace Daikin.JobSchedulers
 
 
                     #region Update ListItem
-                    SPSecurity.RunWithElevatedPrivileges(delegate () {
+                    SPSecurity.RunWithElevatedPrivileges(delegate ()
+                    {
                         spSite = new SPSite(SiteUrl);
                         SPWeb spWeb = spSite.OpenWeb();
                         SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -804,7 +805,7 @@ namespace Daikin.JobSchedulers
 
                     #region Start Workflow
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
-                    
+
                     #endregion
 
 
@@ -905,7 +906,7 @@ namespace Daikin.JobSchedulers
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
             request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-             
+
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
