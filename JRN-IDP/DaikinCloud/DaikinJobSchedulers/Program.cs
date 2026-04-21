@@ -80,14 +80,8 @@ namespace Daikin.JobSchedulers
             try
             {
                 string F_Code = GetFunctionCode();
-                SAPController sap = new SAPController();
-                SAPSubconController sapSubcon = new SAPSubconController();
-                POSubconController poSubcon = new POSubconController();
                 BusinessPartnerController bp = new BusinessPartnerController();
-                CommonLogic func = new CommonLogic();
-                string ldap = ConfigurationManager.AppSettings["LDAP"];
-                string user = ConfigurationManager.AppSettings["NetworkUser"];
-                string pass = ConfigurationManager.AppSettings["NetworkPass"];
+
                 #region Generate Autocode
                 if (F_Code == "0")
                 {
@@ -907,11 +901,10 @@ namespace Daikin.JobSchedulers
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
             request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
+             
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadAsStringAsync();
             }
 
         }
