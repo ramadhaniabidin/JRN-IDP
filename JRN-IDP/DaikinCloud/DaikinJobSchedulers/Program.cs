@@ -29,6 +29,7 @@ namespace Daikin.JobSchedulers
         static SqlDataReader reader = null;
         static DataTable dt = new DataTable();
         private readonly static NintexCloudManager ntxManager = new NintexCloudManager();
+        private readonly static List<string> fobServiceCostActions = new List<string> { "1", "2", "3", "4" };
 
         public static string GetSiteURL()
         {
@@ -51,6 +52,11 @@ namespace Daikin.JobSchedulers
             {
                 return "0";
             }
+        }
+
+        static bool isFOBServiceCostActions(string F_Code)
+        {
+            return fobServiceCostActions.Contains(F_Code);
         }
 
         static void Main(string[] args)
@@ -77,26 +83,30 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region FOB, LC / SERVICE COST
-                else if (F_Code == "1") // Commercials Inbound
+                else if (isFOBServiceCostActions(F_Code))
                 {
-                    new SAPController().Read_SAP_Inbound();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
+                    FOBServiceCostActions(F_Code);
                 }
-                else if (F_Code == "2") // Commercials AP
-                {
-                    new SAPController().Read_SAP_OutstandingAP();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
-                }
-                else if (F_Code == "3") //Rebate AP
-                {
-                    new SAPController().Read_SAP_Rebate();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
-                }
-                else if (F_Code == "4") //Feedback SAP LC (Landed Cost or Service Cost)
-                {
-                    new SAPController().ReadFeedbackSAP_ServiceCost();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
-                }
+                //else if (F_Code == "1") // Commercials Inbound
+                //{
+                //    new SAPController().Read_SAP_Inbound();
+                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
+                //}
+                //else if (F_Code == "2") // Commercials AP
+                //{
+                //    new SAPController().Read_SAP_OutstandingAP();
+                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
+                //}
+                //else if (F_Code == "3") //Rebate AP
+                //{
+                //    new SAPController().Read_SAP_Rebate();
+                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
+                //}
+                //else if (F_Code == "4") //Feedback SAP LC (Landed Cost or Service Cost)
+                //{
+                //    new SAPController().ReadFeedbackSAP_ServiceCost();
+                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
+                //}
                 #endregion  
 
                 else if (F_Code == "Update XML Subcon")
