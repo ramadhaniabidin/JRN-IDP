@@ -560,28 +560,21 @@ namespace Daikin.JobSchedulers
             SPListItem listItem = listData.GetItemById(item.ItemID.Value);
             if (!ModuleHL.Contains(item.ModuleCode))
             {
-                try
+                using (var _con = new SqlConnection(Utility.GetSqlConnection()))
                 {
-                    using (var _con = new SqlConnection(Utility.GetSqlConnection()))
+                    _con.Open();
+                    using (var cmd = new SqlCommand("usp_NWC_insertHistoryLog", _con))
                     {
-                        _con.Open();
-                        using (var cmd = new SqlCommand("usp_NWC_insertHistoryLog", _con))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@listName", Value = item.ListName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@listItemID", Value = item.ItemID.Value, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@action", Value = 1, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLogin", Value = listItem["Author"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLoginName", Value = listItem["Requester_x0020_Name"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                            cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLayer", Value = "0", SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                            cmd.ExecuteNonQuery();
-                        }
-                        _con.Close();
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@listName", Value = item.ListName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@listItemID", Value = item.ItemID.Value, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@action", Value = 1, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLogin", Value = listItem["Author"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLoginName", Value = listItem["Requester_x0020_Name"].ToString(), SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@currentLayer", Value = "0", SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.ExecuteNonQuery();
                     }
-                }
-                catch (Exception)
-                {
-                    throw;
+                    _con.Close();
                 }
             }
         }
