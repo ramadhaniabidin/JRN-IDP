@@ -31,6 +31,10 @@ namespace Daikin.JobSchedulers
         private readonly static List<string> nonCommercialActions = new List<string> { "8", "9", "14", "17", "18", "20" };
         private readonly static List<string> poSubconActions = new List<string> { "6", "7", "15", "16", "13", "30" };
         private readonly static List<string> batchFeedbackActions = new List<string> { "33", "34" };
+        private readonly static string DATETIME_FORMAT = "dd MMM yyyy HH:mm:ss tt";
+        private readonly static string SP_AUTOCODE_UPDATEFLAG = ConfigurationManager.AppSettings["SP_AUTOCODE_UPDATEFLAG"];
+        private readonly static string TABLE_NAME_KEY = "@TableName";
+        private readonly static string GENERATED_STATUS = "Generated";
 
         public static string GetSiteURL()
         {
@@ -87,7 +91,7 @@ namespace Daikin.JobSchedulers
                 {
                     var siteURL = GetSiteURL();
                     var result = GenerateCode_V2(siteURL);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Generate Code " + result + " items");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Generate Code " + result + " items");
                 }
                 #endregion
 
@@ -160,7 +164,7 @@ namespace Daikin.JobSchedulers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - " + ex);
+                WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - " + ex);
             }
 
         }
@@ -172,22 +176,22 @@ namespace Daikin.JobSchedulers
             {
                 case "1":
                     sap.Read_SAP_Inbound();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Inbound ");
                     break;
 
                 case "2":
                     sap.Read_SAP_OutstandingAP();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Outstanding AP ");
                     break;
 
                 case "3":
                     sap.Read_SAP_Rebate();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Rebate AP ");
                     break;
 
                 case "4":
                     sap.ReadFeedbackSAP_ServiceCost();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Feedback LC ");
                     break;
             }
         }
@@ -200,38 +204,38 @@ namespace Daikin.JobSchedulers
             {
                 case "9":
                     sap.ReadFeedbackPOCreate(2);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback PO Create");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Feedback PO Create");
 
                     sap.ReadSAPVendorData(5);
 
                     sap.ReadSAPPOData("4");
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP PO & Vendor Data");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP PO & Vendor Data");
 
                     break;
 
                 case "14":
                     sap.ProcessDigiSign(3);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully DigiSign Process PO Non Comm");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully DigiSign Process PO Non Comm");
                     break;
 
                 case "8":
                     sap.ReadFeedbackMIRO("16");
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback MIRO");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Feedback MIRO");
                     break;
 
                 case "17":
                     sap.ReadSAPPOGR(13).GetAwaiter().GetResult();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read PO GR Data Non Commercials");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read PO GR Data Non Commercials");
                     break;
 
                 case "18":
                     sap.ReadFeedbackPORelease(17).GetAwaiter().GetResult();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback SAP PO Release");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read Feedback SAP PO Release");
                     break;
 
                 case "20":
                     po.InsertVendorBankToSPList();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Insert Vendor Bank to SP List");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Insert Vendor Bank to SP List");
                     break;
             }
         }
@@ -245,36 +249,36 @@ namespace Daikin.JobSchedulers
             {
                 case "6":
                     sap.ReadSAPVendorData(12);
-                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read Commercial Subcon");
 
                     sapSubcon.ReadCommercialSubcon(10);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read Commercial Subcon");
 
                     break;
 
                 case "7":
                     poSubcon.SaveBulkSPList_V2();
-                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Save SP List Commercial Subcon");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Save SP List Commercial Subcon");
                     break;
 
                 case "15":
                     sapSubcon.SaveAttachmentPOSubcon(7);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Save Attachment PO Subcon");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Save Attachment PO Subcon");
                     break;
 
                 case "16":
                     sapSubcon.ReadFeedbackMIRO(6);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback MIRO Subcon");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read Feedback MIRO Subcon");
                     break;
 
                 case "13":
                     sapSubcon.ReadCommercialSubconGR(11);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Commercial Subcon GR");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Read SAP Commercial Subcon GR");
                     break;
 
                 case "30":
                     bp.ProcessPendingBP();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Process Pending Business Partner");
+                    WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - Successfully Process Pending Business Partner");
                     break;
             }
         }
@@ -385,7 +389,7 @@ namespace Daikin.JobSchedulers
             using (var _con = new SqlConnection(Utility.GetSqlConnection()))
             {
                 _con.Open();
-                using (var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _con))
+                using (var cmd = new SqlCommand(SP_AUTOCODE_UPDATEFLAG, _con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -399,11 +403,11 @@ namespace Daikin.JobSchedulers
 
         public async static Task AutoCodeUpdateFlag(int id, string message, int code, SqlConnection _conn, SqlTransaction _trans)
         {
-            if (_conn.State == ConnectionState.Closed)
+            if(_conn.State == ConnectionState.Closed)
             {
                 await _conn.OpenAsync().ConfigureAwait(false);
             }
-            using (var cmd = new SqlCommand("usp_AutoCodeBatch_UpdateFlag", _conn, _trans))
+            using(var cmd = new SqlCommand(SP_AUTOCODE_UPDATEFLAG, _conn, _trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ID", Value = id, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -424,7 +428,7 @@ namespace Daikin.JobSchedulers
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                        cmd.Parameters.Add(new SqlParameter { ParameterName = TABLE_NAME_KEY, Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldCriteria", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "@ValueCriteria", Value = item.Format, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
@@ -454,13 +458,13 @@ namespace Daikin.JobSchedulers
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = TABLE_NAME_KEY, Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@FieldCriteria", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ValueCriteria", Value = item.Format, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@LengthOfString", Value = item.LengthOfString, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
                 using (var _reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    if (await _reader.ReadAsync().ConfigureAwait(false))
+                    if(await _reader.ReadAsync().ConfigureAwait(false))
                     {
                         code = await _reader.IsDBNullAsync(_reader.GetOrdinal("AutoCode")) ? "" : Convert.ToString(_reader["AutoCode"]);
                     }
@@ -478,7 +482,7 @@ namespace Daikin.JobSchedulers
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@TransID", Value = item.TransID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = TABLE_NAME_KEY, Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@DetailName", Value = item.DetailName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@ColumnName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "@AutoCode", Value = autoCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
@@ -495,7 +499,7 @@ namespace Daikin.JobSchedulers
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@TransID", Value = item.TransID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableName", Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = TABLE_NAME_KEY, Value = item.TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@DetailName", Value = item.DetailName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@ColumnName", Value = item.ColumnName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
                 cmd.Parameters.Add(new SqlParameter { ParameterName = "@AutoCode", Value = autoCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
@@ -505,8 +509,7 @@ namespace Daikin.JobSchedulers
 
         public static void UpdateListItem(string SiteUrl, AutoCodeBatch item, string autoCode)
         {
-            SPSecurity.RunWithElevatedPrivileges(delegate ()
-            {
+            SPSecurity.RunWithElevatedPrivileges(delegate () {
                 SPSite spSite = new SPSite(SiteUrl);
                 SPWeb spWeb = spSite.OpenWeb();
                 SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -515,7 +518,7 @@ namespace Daikin.JobSchedulers
                 SPListItem spItem = spList.GetItemById(item.ItemID.Value);
                 spItem["Title"] = autoCode;
                 spItem["Request No"] = autoCode;
-                spItem["Approval Status"] = "Generated";
+                spItem["Approval Status"] = GENERATED_STATUS;
                 spItem["Approval Status ID"] = 3;
                 spItem["Workflow Status"] = "Approval";
                 spItem["Form Status"] = "Start";
@@ -537,7 +540,7 @@ namespace Daikin.JobSchedulers
                     SPListItem spItem = list.GetItemById(item.ItemID.Value);
                     spItem["Title"] = autoCode;
                     spItem["Request No"] = autoCode;
-                    spItem["Approval Status"] = "Generated";
+                    spItem["Approval Status"] = GENERATED_STATUS;
                     spItem["Approval Status ID"] = 3;
                     spItem["Workflow Status"] = "Approval";
                     spItem["Form Status"] = "Start";
@@ -551,7 +554,7 @@ namespace Daikin.JobSchedulers
         public static void InsertHistoryLog(AutoCodeBatch item, string SiteUrl)
         {
             HashSet<string> ModuleHL = new HashSet<string> { "M001", "M016", "M002", "M003", "M004", "M012", "M025" };
-            SPWeb web = new SPSite(SiteUrl).OpenWeb();
+            SPWeb web = new SPSite(SiteUrl).OpenWeb(); 
             SPList listData = web.Lists[item.ListName];
             SPListItem listItem = listData.GetItemById(item.ItemID.Value);
             if (!ModuleHL.Contains(item.ModuleCode))
@@ -609,20 +612,20 @@ namespace Daikin.JobSchedulers
         {
             var total = 0;
             var count = 0;
-            foreach (var item in GetListData())
+            foreach(var item in GetListData())
             {
                 total++;
                 try
                 {
                     string generatedCode = GenerateAutoCode(item);
-                    AutoCodeUpdateFlag(item.ID, "Generated", 1);
+                    AutoCodeUpdateFlag(item.ID, GENERATED_STATUS, 1);
                     UpdateTransactionItem(item, generatedCode);
                     UpdateListItem(SiteUrl, item, generatedCode);
                     InsertHistoryLog(item, SiteUrl);
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
                     count++;
                 }
-                catch (Exception ex)
+                catch(Exception ex)
                 {
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + " - " + ex.Message);
                     WriteToFile("   " + SiteUrl + " - " + item.ListName + " - " + item.ItemID.Value);
@@ -650,7 +653,7 @@ namespace Daikin.JobSchedulers
                         try
                         {
                             string generatedCode = await GenerateAutoCode(item, _conn, _trans).ConfigureAwait(false);
-                            await AutoCodeUpdateFlag(item.ID, "Generated", 1, _conn, _trans).ConfigureAwait(false);
+                            await AutoCodeUpdateFlag(item.ID, GENERATED_STATUS, 1, _conn, _trans).ConfigureAwait(false);
                             await UpdateTransactionItem(item, generatedCode, _conn, _trans);
                             UpdateListItem(SiteUrl, item, generatedCode);
                             await InsertHistoryLog(item, _conn, _trans);
@@ -708,13 +711,13 @@ namespace Daikin.JobSchedulers
                     #endregion
 
                     #region Update AutoCodeBatch
-                    db.cmd.CommandText = "usp_AutoCodeBatch_UpdateFlag";
+                    db.cmd.CommandText = SP_AUTOCODE_UPDATEFLAG;
                     db.cmd.CommandType = CommandType.StoredProcedure;
 
                     db.cmd.Parameters.Clear();
                     db.AddInParameter(db.cmd, "ID", item.ID);
-                    db.AddInParameter(db.cmd, "Generated", 1);
-                    db.AddInParameter(db.cmd, "SysMessage", "Generated");
+                    db.AddInParameter(db.cmd, GENERATED_STATUS, 1);
+                    db.AddInParameter(db.cmd, "SysMessage", GENERATED_STATUS);
 
                     db.cmd.ExecuteNonQuery();
                     #endregion
@@ -737,8 +740,7 @@ namespace Daikin.JobSchedulers
 
 
                     #region Update ListItem
-                    SPSecurity.RunWithElevatedPrivileges(delegate ()
-                    {
+                    SPSecurity.RunWithElevatedPrivileges(delegate () {
                         spSite = new SPSite(SiteUrl);
                         SPWeb spWeb = spSite.OpenWeb();
                         SPList spList = spWeb.Lists.TryGetList(item.ListName);
@@ -747,7 +749,7 @@ namespace Daikin.JobSchedulers
                         spItem = spList.GetItemById(item.ItemID.Value);
                         spItem["Title"] = autoCode;
                         spItem["Request No"] = autoCode;
-                        spItem["Approval Status"] = "Generated";
+                        spItem["Approval Status"] = GENERATED_STATUS;
                         spItem["Approval Status ID"] = 3;
                         spItem["Workflow Status"] = "Approval";
                         spItem["Form Status"] = "Start";
@@ -802,7 +804,7 @@ namespace Daikin.JobSchedulers
 
                     #region Start Workflow
                     StartWorkflowAfterGenerateCode(item.ModuleCode, (int)item.ItemID, (int)item.TransID, item.ListName);
-
+                    
                     #endregion
 
 
@@ -830,12 +832,12 @@ namespace Daikin.JobSchedulers
                     try
                     {
                         #region Update AutoCodeBatch if error
-                        db.cmd.CommandText = "usp_AutoCodeBatch_UpdateFlag";
+                        db.cmd.CommandText = SP_AUTOCODE_UPDATEFLAG;
                         db.cmd.CommandType = CommandType.StoredProcedure;
 
                         db.cmd.Parameters.Clear();
                         db.AddInParameter(db.cmd, "ID", item.ID);
-                        db.AddInParameter(db.cmd, "Generated", 2);
+                        db.AddInParameter(db.cmd, GENERATED_STATUS, 2);
                         db.AddInParameter(db.cmd, "SysMessage", errorMessage);
 
                         db.cmd.ExecuteNonQuery();
@@ -844,7 +846,7 @@ namespace Daikin.JobSchedulers
                     catch (Exception ex)
                     {
                         isTrans = false;
-                        WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - " + ex.Message);
+                        WriteToFile(DateTime.Now.ToString(DATETIME_FORMAT) + " - " + ex.Message);
                     }
                     finally
                     {
@@ -903,7 +905,7 @@ namespace Daikin.JobSchedulers
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
             request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
+             
             using (var response = await client.SendAsync(request))
             {
                 response.EnsureSuccessStatusCode();
