@@ -952,35 +952,6 @@ namespace Daikin.JobSchedulers
             }
         }
 
-        public async static void StartWorkflowBySystemAccount(NintexWorkflowCloud nwc)
-        {
-            try
-            {
-                string sBody = new JavaScriptSerializer().Serialize(nwc.param);
-
-                HttpClient client = new HttpClient();
-                client.BaseAddress = new Uri(nwc.url);
-
-                client.DefaultRequestHeaders
-                    .Accept
-                    .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
-
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
-                request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
-                using (var response = await client.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var result = await response.Content.ReadAsStringAsync();
-                }
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
         public async Task StartNWC(NintexWorkflowCloud nwc)
         {
 
