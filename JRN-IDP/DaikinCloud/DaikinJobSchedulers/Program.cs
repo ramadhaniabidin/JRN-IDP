@@ -406,10 +406,10 @@ namespace Daikin.JobSchedulers
                 var list = Utility.ConvertDataTableToList<AutoCodeBatch>(dt);
                 return list;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
@@ -855,10 +855,10 @@ namespace Daikin.JobSchedulers
                             db.CloseConnection(ref conn);
                         }
 
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             db.CloseConnection(ref conn);
-                            throw ex;
+                            throw;
                         }
                     }
                     #endregion
@@ -975,9 +975,9 @@ namespace Daikin.JobSchedulers
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -1025,10 +1025,10 @@ namespace Daikin.JobSchedulers
                 db.CloseConnection(ref conn);
             }
 
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
 
