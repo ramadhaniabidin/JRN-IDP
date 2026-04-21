@@ -30,6 +30,7 @@ namespace Daikin.JobSchedulers
         static DataTable dt = new DataTable();
         private readonly static NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly static List<string> fobServiceCostActions = new List<string> { "1", "2", "3", "4" };
+        private readonly static List<string> nonCommercialActions = new List<string> { "8", "9", "14", "17", "18", "20" };
 
         public static string GetSiteURL()
         {
@@ -57,6 +58,11 @@ namespace Daikin.JobSchedulers
         static bool isFOBServiceCostActions(string F_Code)
         {
             return fobServiceCostActions.Contains(F_Code);
+        }
+
+        static bool isNonCommercialActions(string F_Code)
+        {
+            return nonCommercialActions.Contains(F_Code);
         }
 
         static void Main(string[] args)
@@ -87,26 +93,6 @@ namespace Daikin.JobSchedulers
                 {
                     FOBServiceCostActions(F_Code);
                 }
-                //else if (F_Code == "1") // Commercials Inbound
-                //{
-                //    new SAPController().Read_SAP_Inbound();
-                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Inbound ");
-                //}
-                //else if (F_Code == "2") // Commercials AP
-                //{
-                //    new SAPController().Read_SAP_OutstandingAP();
-                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Outstanding AP ");
-                //}
-                //else if (F_Code == "3") //Rebate AP
-                //{
-                //    new SAPController().Read_SAP_Rebate();
-                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Rebate AP ");
-                //}
-                //else if (F_Code == "4") //Feedback SAP LC (Landed Cost or Service Cost)
-                //{
-                //    new SAPController().ReadFeedbackSAP_ServiceCost();
-                //    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback LC ");
-                //}
                 #endregion  
 
                 else if (F_Code == "Update XML Subcon")
@@ -123,52 +109,9 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region NON COMMERCIAL
-                else if (F_Code == "9")
+                else if (isNonCommercialActions(F_Code))
                 {
-                    //After get info success from SAP, continue to PO Release Process
-                    //new SAPController().ReadFeedbackPOCreate("2");
-                    sap.ReadFeedbackPOCreate(2);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback PO Create");
-
-                    //PO Data & Vendor Data Non Commercial then continue to DigiSign (F_Code == 14)
-                    //Collect Vendor data first
-                    //new SAPController().ReadSAPVendorData("5");
-                    sap.ReadSAPVendorData(5);
-
-                    //Inside this below logic will update vendor name each purchasing docs
-                    //new SAPController().ReadSAPPOData("4");
-                    sap.ReadSAPPOData("4");
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP PO & Vendor Data");
-                }
-                else if (F_Code == "14") //Non Comm DigiSign
-                {
-                    //new SAPController().ProcessDigiSign("3"); //PO Data Print Out PDF
-                    sap.ProcessDigiSign(3);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully DigiSign Process PO Non Comm");
-                }
-
-                else if (F_Code == "8") //PO Non Comm MIRO
-                {
-                    new SAPController().ReadFeedbackMIRO("16");
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Feedback MIRO");
-                }
-                else if (F_Code == "17") //PO GR Data Non Commercial / MIGO GR
-                {
-                    //new SAPController().ReadSAPPOGR("13");
-                    sap.ReadSAPPOGR(13).GetAwaiter().GetResult();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read PO GR Data Non Commercials");
-                }
-                else if (F_Code == "18") //Read Feedback SAP PO Release 
-                {
-                    //(After accounting manager approve, workflow stop then nintex send release to sap)
-                    //new SAPController().ReadFeedbackPORelease("17");
-                    sap.ReadFeedbackPORelease(17).GetAwaiter().GetResult();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback SAP PO Release");
-                }
-                else if (F_Code == "20")
-                {
-                    new POHeaderController().InsertVendorBankToSPList();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Insert Vendor Bank to SP List");
+                    NonCommercialActions(F_Code);
                 }
                 #endregion
 
