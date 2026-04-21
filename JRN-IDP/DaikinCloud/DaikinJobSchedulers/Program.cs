@@ -95,12 +95,6 @@ namespace Daikin.JobSchedulers
                 }
                 #endregion  
 
-                else if (F_Code == "Update XML Subcon")
-                {
-                    string data = "8300214714;8300214721;8300214728;8300214730;8300214732;8300214738;8300214742;8300214837;8300214838;8300214840;8300214843;8300214844;8300214847;8300214848;8300214852;8300214853";
-                    new SAPSubconController().Update_XML_Subcon(data);
-                }
-
                 #region Sync Sharepoint to Database
                 else if (F_Code == "5")
                 {
