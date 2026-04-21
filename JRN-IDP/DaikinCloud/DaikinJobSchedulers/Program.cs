@@ -130,14 +130,11 @@ namespace Daikin.JobSchedulers
                     try
                     {
                         ctrl.ReadBatchFeedbacks(ref total, ref count);
+                        Utility.WriteToFile("Batch 1 - Successfully Read SAP Posting Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
                     }
                     catch (Exception ex)
                     {
                         Utility.WriteToFile(ex.ToString());
-                    }
-                    finally
-                    {
-                        Utility.WriteToFile("Batch 1 - Successfully Read SAP Posting Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
                     }
 
                 }
@@ -154,14 +151,11 @@ namespace Daikin.JobSchedulers
                     try
                     {
                         ctrl.ReadBatchFeedbacks(ref total, ref count);
+                        Utility.WriteToFile("Batch 2 - Successfully Read SAP Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
                     }
                     catch (Exception ex)
                     {
                         Utility.WriteToFile(ex.ToString());
-                    }
-                    finally
-                    {
-                        Utility.WriteToFile("Batch 2 - Successfully Read SAP Feedbacks " + count + " of " + total + (total > 1 ? " files" : " file"));
                     }
                 }
                 #endregion
