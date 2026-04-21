@@ -22,7 +22,7 @@ using Daikin.JobSchedulersLogic.Common;
 
 namespace Daikin.JobSchedulers
 {
-    class Program
+    static class Program
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
