@@ -87,8 +87,6 @@ namespace Daikin.JobSchedulers
                 #region Generate Autocode
                 if (F_Code == "0")
                 {
-                    //var siteURL = GetSiteURL();
-                    //var result = GenerateCode(siteURL);
                     var siteURL = ConfigurationManager.AppSettings["SiteUrl"];
                     var result = GenerateCode_V2(siteURL);
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Generate Code " + result + " items");
@@ -280,10 +278,6 @@ namespace Daikin.JobSchedulers
                 Console.WriteLine(ex);
                 WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - " + ex);
             }
-            finally
-            {
-                //Console.ReadLine();
-            }
 
         }
 
@@ -407,7 +401,6 @@ namespace Daikin.JobSchedulers
             try
             {
                 db.OpenConnection(ref conn);
-                //db.cmd.CommandText = "usp_AutoCodeBatch_GetList"; //dev
                 db.cmd.CommandText = "usp_NWC_AutoCodeBatch_GetList"; //prod
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
@@ -450,33 +443,6 @@ namespace Daikin.JobSchedulers
                 var nwc = ntxManager.GenerateNACPayload(Transaction_ID, Item_ID, Module_Code, List_Name);
                 await ntxManager.StartNWC(nwc);
             }).Wait();
-            #region Commented-out code
-            //if(Module_Code == "M016")
-            //{
-            //    Task.Run(async () =>
-            //    {
-            //        await ntxManager.NonCommercial_StartWorkflow_V2(Item_ID, Transaction_ID, Module_Code, List_Name);
-            //    }).Wait();
-            //}
-            //else if(Module_Code == "M025")
-            //{
-            //    Task.Run(async () =>
-            //    {
-            //        await ntxManager.Commercial_StartWorkflow(Item_ID, Transaction_ID, Module_Code, Workflow_ID);
-            //    }).Wait();
-            //}
-            //else if(Module_Code == "M029")
-            //{
-            //    Task.Run(async () => { await ntxManager.PAL_StartWorkflow(Item_ID, Module_Code); }).Wait();
-            //}
-            //else
-            //{
-            //    Task.Run(async () =>
-            //    {
-            //        await ntxManager.ClaimReimbursement_StartWorkflow(Item_ID, Module_Code);
-            //    }).Wait();
-            //}
-            #endregion
         }
 
         public async static Task StartWorkflowAfterGenerateCode(string Module_Code, int Item_ID, int Transaction_ID, string List_Name, SqlConnection _conn, SqlTransaction _trans)
@@ -804,7 +770,6 @@ namespace Daikin.JobSchedulers
                     db.AddInParameter(db.cmd, "FieldCriteria", item.ColumnName);
                     db.AddInParameter(db.cmd, "ValueCriteria", item.Format);
                     db.AddInParameter(db.cmd, "LengthOfString", item.LengthOfString);
-                    //db.AddOutParameter(db.cmd, "AutoCode", SqlDbType.VarChar);
 
                     reader = db.cmd.ExecuteReader();
                     dt = new DataTable();
@@ -828,7 +793,6 @@ namespace Daikin.JobSchedulers
 
                     #region Update Item
                     db.cmd.CommandText = "usp_NWC_AutoCodeBatch_UpdateItem"; //prod
-                    //db.cmd.CommandText = "usp_AutoCodeBatch_UpdateItem"; //dev
                     db.cmd.CommandType = CommandType.StoredProcedure;
 
                     db.cmd.Parameters.Clear();
@@ -1000,7 +964,6 @@ namespace Daikin.JobSchedulers
         {
             try
             {
-                //string sBody = JsonConvert.SerializeObject(nwc.param);
                 string sBody = new JavaScriptSerializer().Serialize(nwc.param);
 
                 HttpClient client = new HttpClient();
@@ -1011,17 +974,12 @@ namespace Daikin.JobSchedulers
                     .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
 
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
-
-                //HttpContent request1 = new StringContent(sBody, Encoding.UTF8, "application/json");
-                //string jsonContent = request1.ReadAsStringAsync().Result;
-
                 request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
 
                 using (var response = await client.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
                     var result = await response.Content.ReadAsStringAsync();
-                    //return result; //instance guid
                 }
 
             }
@@ -1042,8 +1000,6 @@ namespace Daikin.JobSchedulers
             client.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
-            //string token = Program.GetToken();
-            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
@@ -1053,7 +1009,6 @@ namespace Daikin.JobSchedulers
             {
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsStringAsync();
-                //return result; //instance guid
             }
 
         }
