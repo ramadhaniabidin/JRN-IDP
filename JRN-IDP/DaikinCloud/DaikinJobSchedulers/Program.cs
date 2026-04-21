@@ -26,7 +26,6 @@ namespace Daikin.JobSchedulers
     {
         static DatabaseManager db = new DatabaseManager();
         static SqlConnection conn = new SqlConnection();
-        static SqlDataReader reader = null;
         static DataTable dt = new DataTable();
         private readonly static NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly static List<string> fobServiceCostActions = new List<string> { "1", "2", "3", "4" };
@@ -342,7 +341,7 @@ namespace Daikin.JobSchedulers
 
                 db.cmd.Parameters.Clear();
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -707,7 +706,7 @@ namespace Daikin.JobSchedulers
                     db.AddInParameter(db.cmd, "ValueCriteria", item.Format);
                     db.AddInParameter(db.cmd, "LengthOfString", item.LengthOfString);
 
-                    reader = db.cmd.ExecuteReader();
+                    var reader = db.cmd.ExecuteReader();
                     dt = new DataTable();
                     dt.Load(reader);
                     db.CloseDataReader(reader);
