@@ -31,6 +31,7 @@ namespace Daikin.JobSchedulers
         private readonly static NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly static List<string> fobServiceCostActions = new List<string> { "1", "2", "3", "4" };
         private readonly static List<string> nonCommercialActions = new List<string> { "8", "9", "14", "17", "18", "20" };
+        private readonly static List<string> poSubconActions = new List<string> { "6", "7", "15", "16", "13", "30" };
 
         public static string GetSiteURL()
         {
@@ -65,6 +66,11 @@ namespace Daikin.JobSchedulers
             return nonCommercialActions.Contains(F_Code);
         }
 
+        static bool isPOSubcon(string F_Code)
+        {
+            return poSubconActions.Contains(F_Code);
+        }
+
         static void Main(string[] args)
         {
             try
@@ -73,6 +79,7 @@ namespace Daikin.JobSchedulers
                 SAPController sap = new SAPController();
                 SAPSubconController sapSubcon = new SAPSubconController();
                 POSubconController poSubcon = new POSubconController();
+                BusinessPartnerController bp = new BusinessPartnerController();
                 CommonLogic func = new CommonLogic();
                 string ldap = ConfigurationManager.AppSettings["LDAP"];
                 string user = ConfigurationManager.AppSettings["NetworkUser"];
@@ -110,61 +117,9 @@ namespace Daikin.JobSchedulers
                 #endregion
 
                 #region COMMERCIAL SUBCON
-                else if (F_Code == "6")
+                else if (isPOSubcon(F_Code))
                 {
-                    // Read PO Subcon Vendor Data
-                    /*new SAPController().ReadSAPVendorData("12");*/    // Folder ID = 34 for testing, 12 for production
-                    //new SAPController().ReadSAPVendorData(12);
-                    sap.ReadSAPVendorData(12);
-                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
-
-                    // Read PO Subcon Data
-                    //new SAPSubconController().ReadCommercialSubcon("10");   // Folder ID = 33 for testing, 10 for production
-                    //new SAPSubconController().ReadCommercialSubcon(10);
-                    sapSubcon.ReadCommercialSubcon(10);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
-
-                }
-
-                else if (F_Code == "7")
-                {
-                    // Save bulk SPList and trigger Get Attachment Workflow for the first time
-                    //new POSubconController().SaveBulkSPList_DEV();
-                    //new POSubconController().SaveBulkSPList_V2();
-                    poSubcon.SaveBulkSPList_V2();
-                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Save SP List Commercial Subcon");
-                }
-
-                else if (F_Code == "15")
-                {
-                    //new SAPSubconController().SaveAttachmentPOSubcon();
-                    //new SAPSubconController().SaveAttachmentPOSubcon(7);
-                    sapSubcon.SaveAttachmentPOSubcon(7);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Save Attachment PO Subcon");
-                }
-
-                else if (F_Code == "16") //Subcon Feedback MIRO after Accounting Manager approve
-                {
-                    /*new SAPSubconController().ReadFeedbackMIRO("6");*/      // Folder ID = 37 for testing, 6 for production
-                    //new SAPSubconController().ReadFeedbackMIRO(6);
-                    sapSubcon.ReadFeedbackMIRO(6);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback MIRO Subcon");
-                }
-
-                else if (F_Code == "13") //GR Data PO Subcon (MIGO), continue to Admin Service
-                {
-                    //new SAPSubconController().ReadCommercialSubconGR("11");      // Folder ID = 36 for testing, 11 for production
-                    sapSubcon.ReadCommercialSubconGR(11);
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Commercial Subcon GR");
-                    //Task.Run(async () => { await Start_Approval_Workflow(); }).Wait();
-                }
-
-                else if (F_Code == "30") //Business Partner, Trigger Workflow
-                {
-                    new BusinessPartnerController().ProcessPendingBP();
-                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Process Pending Business Partner");
-                    //Task.Run(async () => { await Start_Approval_Workflow(); }).Wait();
-                    Console.Read();
+                    POSubconActions(F_Code, bp);
                 }
                 #endregion
 
@@ -399,6 +354,49 @@ namespace Daikin.JobSchedulers
                 case "20":
                     po.InsertVendorBankToSPList();
                     WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Insert Vendor Bank to SP List");
+                    break;
+            }
+        }
+
+        static void POSubconActions(string F_Code, BusinessPartnerController bp)
+        {
+            SAPController sap = new SAPController();
+            SAPSubconController sapSubcon = new SAPSubconController();
+            POSubconController poSubcon = new POSubconController();
+            switch (F_Code)
+            {
+                case "6":
+                    sap.ReadSAPVendorData(12);
+                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+
+                    sapSubcon.ReadCommercialSubcon(10);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Commercial Subcon");
+
+                    break;
+
+                case "7":
+                    poSubcon.SaveBulkSPList_V2();
+                    WriteToFile(DateTime.Now.ToString("dd MM yyyy HH:mm:ss tt") + " - Successfully Save SP List Commercial Subcon");
+                    break;
+
+                case "15":
+                    sapSubcon.SaveAttachmentPOSubcon(7);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Save Attachment PO Subcon");
+                    break;
+
+                case "16":
+                    sapSubcon.ReadFeedbackMIRO(6);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read Feedback MIRO Subcon");
+                    break;
+
+                case "13":
+                    sapSubcon.ReadCommercialSubconGR(11);
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Read SAP Commercial Subcon GR");
+                    break;
+
+                case "30":
+                    bp.ProcessPendingBP();
+                    WriteToFile(DateTime.Now.ToString("dd MMM yyyy HH:mm:ss tt") + " - Successfully Process Pending Business Partner");
                     break;
             }
         }
