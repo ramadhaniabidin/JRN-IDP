@@ -1253,37 +1253,60 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
 
     $scope.contractSubmitCheck = function () {
-        try {
-            const validationHeader = $scope.contractSubmit_ValidateHeader();
-            if (validationHeader.error) {
-                alert(validationHeader.message);
-                return;
-            }
-            const validationDetail = $scope.contractSubmit_ValidateDetails();
-            if (validationDetail.error) {
-                alert(validationDetail.message);
-                return;
-            }
-            let confirmMsg = confirm('Submit ?');
-            if (confirmMsg) {
-                const proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
-                proc.then(function (response) {
-                    const data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        alert('Submitted Successfully!');
-                        location.href = 'List.aspx';
-                    } else {
-                        alert(data.InfoMessage);
-                    }
-
-                }, function (data, status) {
-                    alert(data.data.Message);
-                });
-            }
-
-        } catch (e) {
-            alert(e.message);
+        const validationHeader = $scope.contractSubmit_ValidateHeader();
+        if (validationHeader.error) {
+            alert(validationHeader.message);
+            return;
         }
+
+        const validationDetail = $scope.contractSubmit_ValidateDetails();
+        if (validationDetail.error) {
+            alert(validationDetail.message);
+            return;
+        };
+
+        if (confirm('Submit ?')) {
+            svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted)
+                .then(function (response) {
+                    
+                })
+                .catch(function(err){
+                    alert(err);
+                });
+        }
+
+
+        // try {
+        //     const validationHeader = $scope.contractSubmit_ValidateHeader();
+        //     if (validationHeader.error) {
+        //         alert(validationHeader.message);
+        //         return;
+        //     }
+        //     const validationDetail = $scope.contractSubmit_ValidateDetails();
+        //     if (validationDetail.error) {
+        //         alert(validationDetail.message);
+        //         return;
+        //     }
+        //     let confirmMsg = confirm('Submit ?');
+        //     if (confirmMsg) {
+        //         const proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
+        //         proc.then(function (response) {
+        //             const data = JSON.parse(response.data.d);
+        //             if (data.ProcessSuccess) {
+        //                 alert('Submitted Successfully!');
+        //                 location.href = 'List.aspx';
+        //             } else {
+        //                 alert(data.InfoMessage);
+        //             }
+
+        //         }, function (data, status) {
+        //             alert(data.data.Message);
+        //         });
+        //     }
+
+        // } catch (e) {
+        //     alert(e.message);
+        // }
     };
 
     $scope.ContractContractDetailOnDelete = function (index) {
