@@ -677,39 +677,64 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.GetDepartments = function () {
-        try {
-            const proc = svc.svc_GetDepartments();
-            proc.then(function (response) {
+        svc.svc_GetDepartments()
+            .then(function (response) {
                 const data = JSON.parse(response.data.d);
-                if (data.ProcessSuccess) {
-                    //console.log(data);
-                    $scope.IsDepartment = false;
-                    if (data.UserDepartment.length > 0) {
-                        ////console.log(data.UserDepartment.length);
-                        $scope.ProcDeptType = data.UserDepartment[0];
-                        $scope.ProcDeptTypes = data.UserDepartment;
-                        $scope.IsDepartment = true;
-                        $scope.contractProcurementDepartmentOnChange();
-
-                        ////console.log($scope.ProcDeptType.Procurement_Department_Code);
-                    }
-                    else {
-                        alert("You do not have the authority to make a contract");
-                        $scope.ContractHeader.IsShow = false;
-                        $scope.ContractHeader.IsDisabled = true;
-                        $scope.ContractHeader.IsEdited = false;
-                    }
-                } else {
+                if (!data.ProcessSuccess) {
                     alert(data.InfoMessage);
+                    return;
                 }
-            }, function (data) {
-                //console.log(data);
-                //console.log(status);
-                //console.log(data.statusText + ' - ' + data.data.Message);
+
+                $scope.IsDepartment = (data.UserDepartment.length > 0);
+                if (data.UserDepartment.length > 0) {
+                    $scope.ProcDeptType = data.UserDepartment[0];
+                    $scope.ProcDeptTypes = data.UserDepartment;
+                    $scope.contractProcurementDepartmentOnChange();
+                } else {
+                    alert("You do not have the authority to make a contract");
+                    $scope.ContractHeader.IsShow = false;
+                    $scope.ContractHeader.IsDisabled = true;
+                    $scope.ContractHeader.IsEdited = false;
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
             });
-        } catch (e) {
-            alert(e.message);
-        }
+
+
+        // try {
+        //     const proc = svc.svc_GetDepartments();
+        //     proc.then(function (response) {
+        //         const data = JSON.parse(response.data.d);
+        //         if (data.ProcessSuccess) {
+        //             //console.log(data);
+        //             $scope.IsDepartment = false;
+        //             if (data.UserDepartment.length > 0) {
+        //                 ////console.log(data.UserDepartment.length);
+        //                 $scope.ProcDeptType = data.UserDepartment[0];
+        //                 $scope.ProcDeptTypes = data.UserDepartment;
+        //                 $scope.IsDepartment = true;
+        //                 $scope.contractProcurementDepartmentOnChange();
+
+        //                 ////console.log($scope.ProcDeptType.Procurement_Department_Code);
+        //             }
+        //             else {
+        //                 alert("You do not have the authority to make a contract");
+        //                 $scope.ContractHeader.IsShow = false;
+        //                 $scope.ContractHeader.IsDisabled = true;
+        //                 $scope.ContractHeader.IsEdited = false;
+        //             }
+        //         } else {
+        //             alert(data.InfoMessage);
+        //         }
+        //     }, function (data) {
+        //         //console.log(data);
+        //         //console.log(status);
+        //         //console.log(data.statusText + ' - ' + data.data.Message);
+        //     });
+        // } catch (e) {
+        //     alert(e.message);
+        // }
     }
 
     $scope.contractGetContractDatas = function () {
