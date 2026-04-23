@@ -1588,7 +1588,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             svc.svc_ContractGetApproverLogByID(id)
                 .then(function (response) {
                     const data = JSON.parse(response.data.d);
-                    if(!data.ProcessSuccess){
+                    if (!data.ProcessSuccess) {
                         alert(data.InfoMessage);
                         return;
                     }
@@ -1624,42 +1624,75 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ContractApprovalSubmit = function () {
-        try {
-            const st = $scope.Outcome;
-            //const id = $scope.ContractHeader.Form_No;
-            const approvalValue = st == 1 ? "Approve" : "Reject";
+        const approvalValue = ($scope.Outcome == 1) ? "Approve" : "Reject";
 
-            if (st == 0) {
-                alert('Please select the outcomes');
-                return;
-            }
-
-            if ($scope.ntx.Comment.length <= 0 && st == 2) {
-                alert('Please specify your comments for rejecting this Contract');
-                return;
-            }
-            $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
-            $scope.ntx.Outcome = st;
-            $scope.ntx.Module = 'PC';
-            $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
-            $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
-
-            const proc = svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment);
-            proc.then(function (response) {
-                const data = JSON.parse(response.data.d);
-                if (data.ProcessSuccess) {
-                    location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
-                } else {
-                    alert(data.InfoMessage);
-                }
-
-            }, function (data, status) {
-                alert(data.data.Message);
-            });
-        } catch (e) {
-            alert(e.message);
+        if ($scope.Outcome == 0) {
+            alert('Please select the outcomes');
+            return;
         }
-    }
+
+        if ($scope.ntx.Comment.length <= 0 && $scope.Outcome == 2) {
+            alert('Please specify your comments for rejecting this Contract');
+            return;
+        }
+
+        $scope.GenerateApprovalPayload();
+        svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment)
+            .then(function (response) {
+                const data = JSON.parse(response.data.d);
+                if (!data.ProcessSuccess) alert(data.InfoMessage);
+                location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
+
+
+        // try {
+        //     const st = $scope.Outcome;
+        //     //const id = $scope.ContractHeader.Form_No;
+        //     const approvalValue = st == 1 ? "Approve" : "Reject";
+
+        //     if (st == 0) {
+        //         alert('Please select the outcomes');
+        //         return;
+        //     }
+
+        //     if ($scope.ntx.Comment.length <= 0 && st == 2) {
+        //         alert('Please specify your comments for rejecting this Contract');
+        //         return;
+        //     }
+        //     $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
+        //     $scope.ntx.Outcome = st;
+        //     $scope.ntx.Module = 'PC';
+        //     $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
+        //     $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
+
+        //     const proc = svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment);
+        //     proc.then(function (response) {
+        //         const data = JSON.parse(response.data.d);
+        //         if (data.ProcessSuccess) {
+        //             location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
+        //         } else {
+        //             alert(data.InfoMessage);
+        //         }
+
+        //     }, function (data, status) {
+        //         alert(data.data.Message);
+        //     });
+        // } catch (e) {
+        //     alert(e.message);
+        // }
+    };
+
+    $scope.GenerateApprovalPayload = function () {
+        $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
+        $scope.ntx.Outcome = $scope.Outcome;
+        $scope.ntx.Module = 'PC';
+        $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
+        $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
+    };
 
     $scope.contractClose = function () {
         location.href = 'List.aspx';
