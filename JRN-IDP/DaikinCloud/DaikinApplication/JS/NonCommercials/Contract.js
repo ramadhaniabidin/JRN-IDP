@@ -111,7 +111,6 @@ app.directive('format', ['$filter', function ($filter) {
             });
 
             elem.bind('focus', (event) => {
-                // return elem.val('')
             });
 
             ctrl.$parsers.unshift(function (viewValue) {
@@ -129,8 +128,7 @@ app.filter("FormatDate", function () {
     const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
         const m = x.match(re);
-        // if (m) return new Date(parseInt(m[1]));
-        if(m) return new Date(Number.parseInt(m[1]));
+        if (m) return new Date(Number.parseInt(m[1]));
         else return null;
     };
 });
@@ -319,11 +317,6 @@ app.service("svc", function ($http) {
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     const now = new Date();
-    //const options = {
-    //    year: "numeric",
-    //    month: "short",
-    //};
-
     $scope.ContractHeader = {
         ID: 0,
         Form_No: '',
@@ -435,11 +428,10 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     $scope.PopUpData = [];
 
     $scope.PopUp_SearchBy_OnChange = () => {
-        //console.log($scope.popUpSearchBy);
+
     };
 
     $scope.PopUpDialog = (module, rowIndex) => {
-        //console.log(rowIndex);
         if (module == "Vendor") {
             $scope.popUpSearchTable = "dbo.MasterVendorNonCommercials";
             $scope.popUpTableHeader = ["Code", "Name"];
@@ -475,7 +467,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.popUpModule = module;
         $scope.popUpRowIndex = rowIndex;
         $scope.PopUp_Search();
-        //$scope.PopUp_List($scope.popUpSearchTable, $scope.popUpCurrPageIndex, 'Title', '');
     };
 
     $scope.PopUp_SearchHelper = (keyEvent) => {
@@ -538,7 +529,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                         'ID': i.filter(x => x.Key == 'ID')[0].Value,
                         'Name': i.filter(x => x.Key == 'Title')[0].Value,
                         'Code': i.filter(x => x.Key == 'Vendor_Number')[0].Value,
-                        //'Type': i.filter(x => x.Key == 'Type')[0].Value,
                     };
                     $scope.PopUpData.push(newObj);
                 }
@@ -572,7 +562,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }
 
         }).catch(function (err) {
-            //console.log(err);
+            console.log(err);
         });
     };
 
@@ -621,27 +611,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             .catch(function (err) {
                 console.log(err);
             });
-
-
-        // try {
-        //     const proc = svc.svc_GetBranches();
-        //     proc.then(function (response) {
-        //         const data = JSON.parse(response.data.d);
-        //         if (data.ProcessSuccess) {
-        //             $scope.ddlBranches = data.Branches;
-        //             $scope.Branch = data.Branches[0];
-
-        //         } else {
-        //             alert(data.InfoMessage);
-        //         }
-        //     }, function (data) {
-        //         //console.log(data);
-        //         //console.log(status);
-        //         //console.log(data.statusText + ' - ' + data.data.Message);
-        //     });
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.GetVendors = function () {
@@ -654,27 +623,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             }).catch(function (err) {
                 console.log(err);
             });
-
-        // try {
-        //     const proc = svc.svc_GetVendors();
-        //     proc.then(function (response) {
-        //         const data = JSON.parse(response.data.d);
-        //         if (data.ProcessSuccess) {
-        //             //console.log(data);
-        //             $scope.ddlVendorNonCommercials = data.Vendors;
-        //             $scope.VendorNonCommercials = data.Vendors[0];
-
-        //         } else {
-        //             alert(data.InfoMessage);
-        //         }
-        //     }, function (data) {
-        //         //console.log(data);
-        //         //console.log(status);
-        //         //console.log(data.statusText + ' - ' + data.data.Message);
-        //     });
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.GetDepartments = function () {
@@ -701,41 +649,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             .catch(function (err) {
                 console.log(err);
             });
-
-
-        // try {
-        //     const proc = svc.svc_GetDepartments();
-        //     proc.then(function (response) {
-        //         const data = JSON.parse(response.data.d);
-        //         if (data.ProcessSuccess) {
-        //             //console.log(data);
-        //             $scope.IsDepartment = false;
-        //             if (data.UserDepartment.length > 0) {
-        //                 ////console.log(data.UserDepartment.length);
-        //                 $scope.ProcDeptType = data.UserDepartment[0];
-        //                 $scope.ProcDeptTypes = data.UserDepartment;
-        //                 $scope.IsDepartment = true;
-        //                 $scope.contractProcurementDepartmentOnChange();
-
-        //                 ////console.log($scope.ProcDeptType.Procurement_Department_Code);
-        //             }
-        //             else {
-        //                 alert("You do not have the authority to make a contract");
-        //                 $scope.ContractHeader.IsShow = false;
-        //                 $scope.ContractHeader.IsDisabled = true;
-        //                 $scope.ContractHeader.IsEdited = false;
-        //             }
-        //         } else {
-        //             alert(data.InfoMessage);
-        //         }
-        //     }, function (data) {
-        //         //console.log(data);
-        //         //console.log(status);
-        //         //console.log(data.statusText + ' - ' + data.data.Message);
-        //     });
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.contractGetContractDatas = function () {
@@ -764,48 +677,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             .catch(function (err) {
                 console.log(err);
             });
-
-
-        // $scope.GetBranches();
-        // //$scope.GetVendors();
-        // $scope.GetDepartments();
-
-        // const proc = svc.svc_ContractGetContractDatas();
-        // proc.then(function (response) {
-        //     const data = JSON.parse(response.data.d);
-        //     if (data.ProcessSuccess) {
-        //         console.log(data);
-
-        //         $scope.IsContractTypes = true;
-        //         $scope.IsBranch = true;
-        //         $scope.ddlMasterContractTypes = data.ContractTypes;
-        //         $scope.MasterContractType = data.ContractTypes[0];
-
-        //         //angular.forEach(data.MaterialAnaplans, (val,ind) =>{
-        //         //    $scope.ddlMaterialAnaplansTemp.push({
-        //         //        Code : val.Code,
-        //         //        Name : val.Code+" - "+val.Name,
-        //         //        Short_x0020_Name : val.Short_x0020_Name
-        //         //    })
-        //         //});
-
-        //         $scope.ContractHeader.Requester_Name = data.CurrentLoginName;
-        //         $scope.ContractHeader.Requester_Email = data.CurrentLoginEmail;
-        //         //$scope.ContractHeader.Form_No = data.FormNo;
-
-        //         $scope.InternalOrders = data.InternalOrders;
-        //         $scope.InternalOrder = data.InternalOrders[0];
-
-        //         $scope.ContractHeader.Created_By = data.CurrentLoginName;
-        //         $scope.ContractHeader.Modified_By = data.CurrentLoginName;
-        //     } else {
-        //         alert(data.InfoMessage);
-        //     }
-        // }, function (data) {
-        //     //console.log(data);
-        //     //console.log(status);
-        //     //console.log(data.statusText + ' - ' + data.data.Message);
-        // });
     };
 
     $scope.GetMaterialAnaplans = () => {
@@ -820,14 +691,13 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 })
             })
         }).catch(function (err) {
-            //console.log(err)
+            console.log(err)
         });
     };
 
     $scope.GetMaterialAnaplansByID = (ID) => {
         const promise = svc.svc_GetMaterialAnaplansByID(ID);
         promise.then(function (response) {
-            //const data = JSON.parse(response.data.d);
             $scope.contractGetContracMaterialName_New();
         }).catch(function (err) {
             console.log(err)
@@ -835,7 +705,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.contractProcurementDepartmentOnChange = () => {
-        //console.log($scope.ContractDetails);
         $scope.ContractDetails.map(function (e) {
             if (e.ID > 0) {
                 $scope.Deleted.cdd.push(e.ID);
@@ -856,8 +725,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ContractDetails = [];
         $scope.MaterialAnaplans = [];
 
-        //console.log("ddl Material Anaplans Temp ", $scope.ddlMaterialAnaplansTemp);
-
         angular.forEach($scope.ddlMaterialAnaplansTemp, (val) => {
             let Code = val.Code;
             const str = $scope.ProcDeptType.Procurement_Department_Code;
@@ -868,19 +735,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     Short_x0020_Name: val.Short_x0020_Name
                 })
             }
-
-            //$scope.MaterialAnaplans.push({
-            //    Code : val.Code,
-            //    Name : val.Name,
-            //    Short_x0020_Name : val.Short_x0020_Name
-            //})
         });
-        ////console.log("Material Anaplans : ", $scope.MaterialAnaplans);
 
         $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
 
         $scope.contractAddContractDetail();
-    }
+    };
 
     $scope.ContractInternalOrderOnChange = () => {
         const { Code, Name } = $scope.InternalOrder;
@@ -889,20 +749,17 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             $scope.ContractHeader.Internal_Order_Code = Code;
             $scope.ContractHeader.Internal_Order_Name = Name;
         }
-    }
+    };
 
     $scope.contractVendorOnChange = function () {
         $scope.ContractHeader.Vendor_Code = $scope.VendorNonCommercials.Code;
         $scope.ContractHeader.Vendor_Name = $scope.VendorNonCommercials.Name;
-
-        //console.log($scope.ContractHeader.Vendor_Code);
-        //console.log($scope.ContractHeader.Vendor_Name);
-    }
+    };
 
     $scope.contractContractTypeOnChange = function () {
         $scope.ContractHeader.Contract_Type_ID = $scope.MasterContractType.Code;
         $scope.ContractHeader.Contract_Type_Name = $scope.MasterContractType.Name;
-    }
+    };
 
     $scope.contractBranchOnChange = function () {
         $scope.ContractHeader.Branch = $scope.Branch.Name;
@@ -914,17 +771,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.HandleUploadSuccess = function (result, inputFile) {
-        //const { PostedFile } = result;
-        //const myFile = new File([inputFile], PostedFile.name);
-        //$scope.isUploadFile = false;
-        //$scope.ContractUploaded.push(myFile);
-        //$scope.ContractAttachments.push({
-        //    Id: 0,
-        //    Attachment_FileName: PostedFile.name,
-        //    Size: PostedFile.size,
-        //    Header_ID: $scope.ContractHeader.ID || 0
-        //});
-
         const myFile = new File([inputFile], inputFile["name"]);
         $scope.isUploadFile = false;
         $scope.ContractUploaded.push(myFile);
@@ -963,11 +809,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         const reader = new FileReader();
         reader.onloadend = function () { };
         reader.readAsDataURL(file);
-
-        // if (!window.FileReader) return;
-        // const reader = new FileReader();
-        // reader.onloadend = function () { };
-        // reader.readAsDataURL(file);
     };
 
     $scope.CreateFormData = function (file) {
@@ -975,11 +816,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         const formData = new FormData();
         formData.append("file", file);
         return formData;
-
-        // if (!window.FormData) return null;
-        // const formData = new FormData();
-        // formData.append("file", file);
-        // return formData;
     };
 
     $scope.UploadSingleFile = function (file) {
@@ -1019,112 +855,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             alert('The attachments below already exist: ' + result.warningMsg);
             $scope.ResetFileInput();
         }
-
-        //let msg = 'The attachments below already exist: ';
-
-        //const IsUpload = () => {
-        //    let warningMsg = '';
-        //    let anyError = false;
-
-        //    angular.forEach($scope.uploadFiles, function (file, key) {
-        //        const indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
-        //        if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
-        //            const input = file;
-        //            let formdata = false;
-        //            if (window.FormData) {
-        //                formdata = new FormData();
-        //            }
-        //            else {
-        //                $scope.isUploadFile = false;
-        //            }
-
-        //            if (window.FileReader) {
-        //                const reader = new FileReader();
-        //                reader.onloadend = function (e) {
-
-        //                };
-        //                reader.readAsDataURL(input);
-        //            }
-        //            else {
-        //                $scope.isUploadFile = false;
-        //            }
-
-        //            if (formdata) {
-        //                formdata.append("file", input);
-        //                formdata.append("type", "Contract");
-
-        //                console.log("input: ", input);
-        //                console.log("input: ", input["type"]);
-        //                $.ajax({
-        //                    url: "/_layouts/15/Daikin.Application/Handler/UploadHandler.ashx",
-        //                    type: "POST",
-        //                    data: formdata,
-        //                    // data: { file: input },
-        //                    processData: false,
-        //                    contentType: false,
-        //                    async: false,
-        //                    // dataType: "JSON",
-        //                    dataType: 'text',
-        //                    success: function (result) {
-        //                        console.log('result: ', result);
-
-        //                        const myFile = new File([input], input["name"]);
-        //                        $scope.isUploadFile = false;
-        //                        $scope.ContractUploaded.push(myFile);
-        //                        $scope.ContractAttachments.push({
-        //                            Id: 0,
-        //                            Attachment_FileName: input["name"],
-        //                            Size: input["size"],
-        //                            Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
-        //                        });
-
-        //                        // const { PostedFile } = result;
-
-        //                        // const myFile = new File([input], PostedFile.name);
-
-        //                        // $scope.isUploadFile = false;
-
-
-        //                        // $scope.ContractUploaded.push(myFile);
-
-        //                        // $scope.ContractAttachments.push({
-        //                        //     Id: 0,
-        //                        //     Attachment_FileName: PostedFile.name,
-        //                        //     Size: PostedFile.size,
-        //                        //     Header_ID: $scope.ContractHeader.ID ? $scope.ContractHeader.ID : 0,
-        //                        // });
-        //                    },
-        //                    error: function (err) {
-        //                        console.log(err);
-        //                    },
-        //                });
-        //            }
-        //            else {
-        //                $scope.isUploadFile = false;
-        //            }
-        //        }
-        //        else {
-        //            warningMsg += `\n----- ${file.name} -----`;
-        //            anyError = true;
-        //            return
-        //        }
-        //    });
-
-        //    return {
-        //        anyError: anyError,
-        //        warningMsg: warningMsg,
-        //    };
-        //}
-
-
-        //const { anyError, warningMsg } = IsUpload();
-
-        //if (anyError) {
-        //    alert(msg + warningMsg);
-        //    const inputs = document.querySelectorAll("input[type=file]")
-        //    inputs[0].value = null;
-        //    return;
-        //}
     };
 
     $scope.contractDeletingFile = function (index) {
@@ -1166,7 +896,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ContractDetails[index].Material_Name = value.Material.Name;
 
         $scope.selectedMaterial.push(value.Material);
-        //console.log($scope.ContractDetails);
     };
 
     $scope.contractContractDetailMaterialDescriptionOnBlur = function (index, value) {
@@ -1185,7 +914,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ContractHeader.Grand_Total = 0;
         for (let i = 0; i < $scope.ContractDetails.length; i++) {
             $scope.ContractDetails[i].No = i + 1;
-            // $scope.ContractHeader.Grand_Total += parseFloat($scope.ContractDetails[i].Contract_Amount);
             $scope.ContractHeader.Grand_Total += Number.parseFloat($scope.ContractDetails[i].Contract_Amount);
         }
     };
@@ -1289,39 +1017,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     alert(err);
                 });
         }
-
-
-        // try {
-        //     const validationHeader = $scope.contractSubmit_ValidateHeader();
-        //     if (validationHeader.error) {
-        //         alert(validationHeader.message);
-        //         return;
-        //     }
-        //     const validationDetail = $scope.contractSubmit_ValidateDetails();
-        //     if (validationDetail.error) {
-        //         alert(validationDetail.message);
-        //         return;
-        //     }
-        //     let confirmMsg = confirm('Submit ?');
-        //     if (confirmMsg) {
-        //         const proc = svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted);
-        //         proc.then(function (response) {
-        //             const data = JSON.parse(response.data.d);
-        //             if (data.ProcessSuccess) {
-        //                 alert('Submitted Successfully!');
-        //                 location.href = 'List.aspx';
-        //             } else {
-        //                 alert(data.InfoMessage);
-        //             }
-
-        //         }, function (data, status) {
-        //             alert(data.data.Message);
-        //         });
-        //     }
-
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.ContractContractDetailOnDelete = function (index) {
@@ -1362,12 +1057,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ContractTypeField = function (sourceArray, comparingValue) {
-        // $scope.ddlMasterContractTypes = data.ContractTypes;
-        // const indexContractType = data.ContractTypes.map(function (e) { return e.Name }).indexOf(data.ContractHeader.Contract_Type_Name);
-        // $scope.MasterContractType = data.ContractTypes[indexContractType];
-        // $scope.IsContractTypes = indexContractType !== -1;
-
-
         const idx = findIndexByField(sourceArray, "Name", comparingValue);
         $scope.ddlMasterContractTypes = sourceArray;
         $scope.MasterContractType = sourceArray[idx];
@@ -1375,21 +1064,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.InternalOrderField = function (sourceArray, comparingValue) {
-        // $scope.InternalOrders = data.InternalOrders;
-        // const indexIntOrd = $scope.InternalOrders.map((o) => { return o.Code }).indexOf(data.ContractHeader.Internal_Order_Code);
-        // $scope.InternalOrder = $scope.InternalOrders[indexIntOrd];
-
         const idx = findIndexByField(sourceArray, "Code", comparingValue);
         $scope.InternalOrders = sourceArray;
         $scope.InternalOrder = sourceArray[idx];
     };
 
     $scope.DepartmentField = function (sourceArray, comparingValue) {
-        // $scope.ProcDeptTypes = data.UserDepartment;
-        // const indexProcDept = $scope.ProcDeptTypes.map(function (e) { return e.Name; }).indexOf(data.ContractHeader.Procurement_Department);
-        // $scope.ProcDeptType = $scope.ProcDeptTypes[indexProcDept];
-        // $scope.IsDepartment = indexProcDept !== -1;
-
         const idx = findIndexByField(sourceArray, "Name", comparingValue);
         $scope.ProcDeptTypes = sourceArray;
         $scope.ProcDeptType = $scope.ProcDeptTypes[idx];
@@ -1397,19 +1077,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ContractProcessData = function (data) {
-        // data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
-        // const Contract = $scope.ContractHeader;
-        // $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
-        // $scope.ContractDetails = data.ContractDetail;
-        // $scope.ContractAttachments = data.ContractAttachment;
-
-        // $scope.IsCurrentApprover = data.IsCurrentApprover;
-        // $scope.IsReceiverDocs = data.IsReceiverDocs;
-        // $scope.IsRequestor = data.IsRequestor;
-        // $scope.IsTaxVerifier = data.IsTaxVerifier;
-        // $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
-
-
         data.ContractHeader.Document_Received = !(data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received);
         $scope.ContractHeader = { ...$scope.ContractHeader, ...data.ContractHeader };
         $scope.ContractDetails = data.ContractDetail;
@@ -1472,74 +1139,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             .catch(function (err) {
                 console.log(err);
             });
-
-        // try {
-        //     const id = GetQueryString()['ID']; //Nintex No
-
-        //     if (id != undefined) {
-        //         $scope.showModal = "none";
-        //         $scope.GetBranches();
-        //         $scope.GetVendors();
-
-        //         $scope.ContractAttachments = [];
-        //         $scope.ContractUploaded = [];
-        //         const proc = svc.svc_ContractGetContractByID(id);
-        //         proc.then(function (response) {
-        //             const data = JSON.parse(response.data.d);
-        //             if (!data.ProcessSuccess) return;
-        //             convertDates(data, $scope.ConvertJSONDate);
-        //             // convertDatesInObject(data.ContractHeader, $scope.ConvertJSONDate);
-        //             // convertDatesInArray(data.ContractDetail, $scope.ConvertJSONDate);
-        //             // convertDatesInArray(data.ContractAttachment, $scope.ConvertJSONDate);
-
-        //             // Vendor
-        //             $scope.VendorField(data.ContractHeader.Vendor_Code);
-
-        //             // Branch
-        //             $scope.BranchField($scope.ddlBranches, data.ContractHeader.Branch);
-
-        //             // Contract Type
-        //             $scope.ContractTypeField(data.ContractTypes, data.ContractHeader.Contract_Type_Name);
-
-        //             // Internal Order
-        //             $scope.InternalOrderField(data.InternalOrders, data.ContractHeader.Internal_Order_Code);
-
-        //             // Material Anaplan
-        //             $scope.GetMaterialAnaplansByID(id);
-        //             $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
-
-        //             // Procurement department
-        //             $scope.DepartmentField(data.UserDepartment, data.ContractHeader.Procurement_Department);
-        //             $scope.ContractUploaded = mapAttachmentFiles(data.ContractAttachment);
-        //             const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
-        //             setApprovalUIState(data.ContractHeader, indexProcDept);
-
-        //             $scope.ContractProcessData(data);
-        //             // data.ContractHeader.Document_Received = (data.ContractHeader.Document_Received == '0' || !data.ContractHeader.Document_Received) ? false : true;
-        //             // const Contract = $scope.ContractHeader;
-        //             // $scope.ContractHeader = { ...Contract, ...data.ContractHeader };
-        //             // $scope.ContractDetails = data.ContractDetail;
-        //             // $scope.ContractAttachments = data.ContractAttachment;
-        //             // $scope.IsCurrentApprover = data.IsCurrentApprover;
-        //             // $scope.IsReceiverDocs = data.IsReceiverDocs;
-        //             // $scope.IsRequestor = data.IsRequestor;
-        //             // $scope.IsTaxVerifier = data.IsTaxVerifier;
-        //             // $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
-
-        //         }, function (data, status) {
-        //             console.log(data);
-
-        //             //console.log(data.statusText + ' - ' + data.data.Message);
-        //         });
-        //     } else {
-        //         No = 1;
-        //         $scope.contractGetContractDatas();
-        //         $scope.contractAddContractDetail();
-        //     }
-
-        // } catch (e) {
-        //     //console.log(e.message);
-        // }
     };
 
     $scope.ContractGetReference = function (formNo) {
@@ -1610,29 +1209,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
                 });
         }
-
-        // try {
-        //     const id = GetQueryString()['ID']; //Nintex No
-
-        //     if (id != undefined) {
-        //         const proc = svc.svc_ContractGetApproverLogByID(id);
-
-        //         proc.then(function (response) {
-        //             const data = JSON.parse(response.data.d);
-        //             if (data.ProcessSuccess) {
-        //                 //console.log(data);
-
-        //                 $scope.Logs = data.Logs;
-        //             } else {
-        //                 alert(data.InfoMessage);
-        //             }
-        //         }, function (data, status) {
-        //             //console.log(data.statusText + ' - ' + data.data.Message);
-        //         });
-        //     }
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.ContractApprovalSubmit = function () {
@@ -1658,44 +1234,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             .catch(function (error) {
                 console.log(error);
             });
-
-
-
-        // try {
-        //     const st = $scope.Outcome;
-        //     //const id = $scope.ContractHeader.Form_No;
-        //     const approvalValue = st == 1 ? "Approve" : "Reject";
-
-        //     if (st == 0) {
-        //         alert('Please select the outcomes');
-        //         return;
-        //     }
-
-        //     if ($scope.ntx.Comment.length <= 0 && st == 2) {
-        //         alert('Please specify your comments for rejecting this Contract');
-        //         return;
-        //     }
-        //     $scope.ntx.FormNo = $scope.ContractHeader.Form_No;
-        //     $scope.ntx.Outcome = st;
-        //     $scope.ntx.Module = 'PC';
-        //     $scope.ntx.Position_ID = $scope.ContractHeader.Pending_Approver_Role_ID;
-        //     $scope.ntx.Transaction_ID = $scope.ContractHeader.ID;
-
-        //     const proc = svc.svc_ContractApprovalSubmit(approvalValue, "Contract", $scope.ContractHeader.Item_ID, $scope.ContractHeader.ID, $scope.ntx.Comment);
-        //     proc.then(function (response) {
-        //         const data = JSON.parse(response.data.d);
-        //         if (data.ProcessSuccess) {
-        //             location.href = '/_layouts/15/Daikin.Application/Modules/PendingTask/PendingTaskList.aspx';
-        //         } else {
-        //             alert(data.InfoMessage);
-        //         }
-
-        //     }, function (data, status) {
-        //         alert(data.data.Message);
-        //     });
-        // } catch (e) {
-        //     alert(e.message);
-        // }
     };
 
     $scope.GenerateApprovalPayload = function () {
@@ -1761,8 +1299,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     document.getElementById("SearchBox").style.display = 'none';
     $scope.ContractGetContractByID();
     $scope.ContractGetApproverLogByID();
-
-    //$scope.GetMaterialAnaplans();
 });
 
 function displayVendorNonCommercial(listVendors, value) {
