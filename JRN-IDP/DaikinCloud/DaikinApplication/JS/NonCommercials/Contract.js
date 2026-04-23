@@ -610,25 +610,37 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.GetBranches = function () {
-        try {
-            const proc = svc.svc_GetBranches();
-            proc.then(function (response) {
+        svc.svc_GetBranches()
+            .then(function (response) {
                 const data = JSON.parse(response.data.d);
-                if (data.ProcessSuccess) {
-                    $scope.ddlBranches = data.Branches;
-                    $scope.Branch = data.Branches[0];
-
-                } else {
-                    alert(data.InfoMessage);
-                }
-            }, function (data) {
-                //console.log(data);
-                //console.log(status);
-                //console.log(data.statusText + ' - ' + data.data.Message);
+                if (!data.ProcessSuccess) alert(data.InfoMessage);
+                $scope.ddlBranches = data.Branches;
+                $scope.Branch = data.Branches[0];
+            })
+            .catch(function (err) {
+                console.log(err);
             });
-        } catch (e) {
-            alert(e.message);
-        }
+
+
+        // try {
+        //     const proc = svc.svc_GetBranches();
+        //     proc.then(function (response) {
+        //         const data = JSON.parse(response.data.d);
+        //         if (data.ProcessSuccess) {
+        //             $scope.ddlBranches = data.Branches;
+        //             $scope.Branch = data.Branches[0];
+
+        //         } else {
+        //             alert(data.InfoMessage);
+        //         }
+        //     }, function (data) {
+        //         //console.log(data);
+        //         //console.log(status);
+        //         //console.log(data.statusText + ' - ' + data.data.Message);
+        //     });
+        // } catch (e) {
+        //     alert(e.message);
+        // }
     }
 
     $scope.GetVendors = function () {
