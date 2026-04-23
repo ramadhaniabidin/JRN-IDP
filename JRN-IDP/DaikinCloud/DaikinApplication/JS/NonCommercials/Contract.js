@@ -1268,9 +1268,12 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         if (confirm('Submit ?')) {
             svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted)
                 .then(function (response) {
-                    
+                    const data = JSON.parse(response.data.d);
+                    if (!data.ProcessSuccess) alert(data.InfoMessage);
+                    alert('Submitted successfully!');
+                    location.href = 'List.aspx';
                 })
-                .catch(function(err){
+                .catch(function (err) {
                     alert(err);
                 });
         }
