@@ -1583,29 +1583,45 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ContractGetApproverLogByID = function () {
-        try {
-            const id = GetQueryString()['ID']; //Nintex No
-
-            if (id != undefined) {
-                const proc = svc.svc_ContractGetApproverLogByID(id);
-
-                proc.then(function (response) {
+        const id = GetQueryString()['ID'];
+        if (id) {
+            svc.svc_ContractGetApproverLogByID(id)
+                .then(function (response) {
                     const data = JSON.parse(response.data.d);
-                    if (data.ProcessSuccess) {
-                        //console.log(data);
-
-                        $scope.Logs = data.Logs;
-                    } else {
+                    if(!data.ProcessSuccess){
                         alert(data.InfoMessage);
+                        return;
                     }
-                }, function (data, status) {
-                    //console.log(data.statusText + ' - ' + data.data.Message);
+                    $scope.Logs = data.Logs;
+                })
+                .catch(function (err) {
+
                 });
-            }
-        } catch (e) {
-            alert(e.message);
         }
-    }
+
+        // try {
+        //     const id = GetQueryString()['ID']; //Nintex No
+
+        //     if (id != undefined) {
+        //         const proc = svc.svc_ContractGetApproverLogByID(id);
+
+        //         proc.then(function (response) {
+        //             const data = JSON.parse(response.data.d);
+        //             if (data.ProcessSuccess) {
+        //                 //console.log(data);
+
+        //                 $scope.Logs = data.Logs;
+        //             } else {
+        //                 alert(data.InfoMessage);
+        //             }
+        //         }, function (data, status) {
+        //             //console.log(data.statusText + ' - ' + data.data.Message);
+        //         });
+        //     }
+        // } catch (e) {
+        //     alert(e.message);
+        // }
+    };
 
     $scope.ContractApprovalSubmit = function () {
         try {
