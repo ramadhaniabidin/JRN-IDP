@@ -958,17 +958,27 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     };
 
     $scope.ReadFile = function (file) {
-        if (!window.FileReader) return;
+        if (!globalThis.FileReader) return;
         const reader = new FileReader();
         reader.onloadend = function () { };
         reader.readAsDataURL(file);
+
+        // if (!window.FileReader) return;
+        // const reader = new FileReader();
+        // reader.onloadend = function () { };
+        // reader.readAsDataURL(file);
     };
 
     $scope.CreateFormData = function (file) {
-        if (!window.FormData) return null;
+        if (!globalThis.FormData) return null;
         const formData = new FormData();
         formData.append("file", file);
         return formData;
+
+        // if (!window.FormData) return null;
+        // const formData = new FormData();
+        // formData.append("file", file);
+        // return formData;
     };
 
     $scope.UploadSingleFile = function (file) {
