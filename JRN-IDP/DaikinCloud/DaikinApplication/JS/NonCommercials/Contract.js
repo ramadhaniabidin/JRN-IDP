@@ -927,17 +927,17 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         //     $scope.ResetFileInput();
         // }
 
-        var msg = 'The attachments below already exist: ';
+        let msg = 'The attachments below already exist: ';
 
         const IsUpload = () => {
-            var warningMsg = '';
-            var anyError = false;
+            let warningMsg = '';
+            let anyError = false;
 
             angular.forEach($scope.uploadFiles, function (file, key) {
-                var indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
+                const indexObj = $scope.ContractUploaded.map(function (e) { return e.name; }).indexOf(file.name);
                 if (indexObj == -1 || $scope.ContractUploaded.length == 0) {
-                    var input = file;
-                    var formdata = false;
+                    const input = file;
+                    let formdata = false;
                     if (window.FormData) {
                         formdata = new FormData();
                     }
@@ -1028,7 +1028,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
         if (anyError) {
             alert(msg + warningMsg);
-            var inputs = document.querySelectorAll("input[type=file]")
+            const inputs = document.querySelectorAll("input[type=file]")
             inputs[0].value = null;
             return;
         }
