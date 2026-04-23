@@ -129,7 +129,8 @@ app.filter("FormatDate", function () {
     const re = /\/Date\(([0-9]*)\)\//;
     return function (x) {
         const m = x.match(re);
-        if (m) return new Date(parseInt(m[1]));
+        // if (m) return new Date(parseInt(m[1]));
+        if(m) return new Date(Number.parseInt(m[1]));
         else return null;
     };
 });
@@ -1184,7 +1185,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ContractHeader.Grand_Total = 0;
         for (let i = 0; i < $scope.ContractDetails.length; i++) {
             $scope.ContractDetails[i].No = i + 1;
-            $scope.ContractHeader.Grand_Total += parseFloat($scope.ContractDetails[i].Contract_Amount);
+            // $scope.ContractHeader.Grand_Total += parseFloat($scope.ContractDetails[i].Contract_Amount);
+            $scope.ContractHeader.Grand_Total += Number.parseFloat($scope.ContractDetails[i].Contract_Amount);
         }
     };
 
