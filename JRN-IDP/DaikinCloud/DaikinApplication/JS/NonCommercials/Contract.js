@@ -1175,7 +1175,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
                 setApprovalUIState(data.ContractHeader, indexProcDept);
 
-                // $scope.ContractProcessData(data);
                 $scope.ContractHeader.Procurement_Department = data.ContractHeader.Procurement_Department;
                 $scope.ContractHeader.Procurement_Department_Code = data.ContractHeader.Procurement_Department_Code;
                 $scope.ContractHeader.Procurement_Department_Code_PO = data.ContractHeader.Procurement_Department_Code_PO;
