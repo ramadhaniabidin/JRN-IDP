@@ -318,10 +318,10 @@ app.service("svc", function ($http) {
 
 app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
     const now = new Date();
-    const options = {
-        year: "numeric",
-        month: "short",
-    };
+    //const options = {
+    //    year: "numeric",
+    //    month: "short",
+    //};
 
     $scope.ContractHeader = {
         ID: 0,
@@ -929,11 +929,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.isUploadFile = false;
     $scope.contractUploadingFile = function () {
-         const result = $scope.UploadFiles($scope.uploadFiles);
-         if (result.anyError) {
-             alert('The attachments below already exist: ' + result.warningMsg);
-             $scope.ResetFileInput();
-         }
+        const result = $scope.UploadFiles($scope.uploadFiles);
+        if (result.anyError) {
+            alert('The attachments below already exist: ' + result.warningMsg);
+            $scope.ResetFileInput();
+        }
 
         //let msg = 'The attachments below already exist: ';
 
