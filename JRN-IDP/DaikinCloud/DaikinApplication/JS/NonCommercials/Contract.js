@@ -946,7 +946,7 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                     }
 
                     if (window.FileReader) {
-                        reader = new FileReader();
+                        const reader = new FileReader();
                         reader.onloadend = function (e) {
 
                         };
