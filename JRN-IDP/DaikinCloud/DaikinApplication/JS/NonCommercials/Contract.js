@@ -641,29 +641,39 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         // } catch (e) {
         //     alert(e.message);
         // }
-    }
+    };
 
     $scope.GetVendors = function () {
-        try {
-            const proc = svc.svc_GetVendors();
-            proc.then(function (response) {
+        svc.svc_GetVendors()
+            .then(function (response) {
                 const data = JSON.parse(response.data.d);
-                if (data.ProcessSuccess) {
-                    //console.log(data);
-                    $scope.ddlVendorNonCommercials = data.Vendors;
-                    $scope.VendorNonCommercials = data.Vendors[0];
-
-                } else {
-                    alert(data.InfoMessage);
-                }
-            }, function (data) {
-                //console.log(data);
-                //console.log(status);
-                //console.log(data.statusText + ' - ' + data.data.Message);
+                if (!data.ProcessSuccess) alert(data.InfoMessage);
+                $scope.ddlVendorNonCommercials = data.Vendors;
+                $scope.VendorNonCommercials = data.Vendors[0];
+            }).catch(function (err) {
+                console.log(err);
             });
-        } catch (e) {
-            alert(e.message);
-        }
+
+        // try {
+        //     const proc = svc.svc_GetVendors();
+        //     proc.then(function (response) {
+        //         const data = JSON.parse(response.data.d);
+        //         if (data.ProcessSuccess) {
+        //             //console.log(data);
+        //             $scope.ddlVendorNonCommercials = data.Vendors;
+        //             $scope.VendorNonCommercials = data.Vendors[0];
+
+        //         } else {
+        //             alert(data.InfoMessage);
+        //         }
+        //     }, function (data) {
+        //         //console.log(data);
+        //         //console.log(status);
+        //         //console.log(data.statusText + ' - ' + data.data.Message);
+        //     });
+        // } catch (e) {
+        //     alert(e.message);
+        // }
     };
 
     $scope.GetDepartments = function () {
