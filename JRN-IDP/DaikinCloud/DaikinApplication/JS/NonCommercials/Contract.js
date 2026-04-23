@@ -735,50 +735,77 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         // } catch (e) {
         //     alert(e.message);
         // }
-    }
+    };
 
     $scope.contractGetContractDatas = function () {
         $scope.GetBranches();
-        //$scope.GetVendors();
         $scope.GetDepartments();
 
-        const proc = svc.svc_ContractGetContractDatas();
-        proc.then(function (response) {
-            const data = JSON.parse(response.data.d);
-            if (data.ProcessSuccess) {
-                console.log(data);
+        svc.svc_ContractGetContractDatas()
+            .then(function (response) {
+                const data = JSON.parse(response.data.d);
+                if (!data.ProcessSuccess) {
+                    alert(data.InfoMessage);
+                    return;
+                }
 
                 $scope.IsContractTypes = true;
                 $scope.IsBranch = true;
                 $scope.ddlMasterContractTypes = data.ContractTypes;
                 $scope.MasterContractType = data.ContractTypes[0];
-
-                //angular.forEach(data.MaterialAnaplans, (val,ind) =>{
-                //    $scope.ddlMaterialAnaplansTemp.push({
-                //        Code : val.Code,
-                //        Name : val.Code+" - "+val.Name,
-                //        Short_x0020_Name : val.Short_x0020_Name
-                //    })
-                //});
-
                 $scope.ContractHeader.Requester_Name = data.CurrentLoginName;
                 $scope.ContractHeader.Requester_Email = data.CurrentLoginEmail;
-                //$scope.ContractHeader.Form_No = data.FormNo;
-
                 $scope.InternalOrders = data.InternalOrders;
                 $scope.InternalOrder = data.InternalOrders[0];
-
                 $scope.ContractHeader.Created_By = data.CurrentLoginName;
                 $scope.ContractHeader.Modified_By = data.CurrentLoginName;
-            } else {
-                alert(data.InfoMessage);
-            }
-        }, function (data) {
-            //console.log(data);
-            //console.log(status);
-            //console.log(data.statusText + ' - ' + data.data.Message);
-        });
-    }
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+
+
+        // $scope.GetBranches();
+        // //$scope.GetVendors();
+        // $scope.GetDepartments();
+
+        // const proc = svc.svc_ContractGetContractDatas();
+        // proc.then(function (response) {
+        //     const data = JSON.parse(response.data.d);
+        //     if (data.ProcessSuccess) {
+        //         console.log(data);
+
+        //         $scope.IsContractTypes = true;
+        //         $scope.IsBranch = true;
+        //         $scope.ddlMasterContractTypes = data.ContractTypes;
+        //         $scope.MasterContractType = data.ContractTypes[0];
+
+        //         //angular.forEach(data.MaterialAnaplans, (val,ind) =>{
+        //         //    $scope.ddlMaterialAnaplansTemp.push({
+        //         //        Code : val.Code,
+        //         //        Name : val.Code+" - "+val.Name,
+        //         //        Short_x0020_Name : val.Short_x0020_Name
+        //         //    })
+        //         //});
+
+        //         $scope.ContractHeader.Requester_Name = data.CurrentLoginName;
+        //         $scope.ContractHeader.Requester_Email = data.CurrentLoginEmail;
+        //         //$scope.ContractHeader.Form_No = data.FormNo;
+
+        //         $scope.InternalOrders = data.InternalOrders;
+        //         $scope.InternalOrder = data.InternalOrders[0];
+
+        //         $scope.ContractHeader.Created_By = data.CurrentLoginName;
+        //         $scope.ContractHeader.Modified_By = data.CurrentLoginName;
+        //     } else {
+        //         alert(data.InfoMessage);
+        //     }
+        // }, function (data) {
+        //     //console.log(data);
+        //     //console.log(status);
+        //     //console.log(data.statusText + ' - ' + data.data.Message);
+        // });
+    };
 
     $scope.GetMaterialAnaplans = () => {
         const promise = svc.svc_GetMaterialAnaplans();
