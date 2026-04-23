@@ -526,9 +526,9 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 $scope.PopUpData = [];
                 for (let i of vendorData) {
                     const newObj = {
-                        'ID': i.filter(x => x.Key == 'ID')[0].Value,
-                        'Name': i.filter(x => x.Key == 'Title')[0].Value,
-                        'Code': i.filter(x => x.Key == 'Vendor_Number')[0].Value,
+                        'ID': i.find(x => x.Key === 'ID').Value,
+                        'Name': i.find(x => x.Key === 'Title').Value,
+                        'Code': i.find(x => x.Key === 'Vendor_Number').Value
                     };
                     $scope.PopUpData.push(newObj);
                 }
@@ -539,11 +539,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 $scope.PopUpData = [];
                 for (let i of jsonData.Logs) {
                     const newObj = {
-                        'ID': i.filter(x => x.Key == 'ID')[0].Value,
-                        'Kode': i.filter(x => x.Key == 'Material_Code')[0].Value,
-                        'Deskripsi': i.filter(x => x.Key == 'Material_Description')[0].Value,
-                        'GL': i.filter(x => x.Key == 'GL')[0].Value,
-                        'Deskripsi GL': i.filter(x => x.Key == 'GL_Description')[0].Value,
+                        'ID': i.find(x => x.Key == 'ID').Value,
+                        'Kode': i.find(x => x.Key == 'Material_Code').Value,
+                        'Deskripsi': i.find(x => x.Key == 'Material_Description').Value,
+                        'GL': i.find(x => x.Key == 'GL').Value,
+                        'Deskripsi GL': i.find(x => x.Key == 'GL_Description').Value,
                     };
                     $scope.PopUpData.push(newObj);
                 }
@@ -554,8 +554,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
                 $scope.PopUpData = [];
                 for (let i of jsonData.Logs) {
                     const newObj = {
-                        'ID': i.filter(x => x.Key === 'ID')[0].Value,
-                        'Nintex No': i.filter(x => x.Key === 'Form_No')[0].Value,
+                        'ID': i.find(x => x.Key === 'ID').Value,
+                        'Nintex No': i.find(x => x.Key === 'Form_No').Value,
                     };
                     $scope.PopUpData.push(newObj);
                 }
