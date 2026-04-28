@@ -1,6 +1,8 @@
 ﻿//using Daikin.BusinessLogics.Apps.FinanceMenu.Controller;
 using Daikin.BusinessLogics.Apps.Master.Model;
 using Daikin.BusinessLogics.Apps.NonCommercials.Model;
+using Daikin.BusinessLogics.Apps.NonCommercials.SharePointService;
+using Daikin.BusinessLogics.Apps.NonCommercials.WorkflowHandler;
 using Daikin.BusinessLogics.Common;
 using Daikin.BusinessLogics.Common.Model;
 using Microsoft.SharePoint;
@@ -20,14 +22,32 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
     public class ContractController
     {
-        DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-
-        SqlDataReader reader = null;
-        DataTable dt = new DataTable();
-        SharePointManager sp = new SharePointManager();
-        //public string SPList = "Non Commercials";
         public string SPList = "Contract";
+
+        //private readonly DatabaseManager db = new DatabaseManager();        
+        //private readonly SharePointManager sp = new SharePointManager();
+        //private readonly ContractRepository repo = new ContractRepository(new DatabaseManager());
+        //private readonly ContractSharePointService service = new ContractSharePointService(new SharePointManager());
+
+        
+        private readonly SharePointManager sp = new SharePointManager();
+        private readonly NintexCloudManager ntx = new NintexCloudManager();
+        private readonly DatabaseManager db;
+        private readonly ContractRepository repo;
+        private readonly ContractSharePointService service;
+        private readonly ContractWorkflowHandler workflowHandler;
+        private readonly string siteUrl = SPContext.Current.Site.Url;
+
+        public ContractController()
+        {
+            var _db = new DatabaseManager();
+
+            db = _db;
+            repo = new ContractRepository(db, sp);
+            service = new ContractSharePointService(sp);
+            workflowHandler = new ContractWorkflowHandler(ntx);
+        }
 
         public object NonCom_StartWorkflowNAC { get; private set; }
 
@@ -56,6 +76,17 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> BindingMasterSPList(string ListName, string codeColumn, string displayColumn)
         {
+            //var listOption = sp.MapListDataToOption(ListName, codeColumn, displayColumn);
+            //listOption.Insert(0, new Master.Model.OptionModel
+            //{
+            //    Code = "",
+            //    Name = "Please Select",
+            //    Selected = true,
+            //    Active = "1"
+            //});
+            //return listOption;
+            #region commented out code - not ready to delete yet
+            var dt = new DataTable();
             List<Master.Model.OptionModel> listOptions = new List<Master.Model.OptionModel>();
             try
             {
@@ -88,7 +119,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         data.Active = Utility.GetStringValue(row, "Active");
                         listOptions.Add(data);
                     }
-                    //listOptions.OrderBy(x => x.Name).ToList();
                     listOptions.Sort((x, y) => x.Name.CompareTo(y.Name));
                 }
                 Master.Model.OptionModel listOption = new Master.Model.OptionModel();
@@ -104,6 +134,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 throw ex;
             }
+            #endregion
         }
 
         public string GetDataHeaderFormNo(string tableName, string code)
@@ -137,58 +168,69 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<MasterUserProcDept> GetBranches()
         {
-            List<MasterUserProcDept> listOptions = new List<MasterUserProcDept>();
-            try
+            var list = repo.GetBranchesAsync().GetAwaiter().GetResult();
+            list = list.OrderBy(b => b.Name).ToList();
+            list.Insert(0, new MasterUserProcDept
             {
-                string SiteUrl = SPContext.Current.Site.Url;
-                string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
+                Code = "",
+                Name = "Please Select",
+                Selected = true
+            });
+            return list;
+            #region commented out code - not confident to delete yet
+            //List<MasterUserProcDept> listOptions = new List<MasterUserProcDept>();
+            //try
+            //{
+            //    string SiteUrl = SPContext.Current.Site.Url;
+            //    string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
 
-                dt = new DataTable();
+            //    dt = new DataTable();
 
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetBranch";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Title", currentLogin);
+            //    db.OpenConnection(ref conn);
+            //    db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetBranch";
+            //    db.cmd.CommandType = CommandType.StoredProcedure;
+            //    db.cmd.Parameters.Clear();
+            //    db.AddInParameter(db.cmd, "Title", currentLogin);
 
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseConnection(ref conn);
+            //    reader = db.cmd.ExecuteReader();
+            //    dt.Load(reader);
+            //    db.CloseConnection(ref conn);
 
-                MasterUserProcDept data = new MasterUserProcDept();
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        data = new MasterUserProcDept();
+            //    MasterUserProcDept data = new MasterUserProcDept();
+            //    if (dt.Rows.Count > 0)
+            //    {
+            //        foreach (DataRow row in dt.Rows)
+            //        {
+            //            data = new MasterUserProcDept();
 
-                        data.Code = Convert.ToString(row["Branch_Title"]);
-                        data.Name = Convert.ToString(row["Branch_Title"]);
+            //            data.Code = Convert.ToString(row["Branch_Title"]);
+            //            data.Name = Convert.ToString(row["Branch_Title"]);
 
-                        data.Branch_ID = Convert.ToInt32(row["Branch_ID"]);
-                        data.Branch_Title = Convert.ToString(row["Branch_Title"]);
-                        data.Branch_Code = Convert.ToString(row["Branch_Code"]);
-                        data.Branch_BusinessArea = Convert.ToString(row["Branch_BusinessArea"]);
+            //            data.Branch_ID = Convert.ToInt32(row["Branch_ID"]);
+            //            data.Branch_Title = Convert.ToString(row["Branch_Title"]);
+            //            data.Branch_Code = Convert.ToString(row["Branch_Code"]);
+            //            data.Branch_BusinessArea = Convert.ToString(row["Branch_BusinessArea"]);
 
-                        listOptions.Add(data);
-                    }
-                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
-                }
-                MasterUserProcDept listOption = new MasterUserProcDept();
-                listOption.Code = "";
-                listOption.Name = "Please Select";
-                listOption.Selected = true;
+            //            listOptions.Add(data);
+            //        }
+            //        listOptions = listOptions.OrderBy(o => o.Name).ToList();
+            //    }
+            //    MasterUserProcDept listOption = new MasterUserProcDept();
+            //    listOption.Code = "";
+            //    listOption.Name = "Please Select";
+            //    listOption.Selected = true;
 
-                listOptions.Insert(0, listOption);
+            //    listOptions.Insert(0, listOption);
 
-                return listOptions;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
+            //    return listOptions;
+            //}
+            //catch (Exception ex)
+            //{
+            //    db.CloseConnection(ref conn);
 
-                throw ex;
-            }
+            //    throw ex;
+            //}
+            #endregion
         }
 
         public List<MasterUserProcDept> GetDepartments()
@@ -199,7 +241,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 string SiteUrl = SPContext.Current.Site.Url;
                 string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
 
-                dt = new DataTable();
+                var dt = new DataTable();
 
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetDepartment";
@@ -207,7 +249,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "Title", currentLogin);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseConnection(ref conn);
 
@@ -255,7 +297,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 string SiteUrl = SPContext.Current.Site.Url;
                 string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
 
-                dt = new DataTable();
+                var dt = new DataTable();
 
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetDepartmentContract";
@@ -263,7 +305,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "Title", currentLogin);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseConnection(ref conn);
 
@@ -325,7 +367,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 string Created_By = sp.GetCurrentUserLogin(SiteUrl);
 
-                dt = new DataTable();
+                var dt = new DataTable();
                 db.OpenConnection(ref conn);
 
                 #region INSERT CONTRACT HEADER
@@ -363,8 +405,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddInParameter(db.cmd, "Vendor_Code", ch.Vendor_Code);
                 db.AddInParameter(db.cmd, "Vendor_Name", ch.Vendor_Name);
                 db.AddInParameter(db.cmd, "Is_New", isNew);
+                db.AddInParameter(db.cmd, "Reference_No", ch.Reference_No);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
@@ -380,15 +423,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
 
                 #endregion
-
-                // if(!String.IsNullOrEmpty(dh)){
-                //     db.cmd.CommandText = "dbo.usp_ContractHeader_DeleteById";
-                //     db.cmd.CommandType = CommandType.StoredProcedure;
-                //     db.cmd.Parameters.Clear();
-
-                //     db.AddInParameter(db.cmd, "ID", dh);
-                //     db.cmd.ExecuteNonQuery();
-                // }
 
                 if (!String.IsNullOrEmpty(dd))
                 {
@@ -504,7 +538,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     db.AddInParameter(db.cmd, "Comment", "");
                     db.cmd.ExecuteNonQuery();
                     #endregion
-                    
+
                 }
 
 
@@ -516,6 +550,53 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 throw ex;
             }
+        }
+
+        public async Task<ContractHeader> SaveAsync(ContractHeader ch, List<ContractDetail> cd, List<ContractAttachment> ca, string serverPath, string dd, string da)
+        {
+            // Capture user info immediately before any async context loss
+            string currentUser = sp.GetCurrentUserLogin();
+            string currentFullName = sp.GetCurrentLoginFullName();
+
+            if(ch.ID == 0)
+            {
+                ch.Form_No = await repo.GetDataHeaderFormNo("CT").ConfigureAwait(false);
+                ch.Item_ID = service.SaveSPList(siteUrl, ch, cd.Count, "-");
+            }
+            int itemId = Convert.ToInt32(ch.Item_ID);
+
+            using (var _con = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                await _con.OpenAsync().ConfigureAwait(false);
+                using(var _trans = _con.BeginTransaction())
+                {
+                    ch.ID = await repo.SaveHeader(_con, _trans, ch, currentUser).ConfigureAwait(false);
+                    await repo.DeleteDetail(_con, _trans, dd).ConfigureAwait(false);
+                    await repo.DeleteAttachment(_con, _trans, da).ConfigureAwait(false);
+
+                    if(ch.ID > 0)
+                    {
+                        await repo.CollectPICTeam(_con, _trans, ch.ID).ConfigureAwait(false);
+
+                        foreach (var detail in cd)
+                        {
+                            await repo.SaveDetail(_con, _trans, ch, detail).ConfigureAwait(false);
+                        }
+
+                        foreach (var attachment in ca)
+                        {
+                            await repo.SaveAttachment(_con, _trans, ch, attachment, itemId).ConfigureAwait(false);
+                            service.UploadAttachment(itemId, siteUrl, attachment.Attachment_FileName);
+                        }
+                    }
+
+                    _trans.Commit();
+                }
+            }
+
+            await workflowHandler.StartWorkflow(ch.ID, itemId).ConfigureAwait(false);
+            await repo.InsertLogFirstSubmit(itemId, currentUser, currentFullName).ConfigureAwait(false);
+            return ch;
         }
 
         public async Task StartNWC(NintexWorkflowCloud nwc)
@@ -646,6 +727,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 if (Item_ID == 0)
                 {
+
                     item = list.Items.Add();
                     item["Title"] = ch.Form_No;
                     item["Contract Remarks"] = ch.Remarks;
@@ -691,7 +773,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         {
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_ContractHeader_GetData";
                 db.cmd.CommandType = CommandType.StoredProcedure;
@@ -699,7 +781,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 db.AddInParameter(db.cmd, "Form_No", Form_No);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -725,7 +807,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             List<ContractDetail> listOption = new List<ContractDetail>();
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_ContractDetail_GetData";
                 db.cmd.CommandType = CommandType.StoredProcedure;
@@ -733,7 +815,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 db.AddInParameter(db.cmd, "Form_No", Form_No);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -754,7 +836,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             List<ContractAttachment> listOption = new List<ContractAttachment>();
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_ContractAttachment_GetData";
                 db.cmd.CommandType = CommandType.StoredProcedure;
@@ -762,7 +844,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 db.AddInParameter(db.cmd, "Form_No", Form_No);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
