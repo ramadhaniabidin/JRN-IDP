@@ -622,8 +622,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 int Item_ID = Convert.ToInt32(ch.Item_ID);
                 SPWeb web = new SPSite(SiteUrl).OpenWeb();
                 SPList list = web.Lists["Contract"];
-                //SPContentType ct = list.ContentTypes["Contract"];
-                //SPContentTypeId ctId = ct.Id;
                 web.AllowUnsafeUpdates = true;
 
                 string Requester_Account = sp.GetCurrentUserLogin(SiteUrl);
@@ -645,7 +643,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     item["Contract Type"] = ch.Contract_Type_ID;
                     item["Module"] = "M014";
                     item["Grand Total"] = ch.Grand_Total;
-                    //item["ContentTypeId"] = ctId;
                     item["Procurement Department"] = ch.Procurement_Department;
                     item["Workflow Status"] = "Generated";
                     item["Approval Status"] = "Generated";
