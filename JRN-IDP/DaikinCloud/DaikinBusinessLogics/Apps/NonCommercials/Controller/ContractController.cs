@@ -22,7 +22,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     public class ContractController
     {
         SqlConnection conn = new SqlConnection();
-        public string SPList = "Contract";
+        private readonly string SPList = "Contract";
         private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
         private readonly DatabaseManager db;
@@ -421,14 +421,14 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         db.cmd.ExecuteNonQuery();
 
                         var dPathFile = ServerPath + contractattachment.Attachment_FileName;
-                        sp.UploadFileInCustomList("Contract", Item_ID, dPathFile, SiteUrl);
+                        sp.UploadFileInCustomList(SPList, Item_ID, dPathFile, SiteUrl);
                     }
                     #endregion
 
                     #region Trigger WF
                     Task.Run(async () =>
                     {
-                        await new NintexCloudManager().NonCommercial_StartWorkflow_V2((int)ch.Item_ID, ch.ID, "M014", "Contract");
+                        await new NintexCloudManager().NonCommercial_StartWorkflow_V2((int)ch.Item_ID, ch.ID, "M014", SPList);
                     }).Wait();
                     #endregion
 
@@ -437,7 +437,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     db.cmd.CommandType = CommandType.StoredProcedure;
                     db.cmd.Parameters.Clear();
 
-                    db.AddInParameter(db.cmd, "ListName", "Contract");
+                    db.AddInParameter(db.cmd, "ListName", SPList);
                     db.AddInParameter(db.cmd, "ListItemID", Item_ID);
                     db.AddInParameter(db.cmd, "Action", 1);
                     db.AddInParameter(db.cmd, "CurrentLogin", Created_By);
@@ -563,7 +563,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 int Item_ID = Convert.ToInt32(ch.Item_ID);
                 SPWeb web = new SPSite(SiteUrl).OpenWeb();
                 SPList list = web.Lists[SPList];
-                SPContentType ct = list.ContentTypes["Contract"];
+                SPContentType ct = list.ContentTypes[SPList];
                 SPContentTypeId ctId = ct.Id;
                 web.AllowUnsafeUpdates = true;
 
@@ -620,7 +620,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 int Item_ID = Convert.ToInt32(ch.Item_ID);
                 SPWeb web = new SPSite(SiteUrl).OpenWeb();
-                SPList list = web.Lists["Contract"];
+                SPList list = web.Lists[SPList];
                 web.AllowUnsafeUpdates = true;
 
                 string Requester_Account = sp.GetCurrentUserLogin(SiteUrl);
@@ -759,6 +759,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 throw ex;
             }
-        }        
+        }
     }
 }
