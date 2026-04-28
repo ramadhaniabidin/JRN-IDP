@@ -23,7 +23,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     public class ContractController
     {
         SqlConnection conn = new SqlConnection();
-        public string SPList = "Contract";
+        public string SPList = "Contract";        
         private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
         private readonly DatabaseManager db;
@@ -422,35 +422,15 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         db.cmd.ExecuteNonQuery();
 
                         var dPathFile = ServerPath + contractattachment.Attachment_FileName;
-                        //sp.UploadFileInCustomList(SPList, Item_ID, dPathFile, SiteUrl);
                         sp.UploadFileInCustomList("Contract", Item_ID, dPathFile, SiteUrl);
                     }
                     #endregion
 
                     #region Trigger WF
-                    #region Old and riskier way
-                    //ch.Item_ID = SaveSPList(SiteUrl, ch, cd.Count, "1"); //1 Trigger WF                  
-                    //startNACNonComWorkflow("Contract", "M014", ch.ID, (int)ch.Item_ID);
-                    //StartData startData = new StartData();
-                    //startData.se_itemid = (int)ch.Item_ID;
-                    //startData.se_listname = "Contract";
-                    //startData.se_headerid = ch.ID;
-                    //startData.se_modulecode = "M014";
-                    //NWCParamModel nwcParamModel = new NWCParamModel();
-                    //nwcParamModel.startData = startData;
-                    //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                    ////nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
-                    //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances?token=GniSz54QFGNBeRa6c0suYL33oZkRFX44jF0hglrl6t5P55STREgkm1kvBG93IpY8MPxCCX";
-                    //nwc.param = nwcParamModel;
-                    //Task.Run(async () => { await StartNWC(nwc); }).Wait();
-                    #endregion
-
-                    #region New and better way
                     Task.Run(async () =>
                     {
                         await new NintexCloudManager().NonCommercial_StartWorkflow_V2((int)ch.Item_ID, ch.ID, "M014", "Contract");
                     }).Wait();
-                    #endregion
                     #endregion
 
                     #region Insert History Log First Submit
