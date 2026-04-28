@@ -784,8 +784,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.SendUploadRequest = function (formData, inputFile) {
         formData.append("file", inputFile);
-        console.log("formData: ", formData);
-        console.log("inputFile: ", inputFile);
         $.ajax({
             url: "/_layouts/15/Daikin.Application/Handler/UploadHandler.ashx",
             type: "POST",
@@ -795,7 +793,6 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             async: false,
             dataType: "text",
             success: function (result) {
-                console.log("result: ", result);
                 $scope.HandleUploadSuccess(result, inputFile);
             },
             error: function (err) {
@@ -1005,6 +1002,11 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             return;
         };
 
+        console.log("Contract Header: ", $scope.ContractHeader);
+        console.log("Details: ", $scope.ContractDetails);
+        console.log("Attachments: ", $scope.ContractAttachments);
+        console.log("Deleted: ", $scope.Deleted);
+
         if (confirm('Submit ?')) {
             svc.svc_ContractSubmit($scope.ContractHeader, $scope.ContractDetails, $scope.ContractAttachments, $scope.Deleted)
                 .then(function (response) {
@@ -1048,6 +1050,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
 
     $scope.VendorField = function (val) {
         $scope.VendorNonCommercials = displayVendorNonCommercial($scope.ddlVendorNonCommercials, val);
+        $scope.ContractHeader.Vendor_Code = $scope.VendorNonCommercials.Code;
+        $scope.ContractHeader.Vendor_Name = $scope.VendorNonCommercials.Name;
     };
 
     $scope.BranchField = function (sourceArray, val) {
@@ -1061,6 +1065,8 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.ddlMasterContractTypes = sourceArray;
         $scope.MasterContractType = sourceArray[idx];
         $scope.IsContractTypes = idx !== -1;
+        $scope.ContractHeader.Contract_Type_Name = $scope.MasterContractType.Name;
+        $scope.ContractHeader.Contract_Type_ID = $scope.MasterContractType.Code;
     };
 
     $scope.InternalOrderField = function (sourceArray, comparingValue) {
@@ -1089,6 +1095,17 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
         $scope.IsDocumentReceived = data.ContractHeader.Document_Received;
     };
 
+    /**
+     * Resets common UI loading states before fetching contract data.
+     */
+    $scope._initializeLoadState = function () {
+        $scope.showModal = "none";
+        $scope.GetBranches();
+        $scope.GetVendors();
+        $scope.ContractAttachments = [];
+        $scope.ContractUploaded = [];
+    };
+
     $scope.ContractGetContractByID = function () {
         const id = GetQueryString()['ID'];
         if (!id) {
@@ -1098,98 +1115,99 @@ app.controller('ctrl', function ($scope, svc, Upload, $timeout) {
             return;
         }
 
-        $scope.showModal = "none";
-        $scope.GetBranches();
-        $scope.GetVendors();
-        $scope.ContractAttachments = [];
-        $scope.ContractUploaded = [];
+        $scope._initializeLoadState();
 
         svc.svc_ContractGetContractByID(id)
-            .then(function (response) {
+            .then(response => {
                 const data = JSON.parse(response.data.d);
-                if (!data.ProcessSuccess) return;
-
-                // Dates
-                convertDates(data, $scope.ConvertJSONDate);
-
-                // Vendor
-                $scope.VendorField(data.ContractHeader.Vendor_Code);
-
-                // Branch
-                $scope.BranchField($scope.ddlBranches, data.ContractHeader.Branch);
-
-                // Contract Type
-                $scope.ContractTypeField(data.ContractTypes, data.ContractHeader.Contract_Type_Name);
-
-                // Internal Order
-                $scope.InternalOrderField(data.InternalOrders, data.ContractHeader.Internal_Order_Code);
-
-                // Material Anaplan
-                $scope.GetMaterialAnaplansByID(id);
-                $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
-
-                // Procurement department
-                $scope.DepartmentField(data.UserDepartment, data.ContractHeader.Procurement_Department);
-                $scope.ContractUploaded = mapAttachmentFiles(data.ContractAttachment);
-                const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
-                setApprovalUIState(data.ContractHeader, indexProcDept);
-
-                $scope.ContractProcessData(data);
+                if (data.ProcessSuccess) $scope._bindContractData(data, id, false);
             })
-            .catch(function (err) {
-                console.log(err);
-            });
+            .catch(err => console.log(err));
     };
 
     $scope.ContractGetReference = function (formNo) {
-        $scope.showModal = "none";
-        $scope.GetBranches();
-        $scope.GetVendors();
-        $scope.ContractAttachments = [];
-        $scope.ContractUploaded = [];
+        $scope._initializeLoadState();
 
         svc.svc_ContractGetContractByID(formNo)
-            .then(function (response) {
+            .then(response => {
                 const data = JSON.parse(response.data.d);
-                console.log("Retrieved Data: ", data);
-                if (!data.ProcessSuccess) return;
-                // Date fields
-                convertDates(data, $scope.ConvertJSONDate);
+                if (data.ProcessSuccess) $scope._bindContractData(data, formNo, true);
+            })
+            .catch(err => console.log(err));
+    };
 
-                // Vendor
-                $scope.VendorField(data.ContractHeader.Vendor_Code);
+    /**
+     * Shared logic to bind contract data fetched from the server to the scope.
+     * Handles both direct edits and "cloning" from a reference.
+     */
+    $scope._bindContractData = function (data, sourceId, isReference) {
+        convertDates(data, $scope.ConvertJSONDate);
+        $scope.VendorField(data.ContractHeader.Vendor_Code);
+        $scope.ContractTypeField(data.ContractTypes, data.ContractHeader.Contract_Type_Name);
+        $scope.InternalOrderField(data.InternalOrders, data.ContractHeader.Internal_Order_Code);
 
-                // Contract Type
-                $scope.ContractTypeField(data.ContractTypes, data.ContractHeader.Contract_Type_Name);
+        $scope.GetMaterialAnaplansByID(sourceId);
+        $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
 
-                // Internal Order
-                $scope.InternalOrderField(data.InternalOrders, data.ContractHeader.Internal_Order_Code);
+        $scope.DepartmentField(data.UserDepartment, data.ContractHeader.Procurement_Department);
+        $scope.ContractUploaded = mapAttachmentFiles(data.ContractAttachment);
 
-                // Material Anaplan
-                $scope.GetMaterialAnaplansByID(formNo);
-                $scope.MaterialAnaplans.sort((a, b) => a.Code.localeCompare(b.Name));
+        const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
 
-                // Procurement department
-                $scope.DepartmentField(data.UserDepartment, data.ContractHeader.Procurement_Department);
-                $scope.ContractUploaded = mapAttachmentFiles(data.ContractAttachment);
-                const indexProcDept = findIndexByField($scope.ProcDeptTypes, "Name", data.ContractHeader.Procurement_Department);
-                setApprovalUIState(data.ContractHeader, indexProcDept);
-
-                $scope.ContractHeader.Procurement_Department = data.ContractHeader.Procurement_Department;
-                $scope.ContractHeader.Procurement_Department_Code = data.ContractHeader.Procurement_Department_Code;
-                $scope.ContractHeader.Procurement_Department_Code_PO = data.ContractHeader.Procurement_Department_Code_PO;
-                $scope.ContractHeader.Internal_Order_Code = data.ContractHeader.Internal_Order_Code;
-                $scope.ContractHeader.Internal_Order_Name = data.ContractHeader.Internal_Order_Name;
-                $scope.ContractHeader.Contract_No = data.ContractHeader.Contract_No;
-                $scope.ContractHeader.Period_Start = data.ContractHeader.Period_Start;
-                $scope.ContractHeader.Period_End = data.ContractHeader.Period_End;
-                $scope.ContractHeader.IsShow = false;
-                $scope.ContractHeader.Grand_Total = data.ContractHeader.Grand_Total;
-                $scope.ContractDetails = data.ContractDetail;
-                $scope.ContractAttachments = data.ContractAttachment;
-            }).catch(function (err) {
-                console.log(err);
+        if (isReference) {
+            // Cloning specific fields for a new record based on reference
+            const h = data.ContractHeader;
+            Object.assign($scope.ContractHeader, {
+                Procurement_Department: h.Procurement_Department,
+                Procurement_Department_Code: h.Procurement_Department_Code,
+                Procurement_Department_Code_PO: h.Procurement_Department_Code_PO,
+                Internal_Order_Code: h.Internal_Order_Code,
+                Internal_Order_Name: h.Internal_Order_Name,
+                Contract_No: h.Contract_No,
+                Period_Start: h.Period_Start,
+                Period_End: h.Period_End,
+                Grand_Total: h.Grand_Total,
+                Reference_No: sourceId,
+                IsShow: false // References are usually loaded as editable drafts
             });
+
+            $scope.ContractDetails = $scope.GetContractDetailsFromReference(data.ContractDetail);
+            $scope.ContractAttachments = $scope.GetContractAttachmentsFromReference(data.ContractAttachment);
+        } else {
+            $scope.BranchField($scope.ddlBranches, data.ContractHeader.Branch);
+            setApprovalUIState(data.ContractHeader, indexProcDept);
+            $scope.ContractProcessData(data);
+        }
+    };
+
+    $scope.GetContractDetailsFromReference = function (details) {
+        const contractDetails = [];
+        details.forEach(d => {
+            contractDetails.push({
+                "ID": 0,
+                "Material": d.Material,
+                "Material_Description": d.Material_Description,
+                "Material_Name": d.Material_Number + " - " + d.Material_Description,
+                "Material_Number": d.Material_Number,
+                "No": d.No,
+                "Variable_Amount": d.Variable_Amount,
+                "Contract_Amount": String(d.Contract_Amount)
+            });
+        });
+
+        return contractDetails;
+    };
+
+    $scope.GetContractAttachmentsFromReference = function (attachments) {
+        const contractAttachments = [];
+        attachments.forEach(att => {
+            console.log("current attachment: ", att);
+            contractAttachments.push({
+                "Attachment_FileName": att.Attachment_FileName
+            });
+        });
+
+        return contractAttachments;
     };
 
     $scope.ContractGetApproverLogByID = function () {
