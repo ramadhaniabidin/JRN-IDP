@@ -32,26 +32,26 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
         {
             string currentUser = SPContext.Current?.Web?.CurrentUser?.LoginName;
             var list = new List<MasterUserProcDept>();
-            using(var conn = new SqlConnection(connString))
+            using (var conn = new SqlConnection(connString))
             {
                 await conn.OpenAsync().ConfigureAwait(false);
-                using(var cmd = new SqlCommand("dbo.usp_MasterUserProcDept_GetBranch", conn))
+                using (var cmd = new SqlCommand("dbo.usp_MasterUserProcDept_GetBranch", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     db.AddInParameter(cmd, "Title", currentUser);
-                    using(var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
-                    while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        list.Add(new MasterUserProcDept
+                    using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                        while (await reader.ReadAsync().ConfigureAwait(false))
                         {
-                            Code = reader.GetString(reader.GetOrdinal("Branch_Title")),
-                            Name = reader.GetString(reader.GetOrdinal("Branch_Title")),
-                            Branch_ID = reader.GetInt32(reader.GetOrdinal("Branch_ID")),
-                            Branch_Title = reader.GetString(reader.GetOrdinal("Branch_Title")),
-                            Branch_Code = reader.GetString(reader.GetOrdinal("Branch_Code")),
-                            Branch_BusinessArea = reader.GetString(reader.GetOrdinal("Branch_BusinessArea"))
-                        });
-                    }
+                            list.Add(new MasterUserProcDept
+                            {
+                                Code = reader.GetString(reader.GetOrdinal("Branch_Title")),
+                                Name = reader.GetString(reader.GetOrdinal("Branch_Title")),
+                                Branch_ID = reader.GetInt32(reader.GetOrdinal("Branch_ID")),
+                                Branch_Title = reader.GetString(reader.GetOrdinal("Branch_Title")),
+                                Branch_Code = reader.GetString(reader.GetOrdinal("Branch_Code")),
+                                Branch_BusinessArea = reader.GetString(reader.GetOrdinal("Branch_BusinessArea"))
+                            });
+                        }
                     return list;
                 }
             }
@@ -63,17 +63,17 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             int c = 1;
             string n = c.ToString().PadLeft(4, '0');
 
-            string formNo = await db.AutoCounterAsync("Form_No", tableName, "Form_No", d, 4).ConfigureAwait(false);
-            return (string.IsNullOrEmpty(formNo)) ? (code + d + n) : formNo;
+            string formNo = await db.AutoCounterAsync("Form_No", tableName, "Form_No", code + d, 4).ConfigureAwait(false);
+            return string.IsNullOrEmpty(formNo) ? (code + d + n) : formNo;
         }
 
         public async Task<int> SaveHeader(SqlConnection conn, SqlTransaction trans, ContractHeader header, string currentUser)
         {
-            using(var cmd = new SqlCommand("usp_ContractHeader_SaveUpdate", conn, trans))
+            using (var cmd = new SqlCommand("usp_ContractHeader_SaveUpdate", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveHeaderSQLParams(cmd, header, currentUser);
-                using(var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
                     var list = await Utility.MapReaderToList<ContractHeader>(reader).ConfigureAwait(false);
                     return list[0].ID;
@@ -83,7 +83,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
 
         public async Task SaveDetail(SqlConnection conn, SqlTransaction trans, ContractHeader header, ContractDetail detail)
         {
-            using(var cmd = new SqlCommand("usp_ContractDetail_SaveUpdate", conn, trans))
+            using (var cmd = new SqlCommand("usp_ContractDetail_SaveUpdate", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveDetailSQLParams(cmd, detail, header.ID, header.Form_No, header.Contract_No);
@@ -93,7 +93,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
 
         public async Task SaveAttachment(SqlConnection conn, SqlTransaction trans, ContractHeader header, ContractAttachment attachment, int itemid)
         {
-            using(var cmd = new SqlCommand("usp_ContractAttachment_SaveUpdate", conn, trans))
+            using (var cmd = new SqlCommand("usp_ContractAttachment_SaveUpdate", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveAttachmentSQLParams(cmd, attachment, header.ID, header.Form_No, itemid);
@@ -103,7 +103,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
 
         public async Task CollectPICTeam(SqlConnection conn, SqlTransaction trans, int headerId)
         {
-            using(var cmd = new SqlCommand("usp_Utility_CollectPICTeam", conn, trans))
+            using (var cmd = new SqlCommand("usp_Utility_CollectPICTeam", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 db.AddInParameter(cmd, "Module_ID", moduleCode);
@@ -114,7 +114,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
 
         public async Task DeleteDetail(SqlConnection conn, SqlTransaction trans, string deleteDetailId)
         {
-            using(var cmd = new SqlCommand("usp_ContractDetail_DeleteById", conn, trans))
+            using (var cmd = new SqlCommand("usp_ContractDetail_DeleteById", conn, trans))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 db.AddInParameter(cmd, "ID", deleteDetailId);
@@ -202,7 +202,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             using (var conn = new SqlConnection(connString))
             {
                 await conn.OpenAsync().ConfigureAwait(false);
-                using(var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", conn))
+                using (var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     db.AddInParameter(cmd, "ListName", listName);
