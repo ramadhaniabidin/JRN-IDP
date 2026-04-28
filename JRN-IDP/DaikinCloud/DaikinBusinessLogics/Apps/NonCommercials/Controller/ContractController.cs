@@ -23,7 +23,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     public class ContractController
     {
         SqlConnection conn = new SqlConnection();
-        public string SPList = "Contract";        
+        public string SPList = "Contract";
         private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
         private readonly DatabaseManager db;
@@ -518,8 +518,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             client.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
-            //string token = Program.GetToken();
-            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
@@ -529,7 +527,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsStringAsync();
-                //return result; //instance guid
             }
 
         }
