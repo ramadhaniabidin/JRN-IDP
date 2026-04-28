@@ -1,5 +1,4 @@
-﻿//using Daikin.BusinessLogics.Apps.FinanceMenu.Controller;
-using Daikin.BusinessLogics.Apps.Master.Model;
+﻿using Daikin.BusinessLogics.Apps.Master.Model;
 using Daikin.BusinessLogics.Apps.NonCommercials.Model;
 using Daikin.BusinessLogics.Apps.NonCommercials.SharePointService;
 using Daikin.BusinessLogics.Apps.NonCommercials.WorkflowHandler;
@@ -517,7 +516,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
             client.DefaultRequestHeaders
                 .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
+                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
