@@ -159,60 +159,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 Selected = true
             });
             return list;
-            #region commented out code - not confident to delete yet
-            //List<MasterUserProcDept> listOptions = new List<MasterUserProcDept>();
-            //try
-            //{
-            //    string SiteUrl = SPContext.Current.Site.Url;
-            //    string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
-
-            //    dt = new DataTable();
-
-            //    db.OpenConnection(ref conn);
-            //    db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetBranch";
-            //    db.cmd.CommandType = CommandType.StoredProcedure;
-            //    db.cmd.Parameters.Clear();
-            //    db.AddInParameter(db.cmd, "Title", currentLogin);
-
-            //    reader = db.cmd.ExecuteReader();
-            //    dt.Load(reader);
-            //    db.CloseConnection(ref conn);
-
-            //    MasterUserProcDept data = new MasterUserProcDept();
-            //    if (dt.Rows.Count > 0)
-            //    {
-            //        foreach (DataRow row in dt.Rows)
-            //        {
-            //            data = new MasterUserProcDept();
-
-            //            data.Code = Convert.ToString(row["Branch_Title"]);
-            //            data.Name = Convert.ToString(row["Branch_Title"]);
-
-            //            data.Branch_ID = Convert.ToInt32(row["Branch_ID"]);
-            //            data.Branch_Title = Convert.ToString(row["Branch_Title"]);
-            //            data.Branch_Code = Convert.ToString(row["Branch_Code"]);
-            //            data.Branch_BusinessArea = Convert.ToString(row["Branch_BusinessArea"]);
-
-            //            listOptions.Add(data);
-            //        }
-            //        listOptions = listOptions.OrderBy(o => o.Name).ToList();
-            //    }
-            //    MasterUserProcDept listOption = new MasterUserProcDept();
-            //    listOption.Code = "";
-            //    listOption.Name = "Please Select";
-            //    listOption.Selected = true;
-
-            //    listOptions.Insert(0, listOption);
-
-            //    return listOptions;
-            //}
-            //catch (Exception ex)
-            //{
-            //    db.CloseConnection(ref conn);
-
-            //    throw ex;
-            //}
-            #endregion
         }
 
         public List<MasterUserProcDept> GetDepartments()
