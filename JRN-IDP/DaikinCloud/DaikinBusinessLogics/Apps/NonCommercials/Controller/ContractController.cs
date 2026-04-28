@@ -24,13 +24,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     {
         SqlConnection conn = new SqlConnection();
         public string SPList = "Contract";
-
-        //private readonly DatabaseManager db = new DatabaseManager();        
-        //private readonly SharePointManager sp = new SharePointManager();
-        //private readonly ContractRepository repo = new ContractRepository(new DatabaseManager());
-        //private readonly ContractSharePointService service = new ContractSharePointService(new SharePointManager());
-
-        
         private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
         private readonly DatabaseManager db;
@@ -552,14 +545,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
-
         public async Task<ContractHeader> SaveAsync(ContractHeader ch, List<ContractDetail> cd, List<ContractAttachment> ca, string serverPath, string dd, string da)
         {
             // Capture user info immediately before any async context loss
             string currentUser = sp.GetCurrentUserLogin();
             string currentFullName = sp.GetCurrentLoginFullName();
 
-            if(ch.ID == 0)
+            if (ch.ID == 0)
             {
                 ch.Form_No = await repo.GetDataHeaderFormNo("CT").ConfigureAwait(false);
                 ch.Item_ID = service.SaveSPList(siteUrl, ch, cd.Count, "-");
@@ -569,13 +561,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             using (var _con = new SqlConnection(Utility.GetSqlConnection()))
             {
                 await _con.OpenAsync().ConfigureAwait(false);
-                using(var _trans = _con.BeginTransaction())
+                using (var _trans = _con.BeginTransaction())
                 {
                     ch.ID = await repo.SaveHeader(_con, _trans, ch, currentUser).ConfigureAwait(false);
                     await repo.DeleteDetail(_con, _trans, dd).ConfigureAwait(false);
                     await repo.DeleteAttachment(_con, _trans, da).ConfigureAwait(false);
 
-                    if(ch.ID > 0)
+                    if (ch.ID > 0)
                     {
                         await repo.CollectPICTeam(_con, _trans, ch.ID).ConfigureAwait(false);
 
@@ -587,7 +579,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         foreach (var attachment in ca)
                         {
                             await repo.SaveAttachment(_con, _trans, ch, attachment, itemId).ConfigureAwait(false);
-                            service.UploadAttachment(itemId, siteUrl, attachment.Attachment_FileName);
+                            service.UploadAttachment(itemId, siteUrl, attachment.Attachment_FileName, serverPath);
                         }
                     }
 
