@@ -69,16 +69,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> BindingMasterSPList(string ListName, string codeColumn, string displayColumn)
         {
-            //var listOption = sp.MapListDataToOption(ListName, codeColumn, displayColumn);
-            //listOption.Insert(0, new Master.Model.OptionModel
-            //{
-            //    Code = "",
-            //    Name = "Please Select",
-            //    Selected = true,
-            //    Active = "1"
-            //});
-            //return listOption;
-            #region commented out code - not ready to delete yet
             var dt = new DataTable();
             List<Master.Model.OptionModel> listOptions = new List<Master.Model.OptionModel>();
             try
@@ -127,7 +117,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 throw ex;
             }
-            #endregion
         }
 
         public string GetDataHeaderFormNo(string tableName, string code)
