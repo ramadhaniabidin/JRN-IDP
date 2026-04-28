@@ -759,7 +759,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 throw ex;
             }
-        }
-        
+        }        
     }
 }
