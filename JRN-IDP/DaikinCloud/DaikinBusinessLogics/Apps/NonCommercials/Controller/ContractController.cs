@@ -132,7 +132,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 if (string.IsNullOrEmpty(Form_No))
                 {
-                    return Form_No = code + d + n;
+                    return code + d + n;
                 }
                 else
                 {
