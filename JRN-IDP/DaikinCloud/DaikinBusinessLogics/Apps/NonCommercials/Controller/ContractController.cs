@@ -689,7 +689,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<ContractDetail> GetDataContractDetail(string Form_No)
         {
-            List<ContractDetail> listOption = new List<ContractDetail>();
             try
             {
                 var dt = new DataTable();
@@ -705,14 +704,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                listOption = Utility.ConvertDataTableToList<ContractDetail>(dt);
+                List<ContractDetail> listOption = Utility.ConvertDataTableToList<ContractDetail>(dt);
 
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
