@@ -718,7 +718,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<ContractAttachment> GetDataContractAttachment(string Form_No)
         {
-            List<ContractAttachment> listOption = new List<ContractAttachment>();
             try
             {
                 var dt = new DataTable();
@@ -734,14 +733,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                listOption = Utility.ConvertDataTableToList<ContractAttachment>(dt);
+                List<ContractAttachment> listOption = Utility.ConvertDataTableToList<ContractAttachment>(dt);
 
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
     }
