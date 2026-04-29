@@ -69,52 +69,41 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         {
             var dt = new DataTable();
             List<Master.Model.OptionModel> listOptions = new List<Master.Model.OptionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
+
+                SPList list = web.Lists[ListName];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
+
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
                 {
-
-                    SPList list = web.Lists[ListName];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
-
-
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
+                    Master.Model.OptionModel data = new Master.Model.OptionModel();
+                    if (ListName.Equals("Master Material Anaplan"))
                     {
-                        data = new Master.Model.OptionModel();
-
-                        if (ListName.Equals("Master Material Anaplan"))
-                        {
-                            string SiteUrl = SPContext.Current.Site.Url;
-                            data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x001");
-                        }
-
-                        data.Code = Utility.GetStringValue(row, codeColumn);
-                        data.Name = Utility.GetStringValue(row, displayColumn);
-                        data.Active = Utility.GetStringValue(row, "Active");
-                        listOptions.Add(data);
+                        string SiteUrl = SPContext.Current.Site.Url;
+                        data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x001");
                     }
-                    listOptions.Sort((x, y) => x.Name.CompareTo(y.Name));
+                    data.Code = Utility.GetStringValue(row, codeColumn);
+                    data.Name = Utility.GetStringValue(row, displayColumn);
+                    data.Active = Utility.GetStringValue(row, "Active");
+                    listOptions.Add(data);
                 }
-                Master.Model.OptionModel listOption = new Master.Model.OptionModel();
-                listOption.Code = "";
-                listOption.Name = "Please Select";
-                listOption.Selected = true;
-                listOption.Active = "1";
-                listOptions.Insert(0, listOption);
+                listOptions.Sort((x, y) => x.Name.CompareTo(y.Name));
+            }
+            Master.Model.OptionModel listOption = new Master.Model.OptionModel();
+            listOption.Code = "";
+            listOption.Name = "Please Select";
+            listOption.Selected = true;
+            listOption.Active = "1";
+            listOptions.Insert(0, listOption);
 
-                return listOptions;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return listOptions;
         }
 
         public string GetDataHeaderFormNo(string tableName, string code)
