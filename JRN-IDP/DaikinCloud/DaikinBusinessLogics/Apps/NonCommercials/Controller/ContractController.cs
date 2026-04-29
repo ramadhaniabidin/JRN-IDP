@@ -168,12 +168,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 dt.Load(reader);
                 db.CloseConnection(ref conn);
 
-                MasterUserProcDept data = new MasterUserProcDept();
+
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new MasterUserProcDept();
+                        MasterUserProcDept data = new MasterUserProcDept();
 
                         data.Code = Convert.ToString(row["Procurement_Department_ID"]);
                         data.Name = Convert.ToString(row["Procurement_Department_Title"]);
@@ -196,11 +196,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return listOptions;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-
-                throw ex;
             }
         }
 
