@@ -461,37 +461,37 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public async Task<ContractHeader> SaveAsync(ContractHeader ch, List<ContractDetail> cd, List<ContractAttachment> ca, string serverPath, string dd, string da)
         {
             // Capture user info immediately before any async context loss
-            string currentUser = sp.GetCurrentUserLogin();
-            string currentFullName = sp.GetCurrentLoginFullName();
+            string currentUser = sp.GetCurrentUserLogin(siteUrl);
+            string currentFullName = sp.GetCurrentLoginFullName(siteUrl);
 
             if (ch.ID == 0)
             {
-                ch.Form_No = await repo.GetDataHeaderFormNo("CT").ConfigureAwait(false);
+                ch.Form_No = await repo.GetDataHeaderFormNo("CT");
                 ch.Item_ID = service.SaveSPList(siteUrl, ch, cd.Count, "-");
             }
             int itemId = Convert.ToInt32(ch.Item_ID);
 
             using (var _con = new SqlConnection(Utility.GetSqlConnection()))
             {
-                await _con.OpenAsync().ConfigureAwait(false);
+                await _con.OpenAsync();
                 using (var _trans = _con.BeginTransaction())
                 {
-                    ch.ID = await repo.SaveHeader(_con, _trans, ch, currentUser).ConfigureAwait(false);
-                    await repo.DeleteDetail(_con, _trans, dd).ConfigureAwait(false);
-                    await repo.DeleteAttachment(_con, _trans, da).ConfigureAwait(false);
+                    ch.ID = await repo.SaveHeader(_con, _trans, ch, currentUser);
+                    await repo.DeleteDetail(_con, _trans, dd);
+                    await repo.DeleteAttachment(_con, _trans, da);
 
                     if (ch.ID > 0)
                     {
-                        await repo.CollectPICTeam(_con, _trans, ch.ID).ConfigureAwait(false);
+                        await repo.CollectPICTeam(_con, _trans, ch.ID);
 
                         foreach (var detail in cd)
                         {
-                            await repo.SaveDetail(_con, _trans, ch, detail).ConfigureAwait(false);
+                            await repo.SaveDetail(_con, _trans, ch, detail);
                         }
 
                         foreach (var attachment in ca)
                         {
-                            await repo.SaveAttachment(_con, _trans, ch, attachment, itemId).ConfigureAwait(false);
+                            await repo.SaveAttachment(_con, _trans, ch, attachment, itemId);
                             service.UploadAttachment(itemId, siteUrl, attachment.Attachment_FileName, serverPath);
                         }
                     }
@@ -500,8 +500,8 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 }
             }
 
-            await workflowHandler.StartWorkflow(ch.ID, itemId).ConfigureAwait(false);
-            await repo.InsertLogFirstSubmit(itemId, currentUser, currentFullName).ConfigureAwait(false);
+            await workflowHandler.StartWorkflow(ch.ID, itemId);
+            await repo.InsertLogFirstSubmit(itemId, currentUser, currentFullName);
             return ch;
         }
 
