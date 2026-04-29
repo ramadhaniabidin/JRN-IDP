@@ -47,7 +47,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         {
             try
             {
-                int ID = new int();
                 db.OpenConnection(ref conn);
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "CurrentUserLogin", CurrLogin);
@@ -55,7 +54,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddInParameter(db.cmd, "Form_No", FormNo);
                 db.cmd.CommandText = "usp_GetAppointedTask";
 
-                ID = db.cmd.ExecuteNonQuery();
+                int ID = db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
                 return ID;
             }
