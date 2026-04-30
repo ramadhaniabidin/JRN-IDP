@@ -15,17 +15,15 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
     {
         //private readonly DatabaseManager db = new DatabaseManager();
         private readonly DatabaseManager db;
-        private readonly SharePointManager sp;
         private readonly string connString = Utility.GetSqlConnection();
         private readonly string dateFormat = "yyMM";
         private readonly string listName = "Contract";
         private readonly string tableName = "ContractHeader";
         private readonly string moduleCode = "M014";
 
-        public ContractRepository(DatabaseManager _db, SharePointManager _sp)
+        public ContractRepository(DatabaseManager _db)
         {
             db = _db;
-            sp = _sp;
         }
 
         public async Task<List<MasterUserProcDept>> GetBranchesAsync()
@@ -34,13 +32,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             var list = new List<MasterUserProcDept>();
             using (var conn = new SqlConnection(connString))
             {
-                await conn.OpenAsync().ConfigureAwait(false);
+                await conn.OpenAsync();
                 using (var cmd = new SqlCommand("dbo.usp_MasterUserProcDept_GetBranch", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     db.AddInParameter(cmd, "Title", currentUser);
-                    using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
-                        while (await reader.ReadAsync().ConfigureAwait(false))
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                        while (await reader.ReadAsync())
                         {
                             list.Add(new MasterUserProcDept
                             {
@@ -57,13 +55,64 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             }
         }
 
+        public async Task<List<ContractHeader>> GetDataContractHeaderAsync(string formNo)
+        {
+            using (var conn = new SqlConnection(connString))
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SqlCommand("dbo.usp_ContractHeader_GetData", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    db.AddInParameter(cmd, "Form_No", formNo);
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        return await Utility.MapReaderToList<ContractHeader>(reader);
+                    }
+                }
+            }
+        }
+
+        public async Task<List<ContractDetail>> GetDataContractDetailAsync(string formNo)
+        {
+            using (var conn = new SqlConnection(connString))
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SqlCommand("dbo.usp_ContractDetail_GetData", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    db.AddInParameter(cmd, "Form_No", formNo);
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        return await Utility.MapReaderToList<ContractDetail>(reader);
+                    }
+                }
+            }
+        }
+
+        public async Task<List<ContractAttachment>> GetDataContractAttachmentAsync(string formNo)
+        {
+            using (var conn = new SqlConnection(connString))
+            {
+                await conn.OpenAsync();
+                using (var cmd = new SqlCommand("usp_ContractAttachment_GetData", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    db.AddInParameter(cmd, "Form_No", formNo);
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        return await Utility.MapReaderToList<ContractAttachment>(reader);
+                    }
+                }
+            }
+        }
+
         public async Task<string> GetDataHeaderFormNo(string code)
         {
             string d = DateTime.Now.ToString(dateFormat);
             int c = 1;
             string n = c.ToString().PadLeft(4, '0');
 
-            string formNo = await db.AutoCounterAsync("Form_No", tableName, "Form_No", code + d, 4).ConfigureAwait(false);
+            string formNo = await db.AutoCounterAsync("Form_No", tableName, "Form_No", code + d, 4);
             return string.IsNullOrEmpty(formNo) ? (code + d + n) : formNo;
         }
 
@@ -73,9 +122,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveHeaderSQLParams(cmd, header, currentUser);
-                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    var list = await Utility.MapReaderToList<ContractHeader>(reader).ConfigureAwait(false);
+                    var list = await Utility.MapReaderToList<ContractHeader>(reader);
                     return list[0].ID;
                 }
             }
@@ -87,7 +136,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveDetailSQLParams(cmd, detail, header.ID, header.Form_No, header.Contract_No);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -97,7 +146,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 AddSaveAttachmentSQLParams(cmd, attachment, header.ID, header.Form_No, itemid);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -108,7 +157,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
                 cmd.CommandType = CommandType.StoredProcedure;
                 db.AddInParameter(cmd, "Module_ID", moduleCode);
                 db.AddInParameter(cmd, "Header_ID", headerId);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -118,7 +167,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 db.AddInParameter(cmd, "ID", deleteDetailId);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -128,7 +177,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 db.AddInParameter(cmd, "ID", deleteAttachmentId);
-                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
@@ -185,6 +234,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
             db.AddInParameter(cmd, "Vendor_Code", header.Vendor_Code);
             db.AddInParameter(cmd, "Vendor_Name", header.Vendor_Name);
             db.AddInParameter(cmd, "Is_New", true);
+            db.AddInParameter(cmd, "Reference_No", header.Reference_No);
         }
 
         private void AddSaveAttachmentSQLParams(SqlCommand cmd, ContractAttachment attachment, int headerid, string form_no, int itemid)
@@ -201,7 +251,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
         {
             using (var conn = new SqlConnection(connString))
             {
-                await conn.OpenAsync().ConfigureAwait(false);
+                await conn.OpenAsync();
                 using (var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -211,7 +261,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials
                     db.AddInParameter(cmd, "CurrentLogin", currentUser);
                     db.AddInParameter(cmd, "CurrLoginName", currentFullName);
                     db.AddInParameter(cmd, "Comment", "");
-                    await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    await cmd.ExecuteNonQueryAsync();
                 }
             }
         }
