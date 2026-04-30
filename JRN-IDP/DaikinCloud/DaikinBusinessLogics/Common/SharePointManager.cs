@@ -113,40 +113,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void UploadFileInCustomList(string List_Name, int Item_ID, string PathFile, string File_Name, string Url_Site)
-        {
-            FileStream fileStream = File.OpenRead(PathFile);
-            var ContentData = new byte[fileStream.Length];
-            using (SPSite Site = new SPSite(Url_Site))
-            {
-                using (SPWeb Web = Site.OpenWeb())
-                {
-                    Web.AllowUnsafeUpdates = true;
-                    SPList List = Web.Lists[List_Name];
-                    SPListItem item = List.GetItemById(Item_ID);
-                    SPAttachmentCollection attchList = item.Attachments;
-                    int countElem = attchList.Count;
-                    if (countElem > 0)
-                    {
-                        for (int i = 0; i < countElem; i++)
-                        {
-                            string currAttch = attchList[i];
-                            if (currAttch.ToUpper() == File_Name.ToUpper())
-                            {
-                                attchList.Delete(File_Name);
-                                break;
-                            }
-                        }
-                    }
-
-                    item.Attachments.Add(File_Name, ContentData);
-                    item.Update();
-                    Web.AllowUnsafeUpdates = false;
-                }
-            }
-
-        }
-
         public void SaveRptDocuments(string siteUrl, string customListName = null, string localPath = "", int listItemId = 0)
         {
 
@@ -406,12 +372,6 @@ namespace Daikin.BusinessLogics.Common
             return CurrentUser;
         }
 
-        public string GetCurrentUserLoginWithPattern()
-        {
-            SPWeb web = SPContext.Current.Web;
-            return web.CurrentUser.LoginName;
-        }
-
         public string GetCurrentUserLogin()
         {
             SPWeb web = SPContext.Current.Web;
@@ -424,6 +384,12 @@ namespace Daikin.BusinessLogics.Common
                 return split[split.Length - 1];
             }
             return loginName;
+        }
+
+        public string GetCurrentUserLoginWithPattern()
+        {
+            SPWeb web = SPContext.Current.Web;
+            return web.CurrentUser.LoginName;
         }
 
         public int GetCurrentUserId(string SPUrl)
@@ -621,6 +587,40 @@ namespace Daikin.BusinessLogics.Common
                     }
                 }
             });
+        }
+
+        public void UploadFileInCustomList(string List_Name, int Item_ID, string PathFile, string File_Name, string Url_Site)
+        {
+            FileStream fileStream = File.OpenRead(PathFile);
+            var ContentData = new byte[fileStream.Length];
+            using (SPSite Site = new SPSite(Url_Site))
+            {
+                using (SPWeb Web = Site.OpenWeb())
+                {
+                    Web.AllowUnsafeUpdates = true;
+                    SPList List = Web.Lists[List_Name];
+                    SPListItem item = List.GetItemById(Item_ID);
+                    SPAttachmentCollection attchList = item.Attachments;
+                    int countElem = attchList.Count;
+                    if (countElem > 0)
+                    {
+                        for (int i = 0; i < countElem; i++)
+                        {
+                            string currAttch = attchList[i];
+                            if (currAttch.ToUpper() == File_Name.ToUpper())
+                            {
+                                attchList.Delete(File_Name);
+                                break;
+                            }
+                        }
+                    }
+
+                    item.Attachments.Add(File_Name, ContentData);
+                    item.Update();
+                    Web.AllowUnsafeUpdates = false;
+                }
+            }
+
         }
 
         //Dest Url with fileName
