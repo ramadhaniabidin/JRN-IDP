@@ -102,7 +102,7 @@ namespace Daikin.BusinessLogics.Common
                         }
 
                     }
-                };
+                }
                 UploadFileInCustomList(listAttach, WebUrl);
 
                 return fileName;
@@ -168,7 +168,7 @@ namespace Daikin.BusinessLogics.Common
 
 
             var r = list.GetItems(q);
-            if(r.Count > 0)
+            if (r.Count > 0)
             {
                 var value = r[0][RetrieveColumn];
                 return value?.ToString() ?? string.Empty;
@@ -576,7 +576,7 @@ namespace Daikin.BusinessLogics.Common
                         SPAttachmentCollection attchList = item.Attachments;
 
                         // Remove existing file with the same name
-                        for(int i = attchList.Count - 1; i >= 0; i--)
+                        for (int i = attchList.Count - 1; i >= 0; i--)
                         {
                             if (string.Equals(attchList[i], File_Name, StringComparison.OrdinalIgnoreCase))
                             {
@@ -637,17 +637,17 @@ namespace Daikin.BusinessLogics.Common
         {
             SPSecurity.RunWithElevatedPrivileges(() =>
             {
-                using(SPSite site = new SPSite(Url_Site))
+                using (SPSite site = new SPSite(Url_Site))
                 {
-                    using(SPWeb web = site.OpenWeb())
+                    using (SPWeb web = site.OpenWeb())
                     {
                         web.AllowUnsafeUpdates = true;
                         SPList list = web.Lists[List_Name];
                         SPListItem item = list.GetItemById(Item_ID);
                         SPAttachmentCollection attachments = item.Attachments;
-                        foreach(var att in attachments)
+                        foreach (var att in attachments)
                         {
-                            if(att.ToString().ToUpperInvariant() == File_Name.ToUpperInvariant())
+                            if (att.ToString().ToUpperInvariant() == File_Name.ToUpperInvariant())
                             {
                                 attachments.Delete(File_Name);
                                 break;
@@ -871,7 +871,7 @@ namespace Daikin.BusinessLogics.Common
                     {"Base64", base64String }
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new Dictionary<string, object>
                 {
@@ -922,7 +922,7 @@ namespace Daikin.BusinessLogics.Common
                 using (SPWeb web = site.OpenWeb())
                 {
                     SPList list = web.Lists.TryGetList(ListName);
-                    if(list == null)
+                    if (list == null)
                     {
                         throw new InvalidOperationException($"List '{ListName}' not found.");
                     }
@@ -937,7 +937,7 @@ namespace Daikin.BusinessLogics.Common
         {
             List<Apps.Master.Model.OptionModel> list = new List<Apps.Master.Model.OptionModel>();
             var data = GetSharepointListData(ListName);
-            foreach(DataRow row in data.Rows)
+            foreach (DataRow row in data.Rows)
             {
                 list.Add(new Apps.Master.Model.OptionModel
                 {
