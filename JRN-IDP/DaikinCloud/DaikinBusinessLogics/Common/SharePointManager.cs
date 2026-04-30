@@ -379,47 +379,12 @@ namespace Daikin.BusinessLogics.Common
 
         }
 
-        public string GetAllAttachmentByListName(string listName, int SourceItemId, string WebUrl)
-        {
-            try
-            {
-                string attachUrl = string.Empty;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
-
-                    using (SPSite oSPsite = new SPSite(WebUrl))
-                    {
-                        using (SPWeb oSPWeb = oSPsite.OpenWeb())
-                        {
-                            oSPWeb.AllowUnsafeUpdates = true;
-                            SPList list = oSPWeb.Lists[listName];
-                            SPListItem item = list.GetItemById(SourceItemId);
-
-                            SPAttachmentCollection attachmentsColl = item.Attachments;
-
-                            //Loop through each attachment
-                            foreach (string attachment in attachmentsColl)
-                            {
-                                SPFile file = oSPWeb.GetFile(attachmentsColl.UrlPrefix + attachment);
-                                attachUrl += ";" + attachmentsColl.UrlPrefix + attachment;
-                            }
-
-                        }
-                    }
-                });
-                return attachUrl;
-            }
-            catch (Exception ex)
-            {
-                return "Error: " + ex.Message;
-            }
-        }
-
         public string RemovePatternUserWithDomain(string loginName)
         {
             return loginName.Contains("|") ?
                          loginName.Split('|')[1] : loginName;
         }
+        
         public string GetCurrentUserLogin(string SPUrl, bool WithPattern = true)
         {
             //With Pattern = i:0#.w|eiu\kenny
