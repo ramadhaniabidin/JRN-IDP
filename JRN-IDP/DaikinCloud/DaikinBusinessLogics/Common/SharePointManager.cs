@@ -424,41 +424,85 @@ namespace Daikin.BusinessLogics.Common
         {
             //With Pattern = i:0#.w|eiu\kenny
             //Without Pattern = eiu\kenny
-            SPSite site = new SPSite(SPUrl);
-            SPWeb web = site.OpenWeb();
             string CurrentUser = string.Empty;
-            if (!WithPattern)
-                CurrentUser = web.CurrentUser.LoginName.Contains("|") ?
-                         web.CurrentUser.LoginName.Split('|')[1] : web.CurrentUser.LoginName;
-            else
-                CurrentUser = web.CurrentUser.LoginName;
+            using (SPSite site = new SPSite(SPUrl))
+            using (SPWeb web = site.OpenWeb())
+            {
+                if (WithPattern)
+                {
+                    CurrentUser = web.CurrentUser.LoginName;
+                }
+                else
+                {
+                    CurrentUser = web.CurrentUser.LoginName.Contains("|") ?
+                        web.CurrentUser.LoginName.Split('|')[1] : web.CurrentUser.LoginName;
+                }
+            }
             return CurrentUser;
+        }
+
+        public string GetCurrentUserLoginWithPattern()
+        {
+            SPWeb web = SPContext.Current.Web;
+            return web.CurrentUser.LoginName;
+        }
+
+        public string GetCurrentUserLogin()
+        {
+            SPWeb web = SPContext.Current.Web;
+            if (web?.CurrentUser == null) return string.Empty;
+
+            string loginName = web.CurrentUser.LoginName;
+            return loginName.Contains("\\")
+                ? loginName.Split('\\').Last()
+                : loginName;
         }
 
         public int GetCurrentUserId(string SPUrl)
         {
-            SPSite site = new SPSite(SPUrl);
-            SPWeb web = site.OpenWeb();
-            return web.CurrentUser.ID;
+            using (SPSite site = new SPSite(SPUrl))
+            using (SPWeb web = site.OpenWeb())
+            {
+                return web.CurrentUser.ID;
+            }
         }
 
         public string GetCurrentLoginFullName(string SPUrl)
         {
-            SPSite site = new SPSite(SPUrl);
-            SPWeb web = site.OpenWeb();
-
-            string CurrentUser = web.CurrentUser.Name;
+            string CurrentUser = string.Empty;
+            using (SPSite site = new SPSite(SPUrl))
+            using (SPWeb web = site.OpenWeb())
+            {
+                CurrentUser = web.CurrentUser.Name;
+            }
             return CurrentUser;
+        }
+
+        public string GetCurrentLoginFullName()
+        {
+            return SPContext.Current.Web.CurrentUser.Name;
         }
 
         public string GetCurrentLoginEmail(string SPUrl)
         {
-            SPSite site = new SPSite(SPUrl);
-            SPWeb web = site.OpenWeb();
-
-            string CurrentUser = web.CurrentUser.Email;
-            return CurrentUser;
+            using (SPSite site = new SPSite(SPUrl))
+            using (SPWeb web = site.OpenWeb())
+            {
+                return web.CurrentUser.Email;
+            }
         }
+
+        public string GetCurrentLoginEmail()
+        {
+            SPWeb web = SPContext.Current.Web;
+            return web.CurrentUser.Email;
+        }
+
+        //public string GetCurrentUserOffice()
+        //{
+        //    SPServiceContext contect = SPServiceContext.GetContext(SPContext.Current.Site);
+        //    userprofilemanager
+        //}
 
         public string CreateFolderDocumentLibrary(string FolderName, string SiteUrl, string DocLibName)
         {
@@ -591,37 +635,30 @@ namespace Daikin.BusinessLogics.Common
 
         public void UploadFileInCustomList(string List_Name, int Item_ID, byte[] ContentData, string Url_Site, string File_Name)
         {
-            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            SPSecurity.RunWithElevatedPrivileges(() =>
             {
-                using (SPSite Site = new SPSite(Url_Site))
+                using(SPSite site = new SPSite(Url_Site))
                 {
-                    using (SPWeb Web = Site.OpenWeb())
+                    using(SPWeb web = site.OpenWeb())
                     {
-                        Web.AllowUnsafeUpdates = true;
-                        SPList List = Web.Lists[List_Name];
-                        SPListItem item = List.GetItemById(Item_ID);
-                        SPAttachmentCollection attchList = item.Attachments;
-                        int countElem = attchList.Count;
-                        if (countElem > 0)
+                        web.AllowUnsafeUpdates = true;
+                        SPList list = web.Lists[List_Name];
+                        SPListItem item = list.GetItemById(Item_ID);
+                        SPAttachmentCollection attachments = item.Attachments;
+                        foreach(var att in attachments)
                         {
-                            for (int i = 0; i < countElem; i++)
+                            if(att.ToString().ToUpperInvariant() == File_Name.ToUpperInvariant())
                             {
-                                string currAttch = attchList[i];
-                                if (currAttch.ToUpper() == File_Name.ToUpper())
-                                {
-                                    attchList.Delete(File_Name);
-                                    break;
-                                }
+                                attachments.Delete(File_Name);
+                                break;
                             }
                         }
-
-                        item.Attachments.Add(File_Name, ContentData);
-                        Web.AllowUnsafeUpdates = false;
-                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(10));
+                        attachments.Add(File_Name, ContentData);
+                        item.Update();
+                        web.AllowUnsafeUpdates = false;
                     }
                 }
             });
-
         }
 
         //Dest Url with fileName
@@ -844,6 +881,76 @@ namespace Daikin.BusinessLogics.Common
                 };
             }
         }
+
+        public void UpdateListItem(CommonUpdateModel model)
+        {
+            Guid siteId = SPContext.Current.Site.ID;
+            Guid webId = SPContext.Current.Web.ID;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
+                using (SPSite site = new SPSite(siteId))
+                using (SPWeb web = site.OpenWeb(webId))
+                {
+                    try
+                    {
+                        web.AllowUnsafeUpdates = true;
+                        SPList list = web.Lists[model.ListName];
+                        SPListItem oListItem = list.GetItemById(model.ListItemId);
+                        oListItem["Form_x0020_Status"] = model.FormStatus;
+                        oListItem["Workflow_x0020_Status"] = model.WorkflowStatus;
+                        oListItem["Approval_x0020_Status"] = model.ApprovalStatus;
+                        oListItem.SystemUpdate(false);
+                    }
+                    finally
+                    {
+                        web.AllowUnsafeUpdates = false;
+                    }
+                }
+            });
+        }
+
+        private DataTable GetSharepointListData(string ListName)
+        {
+            if (string.IsNullOrEmpty(ListName))
+            {
+                throw new ArgumentException("List name cannot be null or empty.", nameof(ListName));
+            }
+            var dt = new DataTable();
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
+                using (SPSite site = new SPSite(SPContext.Current.Web.Url))
+                using (SPWeb web = site.OpenWeb())
+                {
+                    SPList list = web.Lists.TryGetList(ListName);
+                    if(list == null)
+                    {
+                        throw new InvalidOperationException($"List '{ListName}' not found.");
+                    }
+                    SPListItemCollection items = list.Items;
+                    dt = items.GetDataTable();
+                }
+            });
+            return dt;
+        }
+
+        public List<Apps.Master.Model.OptionModel> MapListDataToOption(string ListName, string CodeColumn, string DisplayColumn)
+        {
+            List<Apps.Master.Model.OptionModel> list = new List<Apps.Master.Model.OptionModel>();
+            var data = GetSharepointListData(ListName);
+            foreach(DataRow row in data.Rows)
+            {
+                list.Add(new Apps.Master.Model.OptionModel
+                {
+                    Code = Utility.GetStringValue(row, CodeColumn),
+                    Name = Utility.GetStringValue(row, DisplayColumn),
+                    Active = Utility.GetStringValue(row, "Active"),
+                    Short_x0020_Name = ListName == "Master Material Anaplan" ? Utility.GetStringValue(row, "Procurement_x0020_Department_x001") : ""
+                });
+            }
+            list.Sort((x, y) => x.Name.CompareTo(y.Name));
+            return list;
+        }
+
     }
 
 }
