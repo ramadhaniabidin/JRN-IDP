@@ -635,7 +635,6 @@ namespace Daikin.BusinessLogics.Common
 
         public string UploadDocLib(string PathFile, string UrlSite, string DocLibName, string DestUrl)
         {
-            string FileName = Path.GetFileName(PathFile);
             SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
 
