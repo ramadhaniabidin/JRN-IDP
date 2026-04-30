@@ -623,7 +623,7 @@ namespace Daikin.BusinessLogics.Common
                         SPFolder myLibrary = oWeb.Folders[DocLibName];
 
                         Boolean replaceExistingFiles = true;
-                        SPFile spfile = myLibrary.Files.Add(DestUrl, arrFile, replaceExistingFiles);
+                        myLibrary.Files.Add(DestUrl, arrFile, replaceExistingFiles);
 
                         myLibrary.Update();
                         oWeb.AllowUnsafeUpdates = false;
@@ -650,7 +650,7 @@ namespace Daikin.BusinessLogics.Common
                         SPFolder myLibrary = oWeb.Folders[DocLibName];
                         Boolean replaceExistingFiles = true;
                         FileStream fileStream = File.OpenRead(PathFile);
-                        SPFile spfile = myLibrary.Files.Add(DestUrl, fileStream, replaceExistingFiles);
+                        myLibrary.Files.Add(DestUrl, fileStream, replaceExistingFiles);
                         myLibrary.Update();
                         oWeb.AllowUnsafeUpdates = false;
                     }
