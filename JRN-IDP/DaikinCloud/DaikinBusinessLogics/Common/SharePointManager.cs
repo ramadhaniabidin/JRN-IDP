@@ -384,7 +384,7 @@ namespace Daikin.BusinessLogics.Common
             return loginName.Contains("|") ?
                          loginName.Split('|')[1] : loginName;
         }
-        
+
         public string GetCurrentUserLogin(string SPUrl, bool WithPattern = true)
         {
             //With Pattern = i:0#.w|eiu\kenny
@@ -462,12 +462,6 @@ namespace Daikin.BusinessLogics.Common
             SPWeb web = SPContext.Current.Web;
             return web.CurrentUser.Email;
         }
-
-        //public string GetCurrentUserOffice()
-        //{
-        //    SPServiceContext contect = SPServiceContext.GetContext(SPContext.Current.Site);
-        //    userprofilemanager
-        //}
 
         public string CreateFolderDocumentLibrary(string FolderName, string SiteUrl, string DocLibName)
         {
