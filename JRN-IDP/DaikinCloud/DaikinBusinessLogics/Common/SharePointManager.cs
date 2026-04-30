@@ -115,17 +115,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public void SaveRptDocuments(string siteUrl, string customListName = null, string localPath = "", int listItemId = 0)
-        {
-
-            if (!siteUrl.EndsWith("/"))
-                siteUrl += "/";
-
-            string currentLogin = GetCurrentUserLogin(siteUrl);
-            UploadFileInCustomList(customListName, listItemId, localPath, siteUrl);
-
-        }
-
         public string CamlQuerySPList(SPWeb web, string ListName, string FilterBy, string FilterValue, string RetrieveColumn)
         {
             SPList list = web.Lists[ListName];
