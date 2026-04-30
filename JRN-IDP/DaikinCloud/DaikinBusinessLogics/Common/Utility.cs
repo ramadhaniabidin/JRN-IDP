@@ -22,13 +22,13 @@ namespace Daikin.BusinessLogics.Common
     public class Utility
     {
         public const string LevelAccessMessage = "You don't have permission to trigger this action";
-        public const string SpSiteUrl = "https://sp3.daikin.co.id:3473/";
-        public const string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
-        public readonly string SpSiteUrl_DEV = ConfigurationManager.AppSettings["SPDEV_BASE_URL"];
-        private const string ENCRYPTION_KEY = "G21Express";
+        public static string SpSiteUrl = ConfigurationManager.AppSettings["SiteUrl"];
+        public static string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
+        //private const string ENCRYPTION_KEY = "G21Express";
+        private static string ENCRYPTION_KEY = ConfigurationManager.AppSettings["ENCRYPTION_KEY"];
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-
+        
         #region Encryption/decryption
         /// <summary>
         /// The salt value used to strengthen the encryption.
@@ -324,6 +324,15 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
+        public static int SafeGetOrdinal(SqlDataReader reader, string columnName)
+        {
+            for(int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase)) return i;
+            }
+            return -1;
+        }
+
         public static decimal GetDecimalValue(DataRow value, string key)
         {
             try
@@ -399,6 +408,24 @@ namespace Daikin.BusinessLogics.Common
             }
             return data;
         }
+
+        public static async Task<List<T>> MapReaderToList<T>(SqlDataReader _reader) where T : new()
+        {
+            List<T> list = new List<T>();
+            PropertyInfo[] props = typeof(T).GetProperties();
+            var propertyMap = props.Select(p => new { Prop = p, Ordinal = Utility.SafeGetOrdinal(_reader, p.Name) }).Where(x => x.Ordinal != -1).ToList();
+            while (await _reader.ReadAsync())
+            {
+                var item = new T();
+                foreach (var mapp in propertyMap)
+                {
+                    if (!await _reader.IsDBNullAsync(mapp.Ordinal)) mapp.Prop.SetValue(item, _reader.GetValue(mapp.Ordinal));
+                }
+                list.Add(item);
+            }
+            return list;
+        }
+
 
         public static T GetItem<T>(DataRow dr)
         {
