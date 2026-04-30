@@ -418,9 +418,12 @@ namespace Daikin.BusinessLogics.Common
             if (web?.CurrentUser == null) return string.Empty;
 
             string loginName = web.CurrentUser.LoginName;
-            return loginName.Contains("\\")
-                ? loginName.Split('\\').Last()
-                : loginName;
+            if (loginName.Contains("\\"))
+            {
+                var split = loginName.Split('\\');
+                return split[split.Length - 1];
+            }
+            return loginName;
         }
 
         public int GetCurrentUserId(string SPUrl)
