@@ -306,35 +306,6 @@ namespace Daikin.BusinessLogics.Common
                 }
             });
         }
-        public string AddUserToGroupPermission(string siteURL, string userName, string groupName)
-        {
-            try
-            {
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
-                    using (SPSite site = new SPSite(siteURL))
-                    {
-                        using (SPWeb myWeb = site.OpenWeb())
-                        {
-                            myWeb.AllowUnsafeUpdates = true;
-                            SPUser spUser = myWeb.EnsureUser(userName);
-                            SPGroup spGroup = myWeb.SiteGroups[groupName];
-                            int noofcounts = spGroup.Users.Count;
-                            spGroup.AddUser(spUser);
-
-                            spGroup.Update();
-                            myWeb.AllowUnsafeUpdates = false;
-                        }
-                    }
-                });
-                return "OK";
-            }
-            catch (Exception ex)
-            {
-                return "Error: " + ex.Message;
-            }
-
-        }
 
         public string RemovePatternUserWithDomain(string loginName)
         {
