@@ -22,7 +22,9 @@ namespace Daikin.BusinessLogics.Common
     }
     public class SharePointManager
     {
-
+        private readonly string successKey = "Success";
+        private readonly string messageKey = "Message";
+        private readonly string base64Key = "Base64";
         public List<ApproverRoleModel> BindingMasterApproverSPListCondition(string ListName)
         {
             DataTable dt = new DataTable();
@@ -768,7 +770,7 @@ namespace Daikin.BusinessLogics.Common
                         {
                             return new Dictionary<string, object>
                             {
-                                {"Success", false }, {"Message", "There are no attachments" }, {"Base64", "" }
+                                {successKey, false }, {messageKey, "There are no attachments" }, {base64Key, "" }
                             };
                         }
                         foreach (string currAttach in attchList)
@@ -787,7 +789,7 @@ namespace Daikin.BusinessLogics.Common
                                         string base64 = Convert.ToBase64String(memoryStream.ToArray());
                                         return new Dictionary<string, object>
                                         {
-                                            {"Success", true }, {"Message", "File retrieved successfully" }, {"Base64", base64 }
+                                            {successKey, true }, {messageKey, "File retrieved successfully" }, {base64Key, base64 }
                                         };
                                     }
                                 }
@@ -796,7 +798,7 @@ namespace Daikin.BusinessLogics.Common
                     }
                     return new Dictionary<string, object>
                     {
-                        {"Success", false }, {"Message", "File not found" }, {"Base64", "" }
+                        {successKey, false }, {messageKey, "File not found" }, {base64Key, "" }
                     };
                 }
 
@@ -805,7 +807,7 @@ namespace Daikin.BusinessLogics.Common
             {
                 return new Dictionary<string, object>
                 {
-                    {"Success", false }, {"Message", ex.Message }, {"Base64", "" }
+                    {successKey, false }, {messageKey, ex.Message }, {base64Key, "" }
                 };
             }
         }
@@ -819,27 +821,27 @@ namespace Daikin.BusinessLogics.Common
                 {
                     return new Dictionary<string, object>
                     {
-                        {"Success", false },
-                        {"Message", "File not found" },
-                        {"Base64", "" }
+                        {successKey, false },
+                        {messageKey, "File not found" },
+                        {base64Key, "" }
                     };
                 }
                 byte[] fileBytes = File.ReadAllBytes(filePath);
                 string base64String = Convert.ToBase64String(fileBytes);
                 return new Dictionary<string, object>
                 {
-                    {"Success", true },
-                    {"Message", "File retrieved successfully" },
-                    {"Base64", base64String }
+                    {successKey, true },
+                    {messageKey, "File retrieved successfully" },
+                    {base64Key, base64String }
                 };
             }
             catch (Exception ex)
             {
                 return new Dictionary<string, object>
                 {
-                    {"Success", false },
-                    {"Message", ex.Message },
-                    {"Base64", "" }
+                    {successKey, false },
+                    {messageKey, ex.Message },
+                    {base64Key, "" }
                 };
             }
         }
