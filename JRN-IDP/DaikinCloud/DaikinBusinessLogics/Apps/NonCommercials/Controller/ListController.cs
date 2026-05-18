@@ -363,31 +363,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
-        public void NonCommercial_InsertHistoryLog(int Item_ID, string List_Name)
-        {
-            SPWeb web = SPContext.Current.Web;
-            SPList list = web.Lists[List_Name];
-            SPListItem item = list.GetItemById(Item_ID);
-            string currLogin = "";
-            string currLoginName = "";
-            Dictionary<string, string> mapping = new Dictionary<string, string>
-            {
-                {"QCF GA", "Purpose" }, {"QCF MKT", "Requisition_x0020_Purpose" }, {"PURCHASE ORDER", "Requestor_x0020_Notes" }
-            };
-            string userAccount = item["Submitted_x0020_By"] == null ? "" : item["Submitted_x0020_By"].ToString();
-            string comment = "";
-            if (!List_Name.ToUpper().Contains("RELEASE"))
-            {
-                comment = item[mapping[List_Name.ToUpper()]] == null ? "" : item[mapping[List_Name.ToUpper()]].ToString();
-            }
-            if (!string.IsNullOrEmpty(userAccount))
-            {
-                currLogin = web.EnsureUser(userAccount).LoginName;
-                currLoginName = web.EnsureUser(userAccount).Name;
-            }
-            new CommonLogic().InsertApprovalLog(List_Name, Item_ID, 1, currLogin, currLoginName, "0", comment);
-        }
-
         public void CustomFormUpdateApprover(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments)
         {
             try
