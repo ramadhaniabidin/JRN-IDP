@@ -76,13 +76,13 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 a.Assignee.ToLower().Contains(approver.Email.ToLower()));
 
             if (targetAssignment == null)
-                throw new NullReferenceException("Approver assignment not found in Nintex.");
+                throw new ArgumentNullException("Approver assignment not found in Nintex.");
 
             var response = ntx.CompleteNACTask(ApprovalValue, task.Tasks[0].Id, targetAssignment.Id);
 
             if (!response.Success)
             {
-                throw new NullReferenceException($"Error completing NAC task: {response.Message}");
+                throw new ArgumentNullException($"Error completing NAC task: {response.Message}");
             }
 
             // 3. Now start a SHORT Transaction only for the final Database updates.
