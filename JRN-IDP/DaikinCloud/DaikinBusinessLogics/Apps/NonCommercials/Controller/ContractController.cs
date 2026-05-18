@@ -30,6 +30,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         private readonly ContractSharePointService service;
         private readonly ContractWorkflowHandler workflowHandler;
         private readonly string siteUrl = SPContext.Current.Site.Url;
+        private readonly string PLEASE_SELECT_KEY = "Please Select";
 
         public ContractController()
         {
@@ -96,7 +97,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
             Master.Model.OptionModel listOption = new Master.Model.OptionModel();
             listOption.Code = "";
-            listOption.Name = "Please Select";
+            listOption.Name = PLEASE_SELECT_KEY;
             listOption.Selected = true;
             listOption.Active = "1";
             listOptions.Insert(0, listOption);
@@ -139,7 +140,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             list.Insert(0, new MasterUserProcDept
             {
                 Code = "",
-                Name = "Please Select",
+                Name = PLEASE_SELECT_KEY,
                 Selected = true
             });
             return list;
@@ -186,7 +187,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
-                listOption.Name = "Please Select";
+                listOption.Name = PLEASE_SELECT_KEY;
                 listOption.Selected = true;
 
                 listOptions.Insert(0, listOption);
@@ -241,7 +242,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
-                listOption.Name = "Please Select";
+                listOption.Name = PLEASE_SELECT_KEY;
                 listOption.Selected = true;
 
                 listOptions.Insert(0, listOption);
