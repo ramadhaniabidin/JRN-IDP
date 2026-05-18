@@ -1,5 +1,4 @@
 ﻿using Daikin.BusinessLogics.Common;
-//using Daikin.BusinessLogics.Apps.NonCommercials.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,7 +15,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     {
         DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        DataTable dt = new DataTable();
         SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
 
@@ -145,7 +143,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 #region Validasi Contract No
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_MasterModule_GetOptions";
@@ -184,7 +182,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public List<OptionModel> GetPendingApproverRoles(string Module_ID)
         {
             //usp_NonCommercials_ListPendingApproverRoles
-            dt = new DataTable();
+            var dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
@@ -211,7 +209,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             List<OptionModel> listOption = new List<OptionModel>();
             try
             {
-                dt = new DataTable();
+                var dt = new DataTable();
                 #region Validasi Contract No
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetList";
@@ -246,7 +244,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<GeneralHeaderModel> ListData(FilterHeaderSearchModel model, out int RecordCount, out decimal GrandTotal)
         {
-            dt = new DataTable();
+            var dt = new DataTable();
             RecordCount = 0;
             try
             {
@@ -327,7 +325,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<MasterModuleOptionModel> CreateNewFormGetUrl(int Procurement_Department_ID, string Module_Code)
         {
-            dt = new DataTable();
+            var dt = new DataTable();
             try
             {
                 db.OpenConnection(ref conn);
