@@ -148,17 +148,15 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                MasterModuleOptionModel data = new MasterModuleOptionModel();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new MasterModuleOptionModel();
-                    data.Code = row["Code"].ToString();
-                    data.Name = row["Name"].ToString();
-                    data.List_Name = row["List_Name"].ToString();
-                    data.Table_Name = row["Table_Name"].ToString();
-
-                    listOption.Add(data);
+                    listOption.Add(new MasterModuleOptionModel
+                    {
+                        Code = row["Code"].ToString(),
+                        Name = row["Name"].ToString(),
+                        List_Name = row["List_Name"].ToString(),
+                        Table_Name = row["Table_Name"].ToString()
+                    });
                 }
 
                 #endregion
