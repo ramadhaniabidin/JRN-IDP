@@ -363,30 +363,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
-        public void CustomFormUpdateApprover(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments)
+        public static void CustomFormUpdateApprover(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments)
         {
-            try
+            using (SqlConnection conn = new SqlConnection(Utility.GetSqlConnection()))
             {
-                using (SqlConnection conn = new SqlConnection(Utility.GetSqlConnection()))
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", conn))
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-
-                        cmd.Parameters.AddWithValue("@List_Name", ListName);
-                        cmd.Parameters.AddWithValue("@Header_ID", HeaderID);
-                        cmd.Parameters.AddWithValue("@Comments", Comments);
-                        cmd.Parameters.AddWithValue("@Approver_Name", ApproverName);
-                        cmd.Parameters.AddWithValue("@Approver_Account", ApproverAccount);
-                        cmd.ExecuteNonQuery();
-                    }
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@List_Name", ListName);
+                    cmd.Parameters.AddWithValue("@Header_ID", HeaderID);
+                    cmd.Parameters.AddWithValue("@Comments", Comments);
+                    cmd.Parameters.AddWithValue("@Approver_Name", ApproverName);
+                    cmd.Parameters.AddWithValue("@Approver_Account", ApproverAccount);
+                    cmd.ExecuteNonQuery();
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
         }
 
