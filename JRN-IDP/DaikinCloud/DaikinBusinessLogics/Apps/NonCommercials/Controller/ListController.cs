@@ -125,13 +125,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             return approver;
         }
 
-        public async Task ApproveRequestAsync(string ApprovalValue, string ListName, int ListItemID, int HeaderID, string Comments)
-        {
-            var approver = GetCurrentApprover(ListName, ListItemID);
-            var transactionData = await Aprroval.GetListDataByHeaderIDAsync(ListName, HeaderID).ConfigureAwait(false);
-
-        }
-
         private void InsertLog(ClaimReimbursement.Model.InsertHistoryLogModel Log, SqlConnection Conn, SqlTransaction Trans)
         {
             using (var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", Conn, Trans))
