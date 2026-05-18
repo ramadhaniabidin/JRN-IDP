@@ -36,7 +36,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             var _db = new DatabaseManager();
 
             db = _db;
-            repo = new ContractRepository(db, sp);
+            repo = new ContractRepository(db);
             service = new ContractSharePointService(sp);
             workflowHandler = new ContractWorkflowHandler(ntx);
         }
@@ -254,192 +254,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             finally
             {
                 db.CloseConnection(ref conn);
-            }
-        }
-
-        public ContractHeader Save(ContractHeader ch, List<ContractDetail> cd, List<ContractAttachment> ca, string ServerPath, string dh, string dd, string da)
-        {
-            ContractHeader listOption = new ContractHeader();
-            try
-            {
-                string SiteUrl = SPContext.Current.Site.Url;
-                bool isNew = SiteUrl.Contains("3473");
-                #region GET Last Form No
-                if (ch.ID == 0)
-                {
-                    ch.Form_No = GetDataHeaderFormNo("ContractHeader", "CT");
-                    ch.Item_ID = SaveSPListContract(SiteUrl, ch, cd.Count, "-"); //1 Trigger WF
-                }
-                #endregion
-
-                #region GET ITEM ID FROM SAVING SP
-                int Item_ID = Convert.ToInt32(ch.Item_ID);
-                #endregion
-
-                string Created_By = sp.GetCurrentUserLogin(SiteUrl);
-
-                var dt = new DataTable();
-                db.OpenConnection(ref conn);
-
-                #region INSERT CONTRACT HEADER
-                db.cmd.CommandText = "dbo.usp_ContractHeader_SaveUpdate";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                if (ch.Contract_Status_ID == 1) ch.Contract_Status_Name = "Submitted";
-                db.AddInParameter(db.cmd, "Approval_Status", ch.Approval_Status);
-                db.AddInParameter(db.cmd, "Branch", ch.Branch);
-                db.AddInParameter(db.cmd, "Contract_No", ch.Contract_No);
-                db.AddInParameter(db.cmd, "Contract_Status_ID", ch.Contract_Status_ID);
-                db.AddInParameter(db.cmd, "Contract_Status_Name", ch.Contract_Status_Name);
-                db.AddInParameter(db.cmd, "Contract_Type_ID", ch.Contract_Type_ID);
-                db.AddInParameter(db.cmd, "Contract_Type_Name", ch.Contract_Type_Name);
-                db.AddInParameter(db.cmd, "Cost_Center", ch.Cost_Center);
-                db.AddInParameter(db.cmd, "Created_By", Created_By);
-                db.AddInParameter(db.cmd, "PIC_Team", Created_By);                              // This is for PIC_Team
-                db.AddInParameter(db.cmd, "Form_No", ch.Form_No);
-                db.AddInParameter(db.cmd, "Internal_Order_Code", ch.Internal_Order_Code);
-                db.AddInParameter(db.cmd, "Internal_Order_Name", ch.Internal_Order_Name);
-                db.AddInParameter(db.cmd, "Document_Received", ch.Document_Received);
-                db.AddInParameter(db.cmd, "Grand_Total", ch.Grand_Total);
-                db.AddInParameter(db.cmd, "ID", ch.ID);
-                db.AddInParameter(db.cmd, "Item_ID", ch.Item_ID);
-                db.AddInParameter(db.cmd, "Modified_By", ch.Modified_By);
-                db.AddInParameter(db.cmd, "PO_Number", ch.PO_Number);
-                db.AddInParameter(db.cmd, "Period_End", ch.Period_End);
-                db.AddInParameter(db.cmd, "Period_Start", ch.Period_Start);
-                db.AddInParameter(db.cmd, "Procurement_Department", ch.Procurement_Department);
-                db.AddInParameter(db.cmd, "Remarks", ch.Remarks);
-                db.AddInParameter(db.cmd, "Request_Date", ch.Request_Date);
-                db.AddInParameter(db.cmd, "Requester_Email", ch.Requester_Email);
-                db.AddInParameter(db.cmd, "Requester_Name", ch.Requester_Name);
-                db.AddInParameter(db.cmd, "Vendor_Code", ch.Vendor_Code);
-                db.AddInParameter(db.cmd, "Vendor_Name", ch.Vendor_Name);
-                db.AddInParameter(db.cmd, "Is_New", isNew);
-                db.AddInParameter(db.cmd, "Reference_No", ch.Reference_No);
-
-                var reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-
-                if (dt.Rows.Count > 0)
-                {
-                    listOption = Utility.ConvertDataTableToList<ContractHeader>(dt)[0];
-                    ch.ID = listOption.ID;
-                }
-                else
-                {
-                    listOption = new ContractHeader();
-                }
-
-
-                #endregion
-
-                if (!String.IsNullOrEmpty(dd))
-                {
-                    db.cmd.CommandText = "dbo.usp_ContractDetail_DeleteById";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-
-                    db.AddInParameter(db.cmd, "ID", dd);
-                    db.cmd.ExecuteNonQuery();
-                }
-
-                if (!String.IsNullOrEmpty(da))
-                {
-                    db.cmd.CommandText = "dbo.usp_ContractAttachment_DeleteById";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-
-                    db.AddInParameter(db.cmd, "ID", da);
-                    db.cmd.ExecuteNonQuery();
-                }
-
-                if (ch.ID > 0)
-                {
-                    db.cmd.CommandText = "dbo.usp_Utility_CollectPICTeam";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-                    db.AddInParameter(db.cmd, "Module_ID", "M014");
-                    db.AddInParameter(db.cmd, "Header_ID", ch.ID);
-                    db.cmd.ExecuteNonQuery();
-
-                    #region INSERT CONTRACT DETAILS
-                    foreach (ContractDetail contractdetail in cd)
-                    {
-                        db.cmd.CommandText = "dbo.[usp_ContractDetail_SaveUpdate]";
-                        db.cmd.CommandType = CommandType.StoredProcedure;
-                        db.cmd.Parameters.Clear();
-
-                        db.AddInParameter(db.cmd, "ID", contractdetail.ID);
-                        db.AddInParameter(db.cmd, "No", contractdetail.No);
-                        db.AddInParameter(db.cmd, "Header_ID", ch.ID);
-                        db.AddInParameter(db.cmd, "Contract_Amount", contractdetail.Contract_Amount);
-                        db.AddInParameter(db.cmd, "Material_Description", contractdetail.Material_Description);
-                        db.AddInParameter(db.cmd, "Material_Number", contractdetail.Material_Number);
-
-                        string[] name = contractdetail.Material_Name.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
-                        string[] names = name.Select(x => Convert.ToString(x)).ToArray();
-                        db.AddInParameter(db.cmd, "Material_Name", names[1].Trim());
-                        db.AddInParameter(db.cmd, "Form_No", ch.Form_No);
-                        db.AddInParameter(db.cmd, "Contract_No", ch.Contract_No);
-                        db.AddInParameter(db.cmd, "Variable_Amount", contractdetail.Variable_Amount);
-
-                        db.cmd.ExecuteNonQuery();
-                    }
-                    #endregion
-
-                    #region INSERT CONTRACT ATTACHMENTS
-                    foreach (ContractAttachment contractattachment in ca)
-                    {
-                        db.cmd.CommandText = "dbo.[usp_ContractAttachment_SaveUpdate]";
-                        db.cmd.CommandType = CommandType.StoredProcedure;
-                        db.cmd.Parameters.Clear();
-
-                        db.AddInParameter(db.cmd, "ID", contractattachment.ID);
-                        db.AddInParameter(db.cmd, "Header_ID", ch.ID);
-                        db.AddInParameter(db.cmd, "Form_No", ch.Form_No);
-                        db.AddInParameter(db.cmd, "Attachment_FileName", contractattachment.Attachment_FileName);
-                        db.AddInParameter(db.cmd, "Attachment_Url", "/Lists/" + SPList + "/Attachments/" + ch.Item_ID.ToString() + "/" + contractattachment.Attachment_FileName);
-
-                        db.cmd.ExecuteNonQuery();
-
-                        var dPathFile = ServerPath + contractattachment.Attachment_FileName;
-                        sp.UploadFileInCustomList(SPList, Item_ID, dPathFile, SiteUrl);
-                    }
-                    #endregion
-
-                    #region Trigger WF
-                    Task.Run(async () =>
-                    {
-                        await new NintexCloudManager().NonCommercial_StartWorkflow_V2((int)ch.Item_ID, ch.ID, "M014", SPList);
-                    }).Wait();
-                    #endregion
-
-                    #region Insert History Log First Submit
-                    db.cmd.CommandText = "[dbo].[usp_NonComm_InsertApprovalLog]";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-
-                    db.AddInParameter(db.cmd, "ListName", SPList);
-                    db.AddInParameter(db.cmd, "ListItemID", Item_ID);
-                    db.AddInParameter(db.cmd, "Action", 1);
-                    db.AddInParameter(db.cmd, "CurrentLogin", Created_By);
-                    db.AddInParameter(db.cmd, "CurrLoginName", sp.GetCurrentLoginFullName(SiteUrl));
-                    db.AddInParameter(db.cmd, "Comment", "");
-                    db.cmd.ExecuteNonQuery();
-                    #endregion
-
-                }
-
-
-                db.CloseConnection(ref conn);
-                return listOption;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -687,6 +501,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
+        public async Task<List<ContractHeader>> GetDataContractHeaderAsync(string Form_No)
+        {
+            return await repo.GetDataContractHeaderAsync(Form_No);
+        }
+
         public List<ContractDetail> GetDataContractDetail(string Form_No)
         {
             try
@@ -714,6 +533,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
+        public async Task<List<ContractDetail>> GetDataContractDetailAsync(string Form_No)
+        {
+            return await repo.GetDataContractDetailAsync(Form_No);
+        }
+
         public List<ContractAttachment> GetDataContractAttachment(string Form_No)
         {
             try
@@ -739,6 +563,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 db.CloseConnection(ref conn);
             }
+        }
+
+        public async Task<List<ContractAttachment>> GetDataContractAttachmentAsync(string Form_No)
+        {
+            return await repo.GetDataContractAttachmentAsync(Form_No);
         }
     }
 }
