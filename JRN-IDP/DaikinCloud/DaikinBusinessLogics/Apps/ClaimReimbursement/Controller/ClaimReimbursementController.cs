@@ -57,7 +57,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "TableName", model.TableName);
-                db.AddInParameter(db.cmd, "PageIndex",Convert.ToInt32(model.PageIndex));
+                db.AddInParameter(db.cmd, "PageIndex", Convert.ToInt32(model.PageIndex));
                 db.AddInParameter(db.cmd, "PageSize", 10);
                 db.AddInParameter(db.cmd, "FilterBy", model.FilterBy);
                 db.AddInParameter(db.cmd, "StartDate", model.StartDate);
@@ -67,7 +67,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 db.AddInParameter(db.cmd, "PaymentStatus", model.PaymentStatus);
                 db.AddInParameter(db.cmd, "PostingStatus", model.PostingStatus);
                 db.AddInParameter(db.cmd, "BranchName", model.BranchName);
-                db.AddInParameter(db.cmd, "PendingApproverRoleID", Convert.ToInt32 (model.PendingApproverRoleID));
+                db.AddInParameter(db.cmd, "PendingApproverRoleID", Convert.ToInt32(model.PendingApproverRoleID));
                 db.AddInParameter(db.cmd, "PendingApproverRole", model.PendingApproverRole);
                 //db.AddInParameter(db.cmd, "LIstName", model.ListName);
 
@@ -306,17 +306,14 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
-                OptionModel data = new OptionModel();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new OptionModel();
-
-                    data.Code = Utility.GetStringValue(row, "Name");
-                    data.Name = Utility.GetStringValue(row, "Name");
-                    listOption.Add(data);
+                    listOption.Add(new OptionModel
+                    {
+                        Code = Utility.GetStringValue(row, "Name"),
+                        Name = Utility.GetStringValue(row, "Name")
+                    });
                 }
-
                 return listOption.OrderBy(o => o.Name).ToList();
             }
             catch (Exception ex)
