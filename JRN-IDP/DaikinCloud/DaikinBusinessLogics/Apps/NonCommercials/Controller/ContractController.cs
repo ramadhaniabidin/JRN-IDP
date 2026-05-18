@@ -86,7 +86,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     Master.Model.OptionModel data = new Master.Model.OptionModel();
                     if (ListName.Equals("Master Material Anaplan"))
                     {
-                        string SiteUrl = SPContext.Current.Site.Url;
                         data.Short_x0020_Name = Utility.GetStringValue(row, "Procurement_x0020_Department_x001");
                     }
                     data.Code = Utility.GetStringValue(row, codeColumn);
@@ -302,30 +301,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             await workflowHandler.StartWorkflow(ch.ID, itemId);
             await repo.InsertLogFirstSubmit(itemId, currentUser, currentFullName);
             return ch;
-        }
-
-        public async Task StartNWC(NintexWorkflowCloud nwc)
-        {
-
-            string sBody = new JavaScriptSerializer().Serialize(nwc.param);
-
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(nwc.url);
-
-            client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
-
-            request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
-            using (var response = await client.SendAsync(request))
-            {
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadAsStringAsync();
-            }
-
         }
 
         private string startNACNonComWorkflow(string listName, string moduleCode, int headerID, int listItemID)
