@@ -18,8 +18,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        private readonly SharePointManager sp = new SharePointManager();
-        public string SPList = "Non Commercials";
+        SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
 
         private Common.Model.CurrentApproverModel GetCurrentApprover(string List_Name, int Item_ID)
