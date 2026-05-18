@@ -91,31 +91,23 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 _conn.Open();
                 using (var trans = _conn.BeginTransaction())
                 {
-                    try
+                    if (ListName.ToUpper().Contains("CONTRACT"))
                     {
-                        if (ListName.ToUpper().Contains("CONTRACT"))
-                        {
-                            CustomFormUpdateApprover(HeaderID, ListName, approver.UserName, approver.FullName, Comments, _conn, trans);
-                        }
-
-                        InsertLog(new ClaimReimbursement.Model.InsertHistoryLogModel
-                        {
-                            List_Name = ListName,
-                            Comments = Comments,
-                            Action_Id = ConvertApprovalValue(ApprovalValue),
-                            Item_ID = ListItemID,
-                            Personal_Account = approver.UserName,
-                            Personal_Name = approver.FullName
-                        }, _conn, trans);
-
-                        // CRITICAL: Finalize the work
-                        trans.Commit();
+                        CustomFormUpdateApprover(HeaderID, ListName, approver.UserName, approver.FullName, Comments, _conn, trans);
                     }
-                    catch (Exception)
+
+                    InsertLog(new ClaimReimbursement.Model.InsertHistoryLogModel
                     {
-                        // Transaction rolls back automatically on 'using' disposal if Commit wasn't called
-                        throw;
-                    }
+                        List_Name = ListName,
+                        Comments = Comments,
+                        Action_Id = ConvertApprovalValue(ApprovalValue),
+                        Item_ID = ListItemID,
+                        Personal_Account = approver.UserName,
+                        Personal_Name = approver.FullName
+                    }, _conn, trans);
+
+                    // CRITICAL: Finalize the work
+                    trans.Commit();
                 }
             }
 
