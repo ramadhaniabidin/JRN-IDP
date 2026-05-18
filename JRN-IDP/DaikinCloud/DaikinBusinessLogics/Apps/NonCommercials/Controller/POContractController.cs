@@ -127,7 +127,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public async Task<List<Master.Model.OptionModel>> GetMarketingCategoriesAsync()
         {
-            var list = new List<Master.Model.OptionModel>();
             using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
             {
                 await _conn.OpenAsync().ConfigureAwait(configureAwait);
@@ -136,7 +135,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     cmd.CommandType = CommandType.StoredProcedure;
                     using (SqlDataReader _r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
                     {
-                        list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
+                        var list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
                         list = list.OrderBy(o => o.Name).ToList();
                         return list;
                     }
@@ -169,16 +168,15 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 #endregion
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
-
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new Master.Model.OptionModel();
-                        data.Code = row["Vendor_Code"].ToString();
-                        data.Name = row["Vendor_Name"].ToString();
-                        listOption.Add(data);
+                        listOption.Add(new Master.Model.OptionModel
+                        {
+                            Code = row["Vendor_Code"].ToString(),
+                            Name = row["Vendor_Name"].ToString()
+                        });
                     }
                     listOption = listOption.OrderBy(o => o.Name).ToList();
                 }
@@ -186,10 +184,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 return listOption;
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -217,16 +214,15 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
-
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new Master.Model.OptionModel();
-                        data.Code = row["Branch"].ToString();
-                        data.Name = row["Branch"].ToString();
-                        listOption.Add(data);
+                        listOption.Add(new Master.Model.OptionModel
+                        {
+                            Code = row["Branch"].ToString(),
+                            Name = row["Branch"].ToString()
+                        });
                     }
 
                 }
@@ -238,10 +234,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 return listOption.OrderBy(o => o.Name).ToList();
                 #endregion
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -268,13 +263,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                POContractDetail data = new POContractDetail();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new POContractDetail();
-                    data.ID = 0;
+                    var data = new POContractDetail();
 
+                    data.ID = 0;
                     data.Contract_ID = Convert.ToInt32(row["ID"]);
                     data.Contract_No = Convert.ToString(row["Contract_No"]);
                     data.Remarks_Contract = Convert.ToString(row["Remarks"]);
@@ -282,7 +275,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     data.Period_End = Convert.ToDateTime(row["Period_End"]);
                     data.Internal_Order_Code = Convert.ToString(row["Internal_Order_Code"]);
                     data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
-                    // data.Contract_Period = row["Period_Start"].ToString() + " to " + row["Period_End"].ToString();
                     data.Materials = GetContractDetail(Convert.ToInt32(row["ID"]));
                     data.Attachments = GetContractAttachment(Convert.ToInt32(row["ID"]));
 
@@ -293,10 +285,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -319,11 +310,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                MasterMappingCostCenter data = new MasterMappingCostCenter();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new MasterMappingCostCenter();
+                    var data = new MasterMappingCostCenter();
 
                     data.ID = Convert.ToInt32(row["ID"]);
                     data.Cost_Center = Convert.ToString(row["Cost_Center"]);
@@ -341,10 +330,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -367,11 +355,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 #endregion
 
-                POContractMaterial data = new POContractMaterial();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new POContractMaterial();
+                    var data = new POContractMaterial();
 
                     data.Contract_Detail_Id = Convert.ToInt32(row["ID"]);
                     data.Contract_ID = Convert.ToInt32(row["Header_ID"]);
@@ -394,10 +380,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -420,12 +405,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new Master.Model.OptionModel();
+                        var data = new Master.Model.OptionModel();
                         data.Code = row["Vendor_Code"].ToString();
                         data.Name = row["Vendor_Name"].ToString();
                         listOption.Add(data);
@@ -441,10 +425,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 #endregion
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -466,13 +449,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
-
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
                     {
-                        data = new Master.Model.OptionModel();
+                        var data = new Master.Model.OptionModel();
                         data.Code = row["Branch"].ToString();
                         data.Name = row["Branch"].ToString();
                         listOption.Add(data);
@@ -487,10 +468,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 return listOption;
                 #endregion
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -516,10 +496,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new Master.Model.OptionModel();
+                    var data = new Master.Model.OptionModel();
                     data.Code = row["Contract_No"].ToString();
                     data.Name = row["Remarks"].ToString();
                     listOption.Add(data);
@@ -528,10 +507,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 #endregion
                 return listOption.OrderBy(o => o.Name).ToList();
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -544,7 +522,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 dt = new DataTable();
                 #region Validasi Contract No
                 db.OpenConnection(ref conn);
-                //db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = '" + Vendor_Code + "' and Branch = '" + Branch + "' AND Procurement_Department = '" + Procurement_Department + "'";
                 db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = @vendor_code AND Branch = @branch AND Procurement_Department = @proc_dept";
                 db.cmd.CommandType = CommandType.Text;
                 db.cmd.Parameters.Clear();
@@ -558,10 +535,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new Master.Model.OptionModel();
+                    var data = new Master.Model.OptionModel();
                     data.Code = row["Contract_No"].ToString();
                     data.Name = row["Remarks"].ToString();
                     listOption.Add(data);
@@ -570,10 +546,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 #endregion
                 return listOption.OrderBy(o => o.Name).ToList(); ;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -595,9 +570,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 #endregion
 
-                POContractAttachment data = new POContractAttachment();
-
-
                 if (dt.Rows.Count > 0)
                 {
                     return Utility.ConvertDataTableToList<POContractAttachment>(dt);
@@ -607,10 +579,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     return new List<POContractAttachment>();
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
