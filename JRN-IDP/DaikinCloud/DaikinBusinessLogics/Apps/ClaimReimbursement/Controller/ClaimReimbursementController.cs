@@ -1,6 +1,7 @@
 ﻿using Daikin.BusinessLogics.Apps.ClaimReimbursement.Model;
 using Daikin.BusinessLogics.Common;
 using Daikin.BusinessLogics.Common.Model;
+using Microsoft.SharePoint;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,6 +9,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
 {
@@ -17,15 +19,40 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
+        private readonly CommonLogic func = new CommonLogic();
+        private readonly SharePointManager sp = new SharePointManager();
+        private readonly JavaScriptSerializer js = new JavaScriptSerializer();
+
+        private SqlCommand GenerateCommandListDataAffiliateClaim(FilterHeaderSearchModel model, SqlConnection Conn)
+        {
+            SqlCommand cmd = new SqlCommand("usp_AffiliateClaim_ListData_GetByGroup", Conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(db.AddInParameter("TableName", model.TableName));
+            cmd.Parameters.Add(db.AddInParameter("PageIndex", model.PageIndex));
+            cmd.Parameters.Add(db.AddInParameter("PageSize", model.PageSize));
+            cmd.Parameters.Add(db.AddInParameter("FilterDate", model.FilterBy));
+            cmd.Parameters.Add(db.AddInParameter("SearchBy", model.SearchBy));
+            cmd.Parameters.Add(db.AddInParameter("Keywords", model.Keywords));
+            cmd.Parameters.Add(db.AddInParameter("StartDate", model.StartDate));
+            cmd.Parameters.Add(db.AddInParameter("EndDate", model.EndDate));
+            cmd.Parameters.Add(db.AddInParameter("CurrentLogin", model.CurrentLogin));
+            cmd.Parameters.Add(db.AddInParameter("PaymentStatus", model.PaymentStatus));
+            cmd.Parameters.Add(db.AddInParameter("ApprovalStatus", model.PostingStatus));
+            cmd.Parameters.Add(db.AddInParameter("PendingApproverRole", model.PendingApproverRole));
+            cmd.Parameters.Add(db.AddInParameter("BranchName", model.BranchName));
+            return cmd;
+        }
 
         public List<GeneralHeaderModel> ListData(FilterHeaderSearchModel model, out int RecordCount, out decimal GrandTotal)
         {
             dt = new DataTable();
+            bool isAffiliate = model.TableName == "AffiliateClaimHeader" || model.TableName == "AffiliateNotClaimHeader";
+            string query = isAffiliate ? "[usp_AffiliateFullyClaim_ListData]" : "usp_ClaimReimbursement_ListData";
             RecordCount = 0;
             try
             {
                 db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ClaimReimbursement_ListData";
+                db.cmd.CommandText = query;
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
@@ -62,6 +89,39 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Controller
                 db.CloseConnection(ref conn);
                 throw ex;
             }
+        }
+
+        public async Task<List<GeneralHeaderModel>> ListDataAffiliateClaim(FilterHeaderSearchModel model)
+        {
+            List<GeneralHeaderModel> list = new List<GeneralHeaderModel>();
+            using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                await _conn.OpenAsync().ConfigureAwait(false);
+                using (SqlCommand cmd = GenerateCommandListDataAffiliateClaim(model, _conn))
+                {
+                    using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        return await Utility.MapReaderToList<GeneralHeaderModel>(r).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+        public async Task<string> ReturnListDataAffiliateClaim(FilterHeaderSearchModel model)
+        {
+            List<GeneralHeaderModel> list = await ListDataAffiliateClaim(model);
+            return js.Serialize(new
+            {
+                ProcessSuccess = true,
+                InfoMessage = "OK",
+                Items = list,
+                RecordCount = list[0].RecordCount,
+                GrandTotal = list[0].GrandTotal,
+                PageIndex = model.PageIndex,
+                PageSize = model.PageSize,
+                CurrentLogin = model.CurrentLogin,
+                model = model,
+            });
         }
 
         public List<GeneralHeaderModel> ListDataAffilite(FilterHeaderSearchModel model, out int RecordCount, out decimal GrandTotal)
