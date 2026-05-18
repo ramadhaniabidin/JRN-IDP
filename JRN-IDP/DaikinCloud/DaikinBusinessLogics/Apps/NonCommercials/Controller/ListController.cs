@@ -16,7 +16,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
     {
         DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        SqlDataReader reader = null;
         DataTable dt = new DataTable();
         SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
@@ -154,7 +153,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "SPList", List_Name); //Parameter List Name
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -195,7 +194,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "Module_ID", Module_ID);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<OptionModel>(dt) : new List<OptionModel>();
@@ -220,7 +219,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.Parameters.Clear();
                 //db.AddInParameter(db.cmd, "SPList", List_Name); //Parameter List Name
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
@@ -278,7 +277,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddOutParameter(db.cmd, "@GrandTotal", SqlDbType.Decimal);
                 //db.AddOutParameter(db.cmd, "@SQL", SqlDbType.NVarChar);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
@@ -340,7 +339,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddInParameter(db.cmd, "SPList", "Non Commercials");
 
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
