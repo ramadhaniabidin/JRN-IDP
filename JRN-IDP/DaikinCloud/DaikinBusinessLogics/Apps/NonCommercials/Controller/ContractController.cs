@@ -31,6 +31,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         private readonly ContractWorkflowHandler workflowHandler;
         private readonly string siteUrl = SPContext.Current.Site.Url;
         private readonly string PLEASE_SELECT_KEY = "Please Select";
+        private readonly string TITLE_KEY = "Title";
 
         public ContractController()
         {
@@ -160,7 +161,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetDepartment";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Title", currentLogin);
+                db.AddInParameter(db.cmd, TITLE_KEY, currentLogin);
 
                 var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
@@ -176,7 +177,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         data.Code = Convert.ToString(row["Procurement_Department_ID"]);
                         data.Name = Convert.ToString(row["Procurement_Department_Title"]);
 
-                        data.Title = Convert.ToString(row["Title"]);
+                        data.Title = Convert.ToString(row[TITLE_KEY]);
                         data.Procurement_Department_ID = Convert.ToInt32(row["Procurement_Department_ID"]);
                         data.Procurement_Department_Title = Convert.ToString(row["Procurement_Department_Title"]);
                         data.Procurement_Department_Code = Convert.ToString(row["Procurement_Department_Code"]);
@@ -214,7 +215,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetDepartmentContract";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Title", currentLogin);
+                db.AddInParameter(db.cmd, TITLE_KEY, currentLogin);
 
                 var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
@@ -230,7 +231,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         data.Code = Convert.ToString(row["Procurement_Department_ID"]);
                         data.Name = Convert.ToString(row["Procurement_Department_Title"]);
 
-                        data.Title = Convert.ToString(row["Title"]);
+                        data.Title = Convert.ToString(row[TITLE_KEY]);
                         data.Procurement_Department_ID = Convert.ToInt32(row["Procurement_Department_ID"]);
                         data.Procurement_Department_Title = Convert.ToString(row["Procurement_Department_Title"]);
                         data.Procurement_Department_Code = Convert.ToString(row["Procurement_Department_Code"]);
@@ -346,7 +347,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 if (Item_ID == 0)
                 {
                     item = list.Items.Add();
-                    item["Title"] = ch.Form_No;
+                    item[TITLE_KEY] = ch.Form_No;
                     item["Contract Remarks"] = ch.Remarks;
                     item["Request Date"] = ch.Request_Date;
                     item["Requester Branch"] = ch.Branch;
@@ -402,7 +403,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 {
 
                     item = list.Items.Add();
-                    item["Title"] = ch.Form_No;
+                    item[TITLE_KEY] = ch.Form_No;
                     item["Contract Remarks"] = ch.Remarks;
                     item["Request Date"] = ch.Request_Date;
                     item["Requester Branch"] = ch.Branch;
