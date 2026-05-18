@@ -58,10 +58,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 return ID;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -127,10 +126,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     return Form_No;
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -380,10 +378,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return Item_ID;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -436,10 +433,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 return Item_ID;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -469,10 +465,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     return new List<ContractHeader>();
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
