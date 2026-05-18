@@ -50,7 +50,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             return null;
         }
 
-        private int ConvertApprovalValue(string ApprovalValue)
+        private static int ConvertApprovalValue(string ApprovalValue)
         {
             if (ApprovalValue.ToUpper() == "APPROVE") return 7;
             if (ApprovalValue.ToUpper() == "REVISE") return 5;
