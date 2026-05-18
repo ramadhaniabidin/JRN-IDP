@@ -32,6 +32,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         private readonly string siteUrl = SPContext.Current.Site.Url;
         private readonly string PLEASE_SELECT_KEY = "Please Select";
         private readonly string TITLE_KEY = "Title";
+        private readonly string GENERATED_STATUS = "Generated";
+        private readonly string PROCUREMENT_DEPARTMENT_ID_KEY = "Procurement_Department_ID";
+        private readonly string PROCUREMENT_DEPARTMENT_TITLE_KEY = "Procurement_Department_Title";
+        private readonly string GRAND_TOTAL_KEY = "Grand Total";
+        private readonly string APPROVAL_STATUS_KEY = "Approval Status";
+        private readonly string FORM_STATUS_KEY = "Form Status";
 
         public ContractController()
         {
@@ -174,12 +180,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     {
                         MasterUserProcDept data = new MasterUserProcDept();
 
-                        data.Code = Convert.ToString(row["Procurement_Department_ID"]);
-                        data.Name = Convert.ToString(row["Procurement_Department_Title"]);
+                        data.Code = Convert.ToString(row[PROCUREMENT_DEPARTMENT_ID_KEY]);
+                        data.Name = Convert.ToString(row[PROCUREMENT_DEPARTMENT_TITLE_KEY]);
 
                         data.Title = Convert.ToString(row[TITLE_KEY]);
-                        data.Procurement_Department_ID = Convert.ToInt32(row["Procurement_Department_ID"]);
-                        data.Procurement_Department_Title = Convert.ToString(row["Procurement_Department_Title"]);
+                        data.Procurement_Department_ID = Convert.ToInt32(row[PROCUREMENT_DEPARTMENT_ID_KEY]);
+                        data.Procurement_Department_Title = Convert.ToString(row[PROCUREMENT_DEPARTMENT_TITLE_KEY]);
                         data.Procurement_Department_Code = Convert.ToString(row["Procurement_Department_Code"]);
 
                         listOptions.Add(data);
@@ -228,12 +234,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     {
                         MasterUserProcDept data = new MasterUserProcDept();
 
-                        data.Code = Convert.ToString(row["Procurement_Department_ID"]);
-                        data.Name = Convert.ToString(row["Procurement_Department_Title"]);
+                        data.Code = Convert.ToString(row[PROCUREMENT_DEPARTMENT_ID_KEY]);
+                        data.Name = Convert.ToString(row[PROCUREMENT_DEPARTMENT_TITLE_KEY]);
 
                         data.Title = Convert.ToString(row[TITLE_KEY]);
-                        data.Procurement_Department_ID = Convert.ToInt32(row["Procurement_Department_ID"]);
-                        data.Procurement_Department_Title = Convert.ToString(row["Procurement_Department_Title"]);
+                        data.Procurement_Department_ID = Convert.ToInt32(row[PROCUREMENT_DEPARTMENT_ID_KEY]);
+                        data.Procurement_Department_Title = Convert.ToString(row[PROCUREMENT_DEPARTMENT_TITLE_KEY]);
                         data.Procurement_Department_Code = Convert.ToString(row["Procurement_Department_Code"]);
                         data.ContractCount = Convert.ToInt32(row["ContractCount"]);
 
@@ -357,21 +363,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     item["Requester Account"] = Requester_Account;
                     item["Contract Type"] = ch.Contract_Type_ID;
                     item["Module"] = "M014";
-                    item["Grand Total"] = ch.Grand_Total;
+                    item[GRAND_TOTAL_KEY] = ch.Grand_Total;
                     item["ContentTypeId"] = ctId;
                     item["Procurement_x0020_Department0"] = ch.Procurement_Department;
-                    item["Workflow Status"] = "Generated";
-                    item["Approval Status"] = "Generated";
-                    item["Form Status"] = Status;
+                    item["Workflow Status"] = GENERATED_STATUS;
+                    item[APPROVAL_STATUS_KEY] = GENERATED_STATUS;
+                    item[FORM_STATUS_KEY] = Status;
                 }
                 else
                 {
                     item = list.GetItemById(Item_ID);
                     if (ch.ID > 0) item["Transaction ID"] = ch.ID;
                     item["Procurement_x0020_Department0"] = ch.Procurement_Department;
-                    item["Grand Total"] = ch.Grand_Total;
-                    item["Approval Status"] = "Generated";
-                    item["Form Status"] = Status;
+                    item[GRAND_TOTAL_KEY] = ch.Grand_Total;
+                    item[APPROVAL_STATUS_KEY] = GENERATED_STATUS;
+                    item[FORM_STATUS_KEY] = Status;
                 }
 
                 item.Update();
@@ -413,20 +419,20 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     item["Requester Account"] = Requester_Account;
                     item["Contract Type"] = ch.Contract_Type_ID;
                     item["Module"] = "M014";
-                    item["Grand Total"] = ch.Grand_Total;
+                    item[GRAND_TOTAL_KEY] = ch.Grand_Total;
                     item["Procurement Department"] = ch.Procurement_Department;
-                    item["Workflow Status"] = "Generated";
-                    item["Approval Status"] = "Generated";
-                    item["Form Status"] = Status;
+                    item["Workflow Status"] = GENERATED_STATUS;
+                    item[APPROVAL_STATUS_KEY] = GENERATED_STATUS;
+                    item[FORM_STATUS_KEY] = Status;
                 }
                 else
                 {
                     item = list.GetItemById(Item_ID);
                     if (ch.ID > 0) item["Transaction ID"] = ch.ID;
                     item["Procurement Department"] = ch.Procurement_Department;
-                    item["Grand Total"] = ch.Grand_Total;
-                    item["Approval Status"] = "Generated";
-                    item["Form Status"] = Status;
+                    item[GRAND_TOTAL_KEY] = ch.Grand_Total;
+                    item[APPROVAL_STATUS_KEY] = GENERATED_STATUS;
+                    item[FORM_STATUS_KEY] = Status;
                 }
 
                 item.Update();
