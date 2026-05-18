@@ -16,61 +16,106 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 {
     public class SalesForceController
     {
-        JavaScriptSerializer serializer = new JavaScriptSerializer();
+        private readonly JavaScriptSerializer serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue, RecursionLimit = 100 };
+        private static readonly HttpClient client = new HttpClient();
+        private readonly string OAUTH_ENDPOINT = ConfigurationManager.AppSettings["SF_OAuthURL"];
+        private readonly string SF_BASE_URL = ConfigurationManager.AppSettings["SF_BaseURL"];
         DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         public string GetAttachmentToken()
         {
-            string url = ConfigurationManager.AppSettings["SF_OAuthURL"];
-            HttpClient client = new HttpClient();
             var formData = new Dictionary<string, string>
             {
-                { "username", ConfigurationManager.AppSettings["SF_Username"] },
-                { "password", ConfigurationManager.AppSettings["SF_Password"] },
-                { "grant_type", "password" },
-                { "client_id", ConfigurationManager.AppSettings["SF_ClientID"] },
-                { "client_secret", ConfigurationManager.AppSettings["SF_ClientSecret"] }
+                {"username", ConfigurationManager.AppSettings["SF_Username"] },
+                {"password", ConfigurationManager.AppSettings["SF_Password"] },
+                {"grant_type", "password" },
+                {"client_id", ConfigurationManager.AppSettings["SF_ClientID"] },
+                {"client_secret", ConfigurationManager.AppSettings["SF_ClientSecret"] }
             };
-            var httpContent = new FormUrlEncodedContent(formData);
-            var response = client.PostAsync(url, httpContent).Result;
-            var responseJson = response.Content.ReadAsStringAsync().Result;
-            var responseObject = serializer.Deserialize<Dictionary<string, object>>(responseJson);
-            if (responseObject.ContainsKey("access_token"))
+
+            return Task.Run(async () =>
             {
-                return responseObject["access_token"].ToString();
-            }
-            else
-            {
-                throw new Exception("Access token not found in the response.");
-            }
+                using (var httpContent = new FormUrlEncodedContent(formData))
+                {
+                    using (var response = await client.PostAsync(OAUTH_ENDPOINT, httpContent))
+                    {
+                        var responseJson = await response.Content.ReadAsStringAsync();
+                        var responseObject = serializer.Deserialize<Dictionary<string, object>>(responseJson);
+                        if (!responseObject.ContainsKey("access_token")) throw new Exception("Access token not found in the response.");
+                        return responseObject["access_token"].ToString();
+                    }
+                }
+            }).GetAwaiter().GetResult();
+
+            #region commented-out code
+            //string url = ConfigurationManager.AppSettings["SF_OAuthURL"];
+            //HttpClient client = new HttpClient();
+            //var formData = new Dictionary<string, string>
+            //{
+            //    { "username", ConfigurationManager.AppSettings["SF_Username"] },
+            //    { "password", ConfigurationManager.AppSettings["SF_Password"] },
+            //    { "grant_type", "password" },
+            //    { "client_id", ConfigurationManager.AppSettings["SF_ClientID"] },
+            //    { "client_secret", ConfigurationManager.AppSettings["SF_ClientSecret"] }
+            //};
+            //var httpContent = new FormUrlEncodedContent(formData);
+            //var response = client.PostAsync(url, httpContent).Result;
+            //var responseJson = response.Content.ReadAsStringAsync().Result;
+            //var responseObject = serializer.Deserialize<Dictionary<string, object>>(responseJson);
+            //if (responseObject.ContainsKey("access_token"))
+            //{
+            //    return responseObject["access_token"].ToString();
+            //}
+            //else
+            //{
+            //    throw new Exception("Access token not found in the response.");
+            //}
+            #endregion
         }
 
         public List<Dictionary<string, object>> GetListAttachmentID(string poNumber)
         {
-            try
+            #region commented-out code
+            //try
+            //{
+            //    string token = GetAttachmentToken();
+            //    string url = $"https://daikinindonesia--dev.sandbox.my.salesforce.com/services/apexrest/POContentVersion/{poNumber}";
+            //    HttpClient client = new HttpClient();
+            //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            //    client.BaseAddress = new Uri(url);
+            //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+            //    request.Content = new StringContent("");
+            //    var formData = new Dictionary<string, string>
+            //    {
+            //    };
+            //    var response = client.PostAsync(url, new FormUrlEncodedContent(formData)).Result;
+            //    var responseJson = response.Content.ReadAsStringAsync().Result;
+            //    var base64Serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue, RecursionLimit = 100 };
+            //    var responseObject = base64Serializer.Deserialize<List<Dictionary<string, object>>>(responseJson);
+            //    return responseObject;
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw ex;
+            //}
+            #endregion
+            string token = GetAttachmentToken();
+            string queryParam = $"/services/apexrest/POContentVersion/{poNumber}";
+            string endpoint = $"{SF_BASE_URL}{queryParam}";
+            using (var request = new HttpRequestMessage(HttpMethod.Post, endpoint))
             {
-                string token = GetAttachmentToken();
-                string url = $"https://daikinindonesia--dev.sandbox.my.salesforce.com/services/apexrest/POContentVersion/{poNumber}";
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                client.BaseAddress = new Uri(url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-                request.Content = new StringContent("");
-                var formData = new Dictionary<string, string>
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>());
+                using (var response = client.SendAsync(request).GetAwaiter().GetResult())
                 {
-                };
-                var response = client.PostAsync(url, new FormUrlEncodedContent(formData)).Result;
-                var responseJson = response.Content.ReadAsStringAsync().Result;
-                var base64Serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue, RecursionLimit = 100 };
-                var responseObject = base64Serializer.Deserialize<List<Dictionary<string, object>>>(responseJson);
-                return responseObject;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+                    var responseJson = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return serializer.Deserialize<List<Dictionary<string, object>>>(responseJson);
+                }
             }
         }
+
         public List<string> GetAttachmentAttributes(List<Dictionary<string, object>> list, string type)
         {
             List<string> attributes = new List<string>();
@@ -92,21 +137,16 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         public string GetBase64(string id)
         {
-            try
+            string token = GetAttachmentToken();
+            string endpoint = $"{SF_BASE_URL}/services/data/v54.0/sobjects/ContentVersion/{id}/VersionData";
+            using (var request = new HttpRequestMessage(HttpMethod.Get, endpoint))
             {
-                string token = GetAttachmentToken();
-                string url = ConfigurationManager.AppSettings["SF_BaseURL"] + $"/services/data/v54.0/sobjects/ContentVersion/{id}/VersionData";
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Content = new StringContent("");
-                var response = client.GetAsync(url).Result;
-                byte[] fileBytes = response.Content.ReadAsByteArrayAsync().Result;
-                return Convert.ToBase64String(fileBytes);
-            }
-            catch (Exception)
-            {
-                throw;
+                using (var response = client.SendAsync(request).GetAwaiter().GetResult())
+                {
+                    response.EnsureSuccessStatusCode();
+                    byte[] fileBytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+                    return Convert.ToBase64String(fileBytes);
+                }
             }
         }
 
@@ -114,7 +154,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         {
             try
             {
-                string siteURL = Utility.SpSiteUrl_DEV;
+                string siteURL = Utility.SpSiteUrl;
                 string fileNameWithExtension = $"{fileName}.{extension}";
                 SPSecurity.RunWithElevatedPrivileges(delegate ()
                 {
@@ -146,13 +186,42 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                         }
                     }
                 });
-                //SalesForce_UpdateAttachment_InsertLog(itemID, fileName, extension, 1, "OK");
             }
             catch (Exception ex)
             {
-                //SalesForce_UpdateAttachment_InsertLog(itemID, fileName, extension, 0, ex.Message);
                 throw ex;
             }
+        }
+
+        public void UpdateAttachmentFromBase64String(int itemId, string base64, string fileName, string extension)
+        {
+            Guid siteId = SPContext.Current.Site.ID;
+            Guid webId = SPContext.Current.Web.ID;
+            string fileNameWithExtension = $"{fileName}.{extension}";
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
+            {
+                using (SPSite site = new SPSite(siteId))
+                using (SPWeb web = site.OpenWeb(webId))
+                {
+                    try
+                    {
+                        web.AllowUnsafeUpdates = true;
+                        SPList list = web.Lists[ConfigurationManager.AppSettings["PO_SUBCON_LIST_NAME"]];
+                        SPListItem item = list.GetItemById(itemId);
+                        if (item.Attachments.Cast<string>().Any(a => a.Equals(fileNameWithExtension, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            item.Attachments.Delete(fileNameWithExtension);
+                        }
+                        byte[] contentData = Convert.FromBase64String(base64);
+                        item.Attachments.Add(fileNameWithExtension, contentData);
+                        item.Update();
+                    }
+                    finally
+                    {
+                        web.AllowUnsafeUpdates = false;
+                    }
+                }
+            });
         }
 
         public List<Dictionary<string, object>> GetAttachmentResponse(string poNumber)
@@ -176,7 +245,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 var responseObject = base64Serializer.Deserialize<List<Dictionary<string, object>>>(responseJson);
                 return responseObject;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -198,10 +267,24 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
                 throw ex;
+            }
+        }
+
+        public void SalesForce_UpdateAttachment_InsertLog(int itemID, string fileName, string extension, int status, string message, SqlConnection _conn, SqlTransaction _trans)
+        {
+            using (var cmd = new SqlCommand("usp_SalesForce_UpdateAttachment_InsertLog", _conn, _trans))
+            {
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.Add(db.AddInParameter("Item_ID", itemID));
+                cmd.Parameters.Add(db.AddInParameter("File_Name", fileName));
+                cmd.Parameters.Add(db.AddInParameter("Extension", extension));
+                cmd.Parameters.Add(db.AddInParameter("Status", status));
+                cmd.Parameters.Add(db.AddInParameter("Message", message));
+                cmd.ExecuteNonQuery();
             }
         }
     }
