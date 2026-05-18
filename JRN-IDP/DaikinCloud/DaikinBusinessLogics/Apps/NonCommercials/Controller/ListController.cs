@@ -199,14 +199,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.cmd.CommandText = "dbo.usp_MasterUserProcDept_GetList";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
-                //db.AddInParameter(db.cmd, "SPList", List_Name); //Parameter List Name
 
                 var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
-
-                OptionModel data = new OptionModel();
 
                 foreach (DataRow row in dt.Rows)
                 {
