@@ -75,9 +75,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             var targetAssignment = assignments.FirstOrDefault(a =>
                 a.Assignee.ToLower().Contains(approver.Email.ToLower()));
 
-            if (targetAssignment == null)
-                throw new ArgumentNullException("Approver assignment not found in Nintex.");
-
             var response = ntx.CompleteNACTask(ApprovalValue, task.Tasks[0].Id, targetAssignment.Id);
 
             if (!response.Success)
