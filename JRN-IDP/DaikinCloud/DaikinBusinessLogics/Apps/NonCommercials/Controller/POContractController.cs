@@ -27,6 +27,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         private readonly SharePointManager sp = new SharePointManager();
         public string SPList = "Non Commercials";
         private readonly bool isDev = true;
+        private readonly bool configureAwait = false;
 
         public List<Master.Model.OptionModel> GetContractUserProcDepts()
         {
@@ -69,6 +70,25 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 throw ex;
             }
         }
+         
+        public async Task<List<Master.Model.OptionModel>> GetContractUserProcDeptsAsync()
+        {
+            var list = new List<Master.Model.OptionModel>();
+            using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                await _conn.OpenAsync().ConfigureAwait(configureAwait);
+                using(SqlCommand cmd = new SqlCommand("dbo.usp_ContractHeader_GetDepartment", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    using (SqlDataReader _r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
+                    {
+                        list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
+                        list = list.OrderBy(o => o.Name).ToList();
+                        return list;
+                    }
+                }
+            }
+        }
 
         public List<Master.Model.OptionModel> GetMarketingCategories()
         {
@@ -105,6 +125,25 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 db.CloseConnection(ref conn);
                 throw ex;
+            }
+        }
+
+        public async Task<List<Master.Model.OptionModel>> GetMarketingCategoriesAsync()
+        {
+            var list = new List<Master.Model.OptionModel>();
+            using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                await _conn.OpenAsync().ConfigureAwait(configureAwait);
+                using (SqlCommand cmd = new SqlCommand("dbo.usp_MasterMarketingCategory_List", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    using (SqlDataReader _r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
+                    {
+                        list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
+                        list = list.OrderBy(o => o.Name).ToList();
+                        return list;
+                    }
+                }
             }
         }
 
@@ -1086,6 +1125,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
                     data.ID = Convert.ToInt32(row["ID"]);
                     data.No = Convert.ToInt32(row["No"]);
+                    data.CT_Number = Convert.ToString(row["CT_Number"]);
                     //data.Remark = Convert.ToString(row["Remark"]);
                     data.Show = Convert.ToBoolean(0);
                     data.Period_Start = Convert.ToDateTime(row["Period_Start"]);
