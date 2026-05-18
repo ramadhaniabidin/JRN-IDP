@@ -107,23 +107,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
 
-                Master.Model.OptionModel data = new Master.Model.OptionModel();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new Master.Model.OptionModel();
-                    data.Code = row["ID"].ToString();
-                    data.Name = row["Title"].ToString();
-                    listOption.Add(data);
+                    listOption.Add(new Master.Model.OptionModel
+                    {
+                        Code = row["ID"].ToString(),
+                        Name = row["Title"].ToString()
+                    });
                 }
 
                 #endregion
                 return listOption.OrderBy(o => o.Name).ToList();
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
