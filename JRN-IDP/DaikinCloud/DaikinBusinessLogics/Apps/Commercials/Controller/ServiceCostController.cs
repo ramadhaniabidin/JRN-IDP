@@ -61,7 +61,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 dt = r.GetDataTable();
                 listOption.Add(new OptionModel
                 {
-                    Code = "", Name = "Please Select", Selected = true
+                    Code = "",
+                    Name = "Please Select",
+                    Selected = true
                 });
                 foreach (DataRow row in dt.Rows)
                 {
@@ -155,7 +157,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     ListMasterVendor = fcGen.BindingMasterSPList("Master Vendor Service Cost", "Title", "Name", "Please Select")
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new ServiceCostOptionModel
                 {
@@ -237,7 +239,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     Message = "Save SP List Service Cost OK"
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SaveDataLog("M011", h.ID, h.Form_No, $"Error save to SharePoint List: {ex.Message}");
                 return new CommonSaveResponseModel
@@ -264,7 +266,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             item["Nintex No"] = NintexNo;
 
             item.Update();
-            ListItemId = item.ID;
             web.AllowUnsafeUpdates = false;
 
         }
@@ -449,7 +450,8 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn, true);
                 return new CommonResponseModel
                 {
-                    Success = true, Message = "OK"
+                    Success = true,
+                    Message = "OK"
                 };
             }
             catch (Exception ex)
@@ -487,9 +489,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return new CommonResponseModel { Success = false, Message = $"Error occurredd at SC_ApprovalActionByPosition method on in ServiceCostController | {ex.Message}"};
+                return new CommonResponseModel { Success = false, Message = $"Error occurredd at SC_ApprovalActionByPosition method on in ServiceCostController | {ex.Message}" };
             }
         }
 
@@ -533,7 +535,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
                 Console.WriteLine($"Error saving log: {ex.Message}");
@@ -557,7 +559,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn, true);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SaveDataLog("M011", Header_ID, Form_No, $"Error insert history log for Service Cost: {ex.Message}");
                 db.CloseConnection(ref conn, true);
@@ -621,10 +623,13 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 h.ID = Header_ID;
                 return new SaveHeaderSCModel
                 {
-                    ID = Header_ID, Success = true, Message = "Save ServiceCostHeader OK", Header = h
+                    ID = Header_ID,
+                    Success = true,
+                    Message = "Save ServiceCostHeader OK",
+                    Header = h
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SaveDataLog("M011", h.ID, h.Form_No, $"Error save ServiceCostHeader: {ex.Message}");
                 db.CloseConnection(ref conn, true);
@@ -687,10 +692,11 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn, true);
                 return new CommonResponseModel
                 {
-                    Success = true, Message ="OK"
+                    Success = true,
+                    Message = "OK"
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
                 SaveDataLog("M011", ntx.Transaction_ID, ntx.FormNo, $"Error save ServiceCostDetail: {ex.Message} | Error at row: {index}");
@@ -708,7 +714,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             try
             {
                 db.OpenConnection(ref conn, true);
-                foreach(var d in listDetail)
+                foreach (var d in listDetail)
                 {
                     index++;
                     db.cmd.CommandText = "dbo.[usp_ServiceCostDetail_SaveUpdate]";
@@ -763,7 +769,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     Message = "Save ServiceCostDetail OK"
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SaveDataLog("M011", h.ID, h.Form_No, $"Error save ServiceCostDetail: {ex.Message} | Error at row: {index}");
                 db.CloseConnection(ref conn, true);
@@ -914,8 +920,11 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     NAC_WorkflowId = Utility.GetStringValue(row, "NAC_Workflow_ID");
                 }
 
-                Task.Run(async () => { await nintexCloudManager.Commercial_StartWorkflow(
-                    saveHeaderResponse.Header.Item_ID, saveHeaderResponse.Header.ID, "M011", NAC_WorkflowId); }).Wait();
+                Task.Run(async () =>
+                {
+                    await nintexCloudManager.Commercial_StartWorkflow(
+                    saveHeaderResponse.Header.Item_ID, saveHeaderResponse.Header.ID, "M011", NAC_WorkflowId);
+                }).Wait();
                 return new CommonSaveResponseModel
                 {
                     ID = saveHeaderResponse.Header.ID,
@@ -983,7 +992,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
-                if(dt.Rows.Count <= 0)
+                if (dt.Rows.Count <= 0)
                 {
                     throw new Exception(ReferenceType + " No. [" + ReferenceNo + "] not found");
                 }
@@ -1032,7 +1041,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 {
                     return new CommonResponseModel { Success = false, Message = "Error occurred when retrieving Task Responder on Commercial_GetTaskResponder method" };
                 }
-                new ListController().CustomFormUpdateApprover(HeaderID, ListName, taskResponder.UserName, taskResponder.FullName, Comment);
+                ListController.CustomFormUpdateApprover(HeaderID, ListName, taskResponder.UserName, taskResponder.FullName, Comment);
                 var transactionData = Aprroval.GetListDataIDByHeaderID_New(ListName, HeaderID);
                 var taskAssignmentResponse = nintexCloudManager.GetTaskAssignment(transactionData[0].NAC_Guid, Form_No);
                 if (!taskAssignmentResponse.Success || taskAssignmentResponse.TaskAssignments == null)
@@ -1041,11 +1050,12 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
                 return NintexCloudManager.ProcessNACTask(taskAssignmentResponse.TaskAssignments, taskResponder.Email, ApprovalOutcome);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new CommonResponseModel
                 {
-                    Success = false, Message = $"Error in ApprovalAction method in ServiceCostController | {ex.Message}"
+                    Success = false,
+                    Message = $"Error in ApprovalAction method in ServiceCostController | {ex.Message}"
                 };
             }
         }
