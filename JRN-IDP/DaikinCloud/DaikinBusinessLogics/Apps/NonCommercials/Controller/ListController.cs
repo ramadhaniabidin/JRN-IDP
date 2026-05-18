@@ -162,16 +162,14 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 #endregion
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
         public List<OptionModel> GetPendingApproverRoles(string Module_ID)
         {
-            //usp_NonCommercials_ListPendingApproverRoles
             var dt = new DataTable();
             try
             {
@@ -187,10 +185,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<OptionModel>(dt) : new List<OptionModel>();
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -216,19 +213,19 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new OptionModel();
-                    data.Code = row["Code"].ToString();
-                    data.Name = row["Name"].ToString();
-
-                    listOption.Add(data);
+                    listOption.Add(new OptionModel
+                    {
+                        Code = row["Code"].ToString(),
+                        Name = row["Name"].ToString()
+                    });
                 }
 
                 #endregion
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
-                throw ex;
+                db.CloseConnection(ref conn);
             }
         }
 
@@ -271,10 +268,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
                 GrandTotal = Convert.ToDecimal(db.cmd.Parameters["@GrandTotal"].Value);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<GeneralHeaderModel>(dt) : new List<GeneralHeaderModel>();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
@@ -332,10 +325,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseDataReader(reader);
 
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<MasterModuleOptionModel>(dt) : new List<MasterModuleOptionModel>();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
