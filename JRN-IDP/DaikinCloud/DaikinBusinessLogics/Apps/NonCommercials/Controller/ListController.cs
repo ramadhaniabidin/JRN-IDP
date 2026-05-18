@@ -381,7 +381,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
-        public void CustomFormUpdateApprover(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments, SqlConnection Conn, SqlTransaction Trans)
+        public static void CustomFormUpdateApprover(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments, SqlConnection Conn, SqlTransaction Trans)
         {
             using (var cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", Conn, Trans))
             {
@@ -395,7 +395,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
-        public string GetApprovalComment(SPListItem item, string ListName)
+        public static string GetApprovalComment(SPListItem item, string ListName)
         {
             if (item["Comments"] == null)
             {
