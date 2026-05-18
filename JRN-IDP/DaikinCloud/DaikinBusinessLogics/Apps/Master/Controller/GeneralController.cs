@@ -245,43 +245,36 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
         public List<GeneralHeaderModel> SAPBusinssPartner_ListData(FilterHeaderSearchModel model, out int RecordCount)
         {
-            try
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
             {
-                using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_SAPBusinessPartner_ListData", _conn))
                 {
-                    _conn.Open();
-                    using(var cmd = new SqlCommand("usp_SAPBusinessPartner_ListData", _conn))
+                    #region Define parameters
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@TableHeader", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.TableName ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@StartDate", SqlDbType = SqlDbType.Date, Value = model.StartDate, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@EndDate", SqlDbType = SqlDbType.Date, Value = model.EndDate, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SearchBy", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.SearchBy ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@FilterBy", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.FilterBy ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@Keywords", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.Keywords ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@CurrentLogin", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.CurrentLogin ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@BranchName", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.BranchName ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@ModuleCode", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.ModuleId ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@PendingApproverRoleID", SqlDbType = SqlDbType.Int, Value = model.PendingApproverRoleID, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@Status", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.PostingStatus ?? "", Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@PageIndex", SqlDbType = SqlDbType.Int, Value = model.PageIndex, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@PageSize", SqlDbType = SqlDbType.Int, Value = model.PageSize, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@RecordCount", SqlDbType = SqlDbType.Int, Value = model.PageSize, Direction = ParameterDirection.Output });
+                    #endregion
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        #region Define parameters
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(new SqlParameter {ParameterName = "@TableHeader", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.TableName ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@StartDate", SqlDbType = SqlDbType.Date, Value = model.StartDate, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@EndDate", SqlDbType = SqlDbType.Date, Value = model.EndDate, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@SearchBy", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.SearchBy ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@FilterBy", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.FilterBy ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@Keywords", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.Keywords ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@CurrentLogin", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.CurrentLogin ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@BranchName", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.BranchName ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@ModuleCode", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.ModuleId ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@PendingApproverRoleID", SqlDbType = SqlDbType.Int, Value = model.PendingApproverRoleID, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@Status", SqlDbType = SqlDbType.VarChar, Size = -1, Value = model.PostingStatus ?? "", Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@PageIndex", SqlDbType = SqlDbType.Int, Value = model.PageIndex, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@PageSize", SqlDbType = SqlDbType.Int, Value = model.PageSize, Direction = ParameterDirection.Input });
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@RecordCount", SqlDbType = SqlDbType.Int, Value = model.PageSize, Direction = ParameterDirection.Output });
-                        #endregion
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt = new DataTable();
-                            dt.Load(reader);
-                            RecordCount = Convert.ToInt32(cmd.Parameters["@RecordCount"].Value);
-                            return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<GeneralHeaderModel>(dt) : new List<GeneralHeaderModel>();
-                        }
+                        dt = new DataTable();
+                        dt.Load(reader);
+                        RecordCount = Convert.ToInt32(cmd.Parameters["@RecordCount"].Value);
+                        return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<GeneralHeaderModel>(dt) : new List<GeneralHeaderModel>();
                     }
                 }
-            }
-            catch(Exception)
-            {
-                throw;
             }
         }
 
