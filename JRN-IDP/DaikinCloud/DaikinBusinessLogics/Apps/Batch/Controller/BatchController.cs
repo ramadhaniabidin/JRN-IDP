@@ -18,12 +18,36 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 {
     public class BatchController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        SqlDataReader reader = null;
-        DataTable dt = new DataTable();
         private readonly SalesForceController sfc = new SalesForceController();
         private readonly Utility ut = new Utility();
+        private readonly string PATH_LOCATION_KEY = "Path_Location";
+        private readonly string MODULE_CODE_KEY = "Module_Code";
+        private readonly string HEADER_ID_KEY = "Header_ID";
+        private readonly string BRANCH_CODE_KEY = "BranchCode";
+        private readonly string PROCDEPT_KEY = "ProcDept";
+        private readonly string SF_BASE_URL = ConfigurationManager.AppSettings["SF_BaseURL"];
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+
+        public async Task CreateBatchFileReleaseSubcon(string Form_No)
+        {
+            var creds = ut.GetNetworkCredential();
+            string basePath = ConfigurationManager.AppSettings["SubconReleasePath"];
+            string line = $"{Form_No};{Form_No};SN";
+            using (new ConnectToSharedFolder(basePath, creds))
+            {
+                var targetFile = Path.Combine(basePath, Form_No + ".txt");
+
+                Directory.CreateDirectory(basePath);
+
+                using (TextWriter tw = new StreamWriter(targetFile))
+                {
+                    await tw.WriteLineAsync(line).ConfigureAwait(false);
+                    await tw.FlushAsync().ConfigureAwait(false);
+                }
+            }
+        }
 
         public string GetReportBase64(string Report_ID, string Extension)
         {
@@ -39,6 +63,26 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var response = client.GetAsync(endpoint).Result;
             byte[] fileBytes = response.Content.ReadAsByteArrayAsync().Result;
             return Convert.ToBase64String(fileBytes);
+        }
+
+        public async Task GetReportAndUploadAsync(string reportName, string reportId, string extension)
+        {
+            string queryParam = $"/services/data/v60.0/analytics/reports/{reportId}?export=1&encod=UTF-8&xf={extension}";
+            string reportPath = ut.GetConfigValue("SF_ReportPath");
+            string endpoint = SF_BASE_URL + queryParam;
+            using (var request = new HttpRequestMessage(HttpMethod.Get, endpoint))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", sfc.GetAttachmentToken());
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                using (var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    {
+                        await UploadReportToSharedFolderAsync(reportPath, reportName, extension, stream);
+                    }
+                }
+            }
         }
 
         public async Task<string> GetReportBase64Async(string reportId, string extension)
@@ -74,116 +118,87 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 }
                 catch (HttpRequestException ex)
                 {
-                    throw new Exception($"HTTP request error: {ex.Message}", ex);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"Unexpected error while downloading report: {ex.Message}", ex);
+                    throw new HttpRequestException($"HTTP request error: {ex.Message}", ex);
                 }
             }
         }
 
-
-        public void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
+        public static void UploadReportToSharedFolder(string FolderPath, string FileName, string Extension, string Base64)
         {
-            try
+            var credential = new Utility().GetNetworkCredential();
+            using (new ConnectToSharedFolder(FolderPath, credential))
             {
-                var credential = new Utility().GetNetworkCredential();
-                using (new ConnectToSharedFolder(FolderPath, credential))
+                if (!Directory.Exists(FolderPath))
                 {
-                    if (!Directory.Exists(FolderPath))
-                    {
-                        Directory.CreateDirectory(FolderPath);
-                    }
-
-                    byte[] fileBytes = Convert.FromBase64String(Base64);
-                    string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
-                    File.WriteAllBytes(filePath, fileBytes);
+                    Directory.CreateDirectory(FolderPath);
                 }
+
+                byte[] fileBytes = Convert.FromBase64String(Base64);
+                string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
+                File.WriteAllBytes(filePath, fileBytes);
             }
-            catch(Exception)
+        }
+
+        public static async Task UploadReportToSharedFolderAsync(string FolderPath, string FileName, string Extension, Stream sourceStream)
+        {
+            var cred = new Utility().GetNetworkCredential();
+            using (new ConnectToSharedFolder(FolderPath, cred))
             {
-                throw;
+                if (!Directory.Exists(FolderPath)) Directory.CreateDirectory(FolderPath);
+                string filePath = Path.Combine(FolderPath, $"{FileName}.{Extension}");
+                using (FileStream destinationStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                {
+                    await sourceStream.CopyToAsync(destinationStream);
+                }
             }
         }
 
 
         public void CreateReportFile(string Folder_ID)
         {
-            try
+            DataTable dt = GetFolderLocation(Folder_ID);
+            foreach (DataRow row in dt.Rows)
             {
-                dt = new DataTable();
-                dt = GetFolderLocation(Folder_ID);
-                foreach(DataRow row in dt.Rows)
+                string folderPath = Utility.GetStringValue(row, PATH_LOCATION_KEY);
+                List<ReportModel> reports = GetReportAttribute();
+                foreach (var report in reports)
                 {
-                    string folderPath = Utility.GetStringValue(row, "Path_Location");
-                    List<ReportModel> reports = GetReportAttribute();
-                    foreach(var report in reports)
-                    {
-                        UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
-                    }
+                    UploadReportToSharedFolder(folderPath, report.Report_Name, report.Extension, GetReportBase64(report.Report_ID, report.Extension));
                 }
-            }
-            catch (Exception)
-            {
-                throw;
             }
         }
 
         public void CreateReportFromBase64(string Report_Name, string Report_ID, string Extension)
         {
-            try
-            {
-                //string Report_Path = ConfigurationManager.AppSettings["SF_ReportPath"];
-                string Report_Path = ut.GetConfigValue("SF_ReportPath");
-                string base64 = GetReportBase64(Report_ID, Extension);
-                UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
-            }
-            catch(Exception)
-            {
-                throw;
-            }
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = GetReportBase64(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
         }
 
         public async Task CreateReportFromBase64Async(string Report_Name, string Report_ID, string Extension)
         {
-            try
-            {
-                //string Report_Path = ConfigurationManager.AppSettings["SF_ReportPath"];
-                string Report_Path = ut.GetConfigValue("SF_ReportPath");
-                string base64 = await GetReportBase64Async(Report_ID, Extension);
-                UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
-            }
-            catch(Exception)
-            {
-                throw;
-            }
+            string Report_Path = ut.GetConfigValue("SF_ReportPath");
+            string base64 = await GetReportBase64Async(Report_ID, Extension);
+            UploadReportToSharedFolder(Report_Path, Report_Name, Extension, base64);
         }
 
         public List<ReportModel> GetReportAttribute()
         {
-            try
+            using (var con = new SqlConnection(Utility.GetSqlConnection()))
             {
-                using (var con = new SqlConnection(Utility.GetSQLConnDev()))
+                con.Open();
+                string query = "SELECT * FROM [Report_Configuration] WHERE [Active] = @active";
+                using (var cmd = new SqlCommand(query, con))
                 {
-                    con.Open();
-                    string query = "SELECT * FROM [Report_Configuration] WHERE [Active] = @active";
-                    using (var cmd = new SqlCommand(query, con))
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
+                    using (var _reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "@active", Value = 1, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.Input });
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            dt = new DataTable();
-                            dt.Load(reader);
-                            return Utility.ConvertDataTableToList<ReportModel>(dt);
-                        }
+                        DataTable dt = new DataTable();
+                        dt.Load(_reader);
+                        return Utility.ConvertDataTableToList<ReportModel>(dt);
                     }
                 }
-            }
-            catch(Exception)
-            {
-                throw;
             }
         }
 
@@ -195,49 +210,125 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandText = "usp_UpdatePOReleaseDetail_AfterReadSAP";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Header_ID", HeaderID);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, HeaderID);
 
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
         }
+
+        public void UpdatePOReleaseDetail(int HeaderID, SqlConnection _conn, SqlTransaction _trans)
+        {
+            using (var cmd = new SqlCommand("usp_UpdatePOReleaseDetail_AfterReadSAP", _conn, _trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(db.AddInParameter(HEADER_ID_KEY, HeaderID));
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        //public void UpdatePOReleaseDetail(int HeaderID, SqlConnection _conn, SqlTransaction _trans)
+        //{
+        //    using(var cmd = new SqlCommand("usp_UpdatePOReleaseDetail_AfterReadSAP", _conn, _trans))
+        //    {
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.Add(db.AddInParameter(HEADER_ID_KEY, HeaderID));
+        //        cmd.ExecuteNonQuery();
+        //    }
+        //}
 
         public List<BatchModel> GetBatchFileContentsSC(string moduleCode, int headerID, int No)
         {
             DataTable dtBatch = new DataTable();
-            try
+            using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
+                _conn.Open();
+                using (SqlCommand command = _conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand command = conn.CreateCommand())
+                    command.CommandText = "usp_Utility_CreateBatchFile";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue(MODULE_CODE_KEY, moduleCode);
+                    command.Parameters.AddWithValue(HEADER_ID_KEY, headerID);
+                    command.Parameters.AddWithValue("No", No);
+
+                    using (SqlDataReader dr = command.ExecuteReader())
                     {
-                        command.CommandText = "usp_Utility_CreateBatchFile";
-                        command.CommandType = CommandType.StoredProcedure;
-
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue("Module_Code", moduleCode);
-                        command.Parameters.AddWithValue("Header_ID", headerID);
-                        command.Parameters.AddWithValue("No", No);
-
-                        using (SqlDataReader dr = command.ExecuteReader())
-                        {
-                            dtBatch.Load(dr);
-                        }
-                        return Utility.ConvertDataTableToList<BatchModel>(dtBatch);
-
+                        dtBatch.Load(dr);
                     }
+                    return Utility.ConvertDataTableToList<BatchModel>(dtBatch);
                 }
             }
-            catch (Exception ex)
+        }
+
+        public List<BatchModel> GetBatchFileContentAffiliate(string Module_Code, int Header_ID, int No, SqlConnection conn, SqlTransaction trans)
+        {
+            DataTable dTable = new DataTable();
+            using (var cmd = new SqlCommand("SAP.usp_Utility_CreateBatchFile", conn, trans))
             {
-                throw ex;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@Module_Code", Value = Module_Code, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.VarChar });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@Header_ID", Value = Header_ID, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.Int });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@No", Value = No, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.Int });
+                using (var reader = cmd.ExecuteReader())
+                {
+                    dTable.Load(reader);
+                    return Utility.ConvertDataTableToList<BatchModel>(dTable);
+                }
             }
+        }
+
+        public void CreateBatchFileAffiliate(string Module_Code, int Header_ID, int Total_Journal)
+        {
+            string key = Module_Code == "M027" ? "AffiliateClaimBasePath" : "AffiliateNotClaimBasePath";
+            string basePath = ut.GetConfigValue("NetworkPath");
+            string filePath = ut.GetConfigValue(key);
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                SqlTransaction trans = _conn.BeginTransaction();
+                try
+                {
+                    for (int No = 1; No <= Total_Journal; No++)
+                    {
+                        var contents = GetBatchFileContentAffiliate(Module_Code, Header_ID, No, _conn, trans);
+                        if (contents.Count > 0)
+                        {
+                            var credentials = ut.GetNetworkCredential();
+                            using (new ConnectToSharedFolder(basePath, credentials))
+                            {
+                                var formNo = contents[0].BatchFile.Split('\t', ';')[0].Substring(0, 10);
+                                string fileName = formNo + "_" + No.ToString();
+                                string targetPath = basePath + filePath;
+                                var targetFile = System.IO.Path.Combine(targetPath, fileName + ".txt");
+                                SaveBatchFileHistory(Module_Code, Header_ID, formNo, targetFile, _conn, trans);
+
+                                Directory.CreateDirectory(targetPath);
+                                using (TextWriter tw = new StreamWriter(targetFile))
+                                {
+                                    foreach (var content in contents)
+                                    {
+                                        tw.WriteLine(content.BatchFile);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    trans.Commit();
+                }
+                catch (Exception)
+                {
+                    trans.Rollback();
+                    throw;
+                }
+            }
+
         }
 
         public void CreateBatchFileSC(int No, string moduleCode, int headerID,
@@ -245,23 +336,19 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             if (string.IsNullOrEmpty(basePath))
                 basePath = new Utility().GetConfigValue("NetworkPath");
-            //basePath = ConfigurationManager.AppSettings["NetworkPath"].ToString();
             try
             {
 
                 var list = GetBatchFileContentsSC(moduleCode, headerID, No);
                 if (list.Count > 0)
                 {
-                    //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                     var credentials = new Utility().GetNetworkCredential();
                     using (new ConnectToSharedFolder(basePath, credentials))
                     {
                         var formNo = list[0].BatchFile.Split('\t', ';')[0].Substring(0, 10);
-                        //var targetPath = System.IO.Path.Combine(basePath, filePath);
                         string targetPath = basePath + filePath;
                         var targetFile = System.IO.Path.Combine(targetPath, fileName + ".txt");
-
-                        new BatchController().SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, false);
 
                         #region Create Batch File
                         System.IO.Directory.CreateDirectory(targetPath);
@@ -272,98 +359,31 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
             finally
             {
                 db.CloseConnection(ref conn);
-            }
-
-        }
-
-
-
-        public string CreateBatchFile(string moduleCode, int headerID, string basePath, string filePath, string fileName)
-        {
-            if (string.IsNullOrEmpty(basePath))
-                basePath = new Utility().GetConfigValue("NetworkPath");
-            //basePath = ConfigurationManager.AppSettings["NetworkPath"].ToString();
-
-            var isTrans = true;
-            var targetFile = "";
-            try
-            {
-                db.OpenConnection(ref conn, isTrans);
-
-                var list = GetBatchFileContents(moduleCode, headerID, true);
-                if (list.Count > 0)
-                {
-                    //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
-                    var credentials = new Utility().GetNetworkCredential();
-                    using (new ConnectToSharedFolder(basePath, credentials))
-                    {
-                        var formNo = list[0].BatchFile.Split('\t', ';')[0];
-                        //var targetPath = Path.Combine(basePath, filePath);
-                        var targetPath = basePath + filePath;
-                        //var targetPath = @"\\dbs1\NintexQAS\LC\Nintex";
-                        //targetFile = Path.Combine(targetPath, fileName + ".txt");
-                        targetFile = $"{targetPath}\\{fileName}.txt";
-
-                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
-
-                        #region Create Batch File
-                        Directory.CreateDirectory(targetPath);
-                        using (TextWriter tw = new StreamWriter(targetFile))
-                            foreach (var row in list)
-                                tw.WriteLine(row.BatchFile);
-                        #endregion
-                    }
-                }
-                return targetFile;
-            }
-            catch (Exception ex)
-            {
-                isTrans = false;
-                throw ex;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn, isTrans);
             }
 
         }
 
         public void GenerateTxtFile(string Message, string SAPFolderID, string FileName)
         {
-            dt = new DataTable();
-            try
+            DataTable dt = GetFolderLocation(SAPFolderID);
+            foreach (DataRow row in dt.Rows)
             {
-                dt = new BatchController().GetFolderLocation(SAPFolderID);
-                foreach (DataRow row in dt.Rows)
+                string folder = Utility.GetStringValue(row, PATH_LOCATION_KEY);
+                string filepath = folder + @"\" + FileName + ".txt";
+                if (!File.Exists(filepath))
                 {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-
-                    string filepath = folder + @"\" + FileName + ".txt";
-                    if (!File.Exists(filepath))
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(folder, credentials))
                     {
-                        var credentials = new Utility().GetNetworkCredential();
-                        using (new ConnectToSharedFolder(folder, credentials))
+                        using (StreamWriter sw = File.CreateText(filepath))
                         {
-                            using (StreamWriter sw = File.CreateText(filepath))
-                            {
-                                sw.WriteLine(Message);
-                            }
+                            sw.WriteLine(Message);
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -372,23 +392,67 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
         {
             try
             {
-                dt = new DataTable();
+                DataTable dt = new DataTable();
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "usp_mastersapfolderlocation_getbyid";
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "id", ID);
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
                 return dt;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
+        }
+
+        public FolderLocationModel GetFolderLocation_V2(string ID)
+        {
+            string ModuleCode = "";
+            string PathLocation = "";
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            ModuleCode = reader.GetString(reader.GetOrdinal(MODULE_CODE_KEY));
+                            PathLocation = reader.GetString(reader.GetOrdinal(PATH_LOCATION_KEY));
+                        }
+                    }
+                }
+            }
+            return new FolderLocationModel { ModuleCode = ModuleCode, PathLocation = PathLocation };
+        }
+
+        private FolderLocationModel GetFolderLocation_V2(string ID, SqlConnection con, SqlTransaction trans)
+        {
+            string ModuleCode = "";
+            string PathLocation = "";
+            using (var cmd = new SqlCommand("usp_mastersapfolderlocation_getbyid", con, trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "@id", Value = ID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ModuleCode = reader.GetString(reader.GetOrdinal(MODULE_CODE_KEY));
+                        PathLocation = reader.GetString(reader.GetOrdinal(PATH_LOCATION_KEY));
+                    }
+                }
+            }
+            return new FolderLocationModel { ModuleCode = ModuleCode, PathLocation = PathLocation };
         }
 
         public DataTable GetProcBranch(string SAPFolderID, int headerID)
@@ -401,18 +465,123 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
                 db.cmd.Parameters.Clear();
                 db.AddInParameter(db.cmd, "SAPFolderID", SAPFolderID);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
-                reader = db.cmd.ExecuteReader();
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
+                var reader = db.cmd.ExecuteReader();
                 dtx.Load(reader);
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
                 return dtx;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 db.CloseConnection(ref conn);
-                throw ex;
+                throw;
             }
+        }
+
+        public ProcBranchModel GetProcBranch_V2(string SAPFolderID, int HeaderID)
+        {
+            string BranchCode = "";
+            string ProcDept = "";
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand("usp_Utility_GetProcBranch", _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@SAPFolderID", Value = SAPFolderID, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            BranchCode = reader.GetString(reader.GetOrdinal(BRANCH_CODE_KEY));
+                            ProcDept = reader.GetString(reader.GetOrdinal(PROCDEPT_KEY));
+                        }
+                    }
+                }
+            }
+            return new ProcBranchModel { BranchCode = BranchCode, ProcDept = ProcDept };
+        }
+
+        public static bool IsModuleNonCommercials(string ModuleCode)
+        {
+            List<string> NonCommercialsCode = new List<string> { "M014", "M015", "M016", "M017", "M018", "M020" };
+            return NonCommercialsCode.Contains(ModuleCode);
+        }
+
+        public string UpdateNonCommercialsPath(string PathLocation, string SAPFolderID, int HeaderID)
+        {
+            string branchCode = "";
+            string procDept = "";
+            var ProcBranch = GetProcBranch_V2(SAPFolderID, HeaderID);
+            branchCode = ProcBranch.BranchCode;
+            procDept = ProcBranch.ProcDept;
+            return Path.Combine(PathLocation, branchCode, procDept);
+        }
+
+        public void WriteBatchFile(string SP_Name, string ModuleCode, int HeaderID, string FileName, string PathLocation)
+        {
+            var list = GetBatchFileContents_V2(SP_Name, ModuleCode, HeaderID);
+            if (list.Count > 0)
+            {
+                var credential = new Utility().GetNetworkCredential();
+                using (new ConnectToSharedFolder(PathLocation, credential))
+                {
+                    string formNo = list[0].BatchFile.Split('\t', ';')[0];
+                    string targetFile = Path.Combine(PathLocation, FileName + ".txt");
+                    SaveBatchFileHistory_V2(ModuleCode, HeaderID, formNo, targetFile);
+                    Directory.CreateDirectory(PathLocation);
+                    using (TextWriter tw = new StreamWriter(targetFile))
+                    {
+                        foreach (var row in list)
+                        {
+                            tw.WriteLine(row.BatchFile);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void WriteBatchFile(string SP_Name, string ModuleCode, int HeaderID, string FileName, string PathLocation, SqlConnection _conn, SqlTransaction trans)
+        {
+            var list = GetBatchFileContents_V2(SP_Name, ModuleCode, HeaderID, _conn, trans);
+            if (list.Count > 0)
+            {
+                var credential = new Utility().GetNetworkCredential();
+                using (new ConnectToSharedFolder(PathLocation, credential))
+                {
+                    string formNo = list[0].BatchFile.Split('\t', ';')[0];
+                    string targetFile = Path.Combine(PathLocation, FileName + ".txt");
+                    SaveBatchFileHistory_V2(ModuleCode, HeaderID, formNo, targetFile, _conn, trans);
+                    Directory.CreateDirectory(PathLocation);
+                    using (TextWriter tw = new StreamWriter(targetFile))
+                    {
+                        foreach (var row in list)
+                        {
+                            tw.WriteLine(row.BatchFile);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string FileName)
+        {
+            var FolderLocation = GetFolderLocation_V2(SAPFolderID);
+            string moduleCode = FolderLocation.ModuleCode;
+            string PathLocation = FolderLocation.PathLocation;
+            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID) : PathLocation;
+            WriteBatchFile(SP_Name, moduleCode, HeaderID, FileName, PathLocation);
+        }
+
+        public void CreateBatchFileDynamic_V2(string SP_Name, string SAPFolderID, int HeaderID, string FileName, SqlConnection _conn, SqlTransaction trans)
+        {
+            var FolderLocation = GetFolderLocation_V2(SAPFolderID, _conn, trans);
+            string moduleCode = FolderLocation.ModuleCode;
+            string PathLocation = FolderLocation.PathLocation;
+            PathLocation = IsModuleNonCommercials(moduleCode) ? UpdateNonCommercialsPath(PathLocation, SAPFolderID, HeaderID) : PathLocation;
+            WriteBatchFile(SP_Name, moduleCode, HeaderID, FileName, PathLocation, _conn, trans);
         }
 
         public void CreateBatchFileDynamic(string SP_Name, string SAPFolderID, int headerID, string fileName)
@@ -421,21 +590,22 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
             try
             {
-                dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
-                    string PathLocation = Utility.GetStringValue(r, "Path_Location");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
@@ -447,7 +617,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContents(SP_Name, moduleCode, headerID, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
@@ -467,15 +636,60 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
                 db.CloseConnection(ref conn, isTrans);
             }
+        }
+
+        public string CreateBatchFile(string moduleCode, int headerID, string basePath, string filePath, string fileName)
+        {
+            if (string.IsNullOrEmpty(basePath))
+                basePath = new Utility().GetConfigValue("NetworkPath");
+
+            var isTrans = true;
+            var targetFile = "";
+            try
+            {
+                db.OpenConnection(ref conn, isTrans);
+
+                var list = GetBatchFileContents(moduleCode, headerID, true);
+                if (list.Count > 0)
+                {
+                    var credentials = new Utility().GetNetworkCredential();
+                    using (new ConnectToSharedFolder(basePath, credentials))
+                    {
+                        var formNo = list[0].BatchFile.Split('\t', ';')[0];
+                        var targetPath = basePath + filePath;
+                        targetFile = $"{targetPath}\\{fileName}.txt";
+
+                        SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
+
+                        #region Create Batch File
+                        Directory.CreateDirectory(targetPath);
+                        using (TextWriter tw = new StreamWriter(targetFile))
+                            foreach (var row in list)
+                                tw.WriteLine(row.BatchFile);
+                        #endregion
+                    }
+                }
+                return targetFile;
+            }
+            catch (Exception)
+            {
+                isTrans = false;
+                throw;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn, isTrans);
+            }
+
         }
 
         //Create Batch File New
@@ -485,21 +699,22 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
                     string PathLocation = Utility.GetStringValue(r, "Path_Location");
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
@@ -511,15 +726,12 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContents(moduleCode, headerID, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
                             var formNo = list[0].BatchFile.Split('\t', ';')[0];
                             var targetPath = PathLocation;
                             var targetFile = Path.Combine(targetPath, fileName + ".txt");
-
-                            //SaveBatchFileHistory(moduleCode, headerID, formNo, targetFile, true);
                             SaveBatchFileHistory_V2(moduleCode, headerID, formNo, targetFile);
 
                             #region Create Batch File
@@ -533,10 +745,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     db.CloseConnection(ref conn);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -552,21 +764,22 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             var isTrans = true;
             try
             {
-                dt = new DataTable();
-                dt = GetFolderLocation(SAPFolderID);
+                DataTable dt = GetFolderLocation(SAPFolderID);
 
                 foreach (DataRow r in dt.Rows)
                 {
-                    string moduleCode = Utility.GetStringValue(r, "Module_Code");
-                    string PathLocation = Utility.GetStringValue(r, "Path_Location");
+                    string moduleCode = Utility.GetStringValue(r, MODULE_CODE_KEY);
+                    string PathLocation = Utility.GetStringValue(r, PATH_LOCATION_KEY);
                     DataTable dtInfo = GetProcBranch(SAPFolderID, headerID);
 
                     //For List Non Commercials Only
                     foreach (DataRow row in dtInfo.Rows)
                     {
-                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, "BranchCode")))
+                        if (!string.IsNullOrEmpty(Utility.GetStringValue(row, BRANCH_CODE_KEY)))
                         {
-                            PathLocation += @"\" + Utility.GetStringValue(row, "BranchCode") + @"\" + Utility.GetStringValue(row, "ProcDept");
+                            string branchCode = Utility.GetStringValue(row, BRANCH_CODE_KEY);
+                            string procDept = Utility.GetStringValue(row, PROCDEPT_KEY);
+                            PathLocation = Path.Combine(PathLocation, branchCode, procDept);
                         }
                     }
                     //---------------------------------------
@@ -578,7 +791,6 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     var list = GetBatchFileContentsWithNo(moduleCode, headerID, no, true);
                     if (list.Count > 0)
                     {
-                        //var credentials = new NetworkCredential(@"daikin\lrosandy", "Aircon123");
                         var credentials = new Utility().GetNetworkCredential();
                         using (new ConnectToSharedFolder(PathLocation, credentials))
                         {
@@ -598,10 +810,10 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
@@ -610,9 +822,45 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         }
 
+        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID)
+        {
+            DataTable dt = new DataTable();
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
+            {
+                _conn.Open();
+                using (var cmd = new SqlCommand(SP_Name, _conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = ModuleCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        dt.Load(reader);
+                        return Utility.ConvertDataTableToList<BatchModel>(dt);
+                    }
+                }
+            }
+        }
+
+        public List<BatchModel> GetBatchFileContents_V2(string SP_Name, string ModuleCode, int HeaderID, SqlConnection _conn, SqlTransaction trans)
+        {
+            DataTable dt = new DataTable();
+            using (var cmd = new SqlCommand(SP_Name, _conn, trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = ModuleCode, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = HeaderID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
+                using (var reader = cmd.ExecuteReader())
+                {
+                    dt.Load(reader);
+                    return Utility.ConvertDataTableToList<BatchModel>(dt);
+                }
+            }
+        }
+
         public List<BatchModel> GetBatchFileContents(string SP_Name, string moduleCode, int headerID, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
@@ -622,18 +870,19 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
@@ -644,64 +893,80 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
 
         public List<BatchModel> GetBatchFileContents(string moduleCode, int headerID, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
                     db.OpenConnection(ref conn);
 
-                //db.cmd.CommandText = "usp_Utility_CreateBatchFile";
                 db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
                 if (!isOpen)
                     db.CloseConnection(ref conn);
+            }
+        }
+
+        public List<BatchModel> GetBatchFileContents(string moduleCode, int headerID, SqlConnection con, SqlTransaction trans)
+        {
+            DataTable dt = new DataTable();
+            using (var command = new SqlCommand("SAP.[usp_Utility_CreateBatchFile]", con, trans))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = moduleCode, Direction = ParameterDirection.Input });
+                command.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = headerID, Direction = ParameterDirection.Input });
+                using (var r = command.ExecuteReader())
+                {
+                    dt.Load(r);
+                    return Utility.ConvertDataTableToList<BatchModel>(dt);
+                }
             }
         }
 
 
         public List<BatchModel> GetBatchFileContentsWithNo(string moduleCode, int headerID, int no, bool isOpen = false)
         {
-            dt = new DataTable();
+            DataTable dt = new DataTable();
             try
             {
                 if (!isOpen)
                     db.OpenConnection(ref conn);
 
-                //db.cmd.CommandText = "usp_Utility_CreateBatchFile";
                 db.cmd.CommandText = "SAP.[usp_Utility_CreateBatchFile]";
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 db.AddInParameter(db.cmd, "No", no);
 
-                reader = db.cmd.ExecuteReader();
+                var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
                 return Utility.ConvertDataTableToList<BatchModel>(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                db.CloseConnection(ref conn);
+                throw;
             }
             finally
             {
@@ -710,29 +975,37 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
             }
         }
 
-        public void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
+        public static void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile)
         {
-            try
+            string connString = Utility.GetSqlConnection();
+            using (SqlConnection _conn = new SqlConnection(connString))
             {
-                string connString = Utility.GetSqlConnection();
-                using(SqlConnection conn = new SqlConnection(connString))
+                _conn.Open();
+                using (SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn))
                 {
-                    conn.Open();
-                    using(SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
-                        cmd.Parameters.AddWithValue("@Header_ID", headerID);
-                        cmd.Parameters.AddWithValue("@Form_No", formNo);
-                        cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
-                        cmd.ExecuteNonQuery();
-                    }
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
+                    cmd.Parameters.AddWithValue("@Header_ID", headerID);
+                    cmd.Parameters.AddWithValue("@Form_No", formNo);
+                    cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
+                    cmd.ExecuteNonQuery();
                 }
             }
-            catch(Exception ex)
+        }
+
+        public static void SaveBatchFileHistory_V2(string moduleCode, int headerID, string formNo, string targetFile, SqlConnection _conn, SqlTransaction trans)
+        {
+            string connString = Utility.GetSqlConnection();
+            using (SqlCommand cmd = new SqlCommand("usp_BatchFileHistory_Save", _conn, trans))
             {
-                throw ex;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@Module_Code", moduleCode);
+                cmd.Parameters.AddWithValue("@Header_ID", headerID);
+                cmd.Parameters.AddWithValue("@Form_No", formNo);
+                cmd.Parameters.AddWithValue("@Generated_File_Path", targetFile);
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -747,22 +1020,35 @@ namespace Daikin.BusinessLogics.Apps.Batch.Controller
                 db.cmd.CommandType = CommandType.StoredProcedure;
 
                 db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_Code", moduleCode);
-                db.AddInParameter(db.cmd, "Header_ID", headerID);
+                db.AddInParameter(db.cmd, MODULE_CODE_KEY, moduleCode);
+                db.AddInParameter(db.cmd, HEADER_ID_KEY, headerID);
                 db.AddInParameter(db.cmd, "Form_No", formNo);
                 db.AddInParameter(db.cmd, "Generated_File_Path", targetFile);
 
                 db.cmd.ExecuteNonQuery();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isTrans = false;
-                throw ex;
+                throw;
             }
             finally
             {
                 if (!isOpen)
                     db.CloseConnection(ref conn, isTrans);
+            }
+        }
+
+        public void SaveBatchFileHistory(string Module_Code, int Header_ID, string Form_No, string Target_File, SqlConnection conn, SqlTransaction trans)
+        {
+            using (var cmd = new SqlCommand("usp_BatchFileHistory_Save", conn, trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(new SqlParameter { ParameterName = MODULE_CODE_KEY, Value = Module_Code, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.VarChar });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = HEADER_ID_KEY, Value = Header_ID, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.Int });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "Form_No", Value = Form_No, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.VarChar });
+                cmd.Parameters.Add(new SqlParameter { ParameterName = "Generated_File_Path", Value = Target_File, Direction = ParameterDirection.Input, SqlDbType = SqlDbType.VarChar });
+                cmd.ExecuteNonQuery();
             }
         }
     }
