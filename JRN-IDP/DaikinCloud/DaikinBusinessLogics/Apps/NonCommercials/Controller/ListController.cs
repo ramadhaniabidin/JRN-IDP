@@ -13,9 +13,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
     public class ListController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        SharePointManager sp = new SharePointManager();
+        private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
 
         private Common.Model.CurrentApproverModel GetCurrentApprover(string List_Name, int Item_ID)
