@@ -253,14 +253,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddInParameter(db.cmd, "BranchName", model.BranchName);
                 db.AddInParameter(db.cmd, "ModuleId", model.ModuleId);
                 db.AddInParameter(db.cmd, "MIGO", model.MIGO);
-                //db.AddInParameter(db.cmd, "PendingApproverRoleID", model.PendingApproverRoleID);
                 db.AddInParameter(db.cmd, "PendingApproverRoleName", model.PendingApproverRole);
                 db.AddInParameter(db.cmd, "Procurement_Department", model.Procurement_Department);
 
                 db.AddInParameter(db.cmd, "CurrentLogin", model.CurrentLogin);
                 db.AddOutParameter(db.cmd, "@RecordCount", SqlDbType.Int);
                 db.AddOutParameter(db.cmd, "@GrandTotal", SqlDbType.Decimal);
-                //db.AddOutParameter(db.cmd, "@SQL", SqlDbType.NVarChar);
 
                 var reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
