@@ -654,6 +654,7 @@ namespace Daikin.JobSchedulersLogic.Controller
                 throw ex;
             }
         }
+        
 
         public List<ContractDetail> GetDataContractDetail(string Form_No)
         {
