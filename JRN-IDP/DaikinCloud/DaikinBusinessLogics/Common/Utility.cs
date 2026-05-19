@@ -22,13 +22,15 @@ namespace Daikin.BusinessLogics.Common
     public class Utility
     {
         public const string LevelAccessMessage = "You don't have permission to trigger this action";
-        public static string SpSiteUrl = ConfigurationManager.AppSettings["SiteUrl"];
-        public static string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
+        public static readonly string SpSiteUrl = ConfigurationManager.AppSettings["SiteUrl"];
+        public static readonly string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
+        public static readonly string SiteId = ConfigurationManager.AppSettings["SiteId"];
+        public static readonly string WebId = ConfigurationManager.AppSettings["WebId"];
         //private const string ENCRYPTION_KEY = "G21Express";
         private static string ENCRYPTION_KEY = ConfigurationManager.AppSettings["ENCRYPTION_KEY"];
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
-        
+
         #region Encryption/decryption
         /// <summary>
         /// The salt value used to strengthen the encryption.
@@ -154,7 +156,8 @@ namespace Daikin.BusinessLogics.Common
                 db.CloseConnection(ref conn);
                 return new CommonResponseModel
                 {
-                    Success = true, Message = "OK"
+                    Success = true,
+                    Message = "OK"
                 };
             }
             catch (Exception ex)
@@ -250,7 +253,7 @@ namespace Daikin.BusinessLogics.Common
                 throw;
             }
         }
-        
+
 
 
 
@@ -326,7 +329,7 @@ namespace Daikin.BusinessLogics.Common
 
         public static int SafeGetOrdinal(SqlDataReader reader, string columnName)
         {
-            for(int i = 0; i < reader.FieldCount; i++)
+            for (int i = 0; i < reader.FieldCount; i++)
             {
                 if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase)) return i;
             }
