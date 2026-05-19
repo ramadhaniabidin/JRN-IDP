@@ -1,5 +1,6 @@
 ﻿using Daikin.BusinessLogics.Apps.ClaimReimbursement.Model;
 using Daikin.BusinessLogics.Apps.PendingTask.Model;
+using Daikin.BusinessLogics.Apps.PendingTask.Repository;
 using Daikin.BusinessLogics.Common;
 using Microsoft.SharePoint;
 using System;
@@ -18,40 +19,11 @@ namespace Daikin.BusinessLogics.Apps.PendingTask.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
+        private readonly PendingTaskRepository repo = new PendingTaskRepository();
 
-        public List<PendingTaskModel> GetPendingTaskList(string SiteUrl, SPWeb oWeb, string CurrentUserEmail, string CurrentLogin, string CurrentUsername, FilterHeaderSearchModel model, out int RecordCount)
+        public async Task<List<PendingTaskModel>> GetPendingTaskListAsync(string CurrentUserEmail, string CurrentLogin, string CurrentUsername, FilterHeaderSearchModel model)
         {
-            dt = new DataTable();
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_NWC_ListPendingApproval";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "CurrentUserLogin", CurrentLogin);
-                db.AddInParameter(db.cmd, "CurrentUsername", CurrentUsername);
-                db.AddInParameter(db.cmd, "PageIndex", model.PageIndex);
-                db.AddInParameter(db.cmd, "PageSize", model.PageSize);
-                db.AddInParameter(db.cmd, "SearchBy", model.SearchBy);
-                db.AddInParameter(db.cmd, "Keywords", model.Keywords);
-                db.AddInParameter(db.cmd, "CurrentUserEmail", CurrentUserEmail);
-                db.AddOutParameter(db.cmd, "@RecordCount", SqlDbType.Int);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
-                db.CloseConnection(ref conn);
-
-                return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<PendingTaskModel>(dt) : new List<PendingTaskModel>();
-                
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            return await repo.GetPendingTaskAsync(CurrentUserEmail, CurrentLogin, CurrentUsername, model).ConfigureAwait(false);
         }
 
         public int GetCountPendingTask(string CurrentLogin, string CurrentUsername)
