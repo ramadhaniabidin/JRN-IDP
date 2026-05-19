@@ -26,8 +26,8 @@ namespace Daikin.BusinessLogics.Common
         public static readonly string Old_SpSiteUrl = "https://sp3.daikin.co.id:8443/";
         public static readonly string SiteId = ConfigurationManager.AppSettings["SiteId"];
         public static readonly string WebId = ConfigurationManager.AppSettings["WebId"];
-        //private const string ENCRYPTION_KEY = "G21Express";
         private static string ENCRYPTION_KEY = ConfigurationManager.AppSettings["ENCRYPTION_KEY"];
+        private static string SALT_KEY = ConfigurationManager.AppSettings["SALT_KEY"];
         private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
 
@@ -35,7 +35,7 @@ namespace Daikin.BusinessLogics.Common
         /// <summary>
         /// The salt value used to strengthen the encryption.
         /// </summary>
-        private static readonly byte[] Salt = Encoding.ASCII.GetBytes("DaikinNintex");
+        private static readonly byte[] Salt = Encoding.ASCII.GetBytes(SALT_KEY);
 
         /// <summary>
         /// Encrypts any string using the Rijndael algorithm.
