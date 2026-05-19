@@ -49,10 +49,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
                 return Utility.ConvertDataTableToList<MasterModuleOptionModel>(dt);
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
             finally
             {
                 db.CloseConnection(ref conn);
@@ -81,10 +77,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 db.CloseDataReader(reader);
 
                 return Utility.ConvertDataTableToList<OptionModel>(dt);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
@@ -121,10 +113,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 }
 
                 return listOption.OrderBy(o => o.Name).ToList();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
