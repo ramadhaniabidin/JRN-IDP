@@ -101,11 +101,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
-                OptionModel data = new OptionModel();
-
                 foreach (DataRow row in dt.Rows)
                 {
-                    data = new OptionModel();
+                    var data = new OptionModel();
 
                     data.Code = Utility.GetStringValue(row, "Name");
                     data.Name = Utility.GetStringValue(row, "Name");
