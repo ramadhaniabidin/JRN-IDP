@@ -172,7 +172,7 @@ namespace Daikin.JobSchedulersLogic.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
@@ -228,7 +228,7 @@ namespace Daikin.JobSchedulersLogic.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
@@ -285,7 +285,7 @@ namespace Daikin.JobSchedulersLogic.Controller
 
                         listOptions.Add(data);
                     }
-                    listOptions.OrderBy(o => o.Name).ToList();
+                    listOptions = listOptions.OrderBy(o => o.Name).ToList();
                 }
                 MasterUserProcDept listOption = new MasterUserProcDept();
                 listOption.Code = "";
@@ -654,7 +654,6 @@ namespace Daikin.JobSchedulersLogic.Controller
                 throw ex;
             }
         }
-        
 
         public List<ContractDetail> GetDataContractDetail(string Form_No)
         {
