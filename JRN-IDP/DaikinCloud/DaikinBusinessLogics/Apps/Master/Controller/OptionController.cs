@@ -129,9 +129,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 using (var cmd = new SqlCommand("usp_Utility_GetMasterBussPlace", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dTable.Load(reader);
+                        dTable.Load(r);
                         return Utility.ConvertDataTableToList<BussPlaceModel>(dTable);
                     }
                 }
@@ -164,9 +164,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 using (var cmd = new SqlCommand("usp_Utility_GetMasterClaimCategory", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dTable.Load(reader);
+                        dTable.Load(r);
                         return Utility.ConvertDataTableToList<OptionModel>(dTable);
                     }
                 }
@@ -182,9 +182,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 using (var cmd = new SqlCommand("usp_Utility_GetMasterVendorAffiliate", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dTable.Load(reader);
+                        dTable.Load(r);
                         return Utility.ConvertDataTableToList<VendorAffiliateModel>(dTable);
                     }
                 }
@@ -216,9 +216,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 using (var cmd = new SqlCommand("usp_GetVendorBankAffiliate", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dTable.Load(reader);
+                        dTable.Load(r);
                         return Utility.ConvertDataTableToList<VendorBankAffiliateModel>(dTable);
                     }
                 }
@@ -250,9 +250,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 using (var cmd = new SqlCommand("usp_Utility_GetMasterCustomerAffiliate", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dTable.Load(reader);
+                        dTable.Load(r);
                         return Utility.ConvertDataTableToList<VendorAffiliateModel>(dTable);
                     }
                 }
