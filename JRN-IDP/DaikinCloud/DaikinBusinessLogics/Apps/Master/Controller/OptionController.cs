@@ -13,7 +13,7 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 {
     public class OptionController
     {
-        DatabaseManager db;
+        private readonly DatabaseManager db;
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
