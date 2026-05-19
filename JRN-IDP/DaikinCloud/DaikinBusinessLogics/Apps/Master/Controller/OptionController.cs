@@ -29,29 +29,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
         public List<MasterModuleOptionModel> ModuleTransactionList()
         {
             return repo.ModuleTransactionList().GetAwaiter().GetResult();
-
-
-            ////[usp_MasterModule_GetOptionsByTransaction]
-            //dt = new DataTable();
-            //try
-            //{
-            //    db.OpenConnection(ref conn);
-            //    db.cmd.CommandText = "dbo.[usp_MasterModule_GetOptionsByTransaction]";
-            //    db.cmd.CommandType = CommandType.StoredProcedure;
-            //    db.cmd.Parameters.Clear();
-
-            //    reader = db.cmd.ExecuteReader();
-            //    dt.Load(reader);
-            //    db.CloseDataReader(reader);
-            //    db.CloseConnection(ref conn);
-            //    return Utility.ConvertDataTableToList<MasterModuleOptionModel>(dt);
-
-            //}
-            //catch (Exception ex)
-            //{
-            //    db.CloseConnection(ref conn);
-            //    throw ex;
-            //}
         }
 
         public List<MasterModuleOptionModel> ModuleOptions(string SPList)
