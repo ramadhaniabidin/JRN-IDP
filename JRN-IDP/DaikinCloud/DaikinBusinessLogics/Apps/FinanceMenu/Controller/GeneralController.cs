@@ -178,28 +178,56 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             }
         }
 
-        public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string SiteUrl, string ServerPath, int ItemId, string RDLC, string ReportDS, string Tipe, string Title = "")
+        private ReportPDFModel GetReportData(string Type)
         {
-            if (ItemId <= 0) throw new Exception("Item id cannot null");
+            var reportData = new ReportPDFModel();
+            if (Type.ToUpper() == "DETAIL")
+            {
+                reportData.Dataset = "SchedulePaymentReportDS_TestCopy";
+                reportData.RDLC = "SchedulePaymentReportDetail_New";
+                reportData.StoredProcedure = "usp_ScheduledPaymentSubDetail_GetList";
+            }
+            else if (Type.ToUpper() == "SUMMARY")
+            {
+                reportData.RDLC = "SchedulePaymentReportSummary_New";
+                reportData.Dataset = "SchedulePaymentSumDS_TestCopy";
+                reportData.StoredProcedure = "usp_ScheduledPaymentDetails_GetList";
+            }
+            else
+            {
+                reportData.RDLC = "SchedulePaymentReportPivot_New";
+                reportData.Dataset = "dsPivot";
+                reportData.StoredProcedure = "usp_ScheduledPayment_PivotTransaction";
+            }
+            return reportData;
+        }
+
+        public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string SiteUrl, string ServerPath, int ItemId, string Tipe, string Title = "")
+        {
+            if (ItemId <= 0) throw new ArgumentNullException("Item id cannot null");
 
             string HeaderNo = BankName.ToUpper().Contains("MUFG") ? Title : BankName + PaymentDate.ToString("ddMMyyyy");
             string ReferenceCode = PaymentDate.ToString("yyyyMMdd") + "_" + BankName + "_" + Tipe;
-            string StoredProcedure = "";
+            var reportData = GetReportData(Tipe);
+            var dt = repo.GetReportData(reportData.StoredProcedure, HeaderNo).GetAwaiter().GetResult();
 
-            if (Tipe.ToUpper() == "DETAIL") StoredProcedure = "dbo.usp_ScheduledPaymentSubDetail_GetList";
-            else if (Tipe.ToUpper() == "PIVOT") StoredProcedure = "dbo.usp_ScheduledPayment_PivotTransaction";
-            else StoredProcedure = "dbo.usp_ScheduledPaymentDetails_GetList";
+            string docName = ReferenceCode + ".pdf";
+            string localPath = ServerPath + "/Exported/" + docName;
 
-            var dt = repo.GetReportData(StoredProcedure, HeaderNo).GetAwaiter().GetResult();
+            GenerateReport(reportData.RDLC, reportData.Dataset, ServerPath, ReferenceCode, dt);
+            sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, SiteUrl);
+        }
 
-            ReportViewer ReportViewer1 = new ReportViewer();
-            ReportViewer1.SizeToReportContent = true;
-            ReportViewer1.ProcessingMode = ProcessingMode.Local;
-            ReportViewer1.LocalReport.ReportPath = ServerPath + "RDLC\\" + RDLC + ".RDLC";
-            ReportViewer1.LocalReport.DataSources.Clear();
-
-            ReportDataSource dataSource = new ReportDataSource(ReportDS, dt);
-            ReportViewer1.LocalReport.DataSources.Add(dataSource);
+        private void GenerateReport(string RDLC, string Dataset, string ServerPath, string ReferenceCode, DataTable ReportData)
+        {
+            ReportViewer report = new ReportViewer
+            {
+                SizeToReportContent = true,
+                ProcessingMode = ProcessingMode.Local
+            };
+            report.LocalReport.ReportPath = ServerPath + "RDLC\\" + RDLC + ".RDLC";
+            report.LocalReport.DataSources.Clear();
+            report.LocalReport.DataSources.Add(new ReportDataSource(Dataset, ReportData));
 
             Warning[] warnings;
             string[] streamIds;
@@ -207,12 +235,10 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             string encoding;
             string extension;
 
-            byte[] bytes = ReportViewer1.LocalReport.Render("PDF", null, out contentType, out encoding, out extension, out streamIds, out warnings);
+            byte[] bytes = report.LocalReport.Render("PDF", null, out contentType, out encoding, out extension, out streamIds, out warnings);
             string docName = ReferenceCode + ".pdf";
             string localPath = ServerPath + "/Exported/" + docName;
             System.IO.File.WriteAllBytes(localPath, bytes);
-
-            sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, SiteUrl);
         }
 
         public List<OptionModel> BindingMasterDatabase(string TableName, string codeColumn, string displayColumn, string firstOptionText)
