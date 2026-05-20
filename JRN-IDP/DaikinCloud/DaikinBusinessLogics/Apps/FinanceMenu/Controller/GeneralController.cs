@@ -402,16 +402,31 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             return Utility.ConvertDataTableToList<FinanceMenuModel>(dt);
         }
 
-        public List<FinanceMenuModel> FinancePaymentListData(string SearchBy, string Keywords, string BranchName, int pageIndex, int pageSize,
-                                               int DocNoFrom, int DocNoTo, string StartDate, string EndDate,
-                                               string Status, string ModuleId, string DueDate, string ProcurementDepartment,
-                                               out int recordCount, out decimal GrandTotal)
-        {
-            var items = repo.FinancePaymentListData(SearchBy, Keywords, BranchName, pageIndex, pageSize,
-                DocNoFrom, DocNoTo, StartDate, EndDate, Status, ModuleId, DueDate, ProcurementDepartment).GetAwaiter().GetResult();
+        #region commented out code
+        //public List<FinanceMenuModel> FinancePaymentListData(string SearchBy, string Keywords, string BranchName, int pageIndex, int pageSize,
+        //                                       int DocNoFrom, int DocNoTo, string StartDate, string EndDate,
+        //                                       string Status, string ModuleId, string DueDate, string ProcurementDepartment,
+        //                                       out int recordCount, out decimal GrandTotal)
+        //{
+        //    var items = repo.FinancePaymentListData(SearchBy, Keywords, BranchName, pageIndex, pageSize,
+        //        DocNoFrom, DocNoTo, StartDate, EndDate, Status, ModuleId, DueDate, ProcurementDepartment).GetAwaiter().GetResult();
 
-            recordCount = items[0].Record_Count;
-            GrandTotal = items[0].Grand_Total;
+        //    recordCount = items[0].Record_Count;
+        //    GrandTotal = items[0].Grand_Total;
+        //    return items;
+        //}
+        #endregion
+
+        public List<FinanceMenuModel> FinancePaymentListData(FinanceMenuSearchModel model, out int RecordCount, out decimal GrandTotal)
+        {
+            var items = repo.FinancePaymentListData(model).GetAwaiter().GetResult();
+            RecordCount = 0;
+            GrandTotal = 0;
+            if (items != null && items.Count > 0)
+            {
+                RecordCount = items[0].Record_Count;
+                GrandTotal = items[0].Grand_Total;
+            }
             return items;
         }
 
