@@ -1,8 +1,6 @@
 ﻿using Daikin.BusinessLogics.Apps.Master.Model;
 using Daikin.BusinessLogics.Common;
 using Microsoft.SharePoint;
-//using Nintex.Workflow.HumanApproval;
-//using Nintex.Workflow.Reports;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -115,75 +113,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
             }
         }
 
-        //public void Approval(SPWeb web, int spTaskItemID, int outcome)
-        //{
-        //    SPListCollection lists = web.Lists;
-        //    lists.ListsForCurrentUser = true;
-
-        //    SPList taskList = lists.TryGetList("Workflow Tasks");
-        //    SPListItem spTask = taskList.GetItemById(spTaskItemID);
-
-        //    SPSecurity.RunWithElevatedPrivileges(delegate ()
-        //    {
-
-        //        int decision = outcome;
-        //        /*
-        //            1	Approve
-        //            2	Reject
-        //            3	Revision
-        //            4	Revise                  
-        //         */
-
-        //        NintexTask task = NintexTask.RetrieveTask(spTaskItemID, SPContext.Current.Web, taskList);
-
-        //        Approver approver = task.Approvers.GetBySPId(spTaskItemID);
-        //        ConfiguredOutcomeCollection outcomes = approver.AvailableOutcomeInfo.AvailableOutcomes;
-
-
-        //        Guid commentsFieldId = Nintex.Workflow.Common.NWSharePointObjects.FieldComments;
-        //        Guid decisionFieldId = Nintex.Workflow.Common.NWSharePointObjects.FieldDecision;
-        //        spTask[decisionFieldId] = decision;
-        //        spTask[commentsFieldId] = "";
-        //        spTask.Update();
-        //    });
-        //}
-
-        //public void UpdateDocumentReceived(string SiteUrl, string List_Name, string CurrentLogin, List<int> ItemIDs)
-        //{
-        //    try
-        //    {
-        //        int counter = 0;
-        //        SPSite site = new SPSite(SiteUrl);
-        //        SPWeb web = site.OpenWeb();
-        //        SPList list = web.Lists.TryGetList(List_Name);
-        //        web.AllowUnsafeUpdates = true;
-        //        foreach (int id in ItemIDs)
-        //        {
-        //            int TaskItemId = 0;
-        //            SPSecurity.RunWithElevatedPrivileges(delegate ()
-        //            {
-
-        //                SPListItem item = list.GetItemById(id);
-        //                item["Document Received"] = true;
-        //                item.Update();
-        //                string TaskName = item["Title"].ToString();
-
-
-        //                TaskItemId = new Utility().GetTaskItemId(CurrentLogin, TaskName);
-        //            });
-
-        //            Approval(web, TaskItemId, 1);
-
-        //            counter++;
-        //        }
-        //        web.AllowUnsafeUpdates = false;
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        throw ex;
-        //    }
-        //}
         public List<GeneralHeaderModel> ListData(FilterHeaderSearchModel model, out int RecordCount, out decimal GrandTotal)
         {
             dt = new DataTable();
