@@ -202,7 +202,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             return reportData;
         }
 
-        public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string SiteUrl, string ServerPath, int ItemId, string Tipe, string Title = "")
+        public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string ServerPath, int ItemId, string Tipe, string Title = "")
         {
             if (ItemId <= 0) throw new ArgumentNullException("Item id cannot null");
 
@@ -215,7 +215,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             string localPath = ServerPath + "/Exported/" + docName;
 
             GenerateReport(reportData.RDLC, reportData.Dataset, ServerPath, ReferenceCode, dt);
-            sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, SiteUrl);
+            sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, siteUrl);
         }
 
         private void GenerateReport(string RDLC, string Dataset, string ServerPath, string ReferenceCode, DataTable ReportData)
