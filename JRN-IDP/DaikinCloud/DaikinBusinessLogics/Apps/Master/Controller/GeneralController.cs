@@ -22,22 +22,15 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
         public void ExecuteNonQuery(string query)
         {
-            try
+            using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = query;
-                        cmd.CommandType = CommandType.Text;
-                        cmd.ExecuteNonQuery();
-                    }
+                    cmd.CommandText = query;
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
         }
 
@@ -60,10 +53,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 db.CloseConnection(ref conn);
                 return Utility.ConvertDataTableToList<GeneralHistoryLogModel>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -89,10 +81,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 db.CloseConnection(ref conn);
                 return Transaction_ID;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -118,10 +109,9 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -231,10 +221,6 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
                 RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
                 GrandTotal = Convert.ToDecimal(db.cmd.Parameters["@GrandTotal"].Value);
                 return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<GeneralHeaderModel>(dt) : new List<GeneralHeaderModel>();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
