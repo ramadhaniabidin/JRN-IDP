@@ -249,8 +249,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 using (var conn = new SqlConnection(Utility.GetSqlConnection()))
                 {
                     conn.Open();
-                    //var query = $"SELECT * FROM {TableName}";
-                    //var query = $"SELECT * FROM {TableName}";
                     using (var cmd = new SqlCommand("dbo.usp_GetMasterData", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -386,9 +384,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
             try
             {
-                //UserProfile profile = GetUserProfile(SPSiteUrl);
-                //branch = Convert.ToString(profile["Office"].Value);
-
                 db.OpenConnection(ref conn);
                 db.cmd.CommandText = "dbo.usp_FinancePayment_ListData";
                 db.cmd.CommandType = CommandType.StoredProcedure;
@@ -427,21 +422,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             }
             return Utility.ConvertDataTableToList<FinanceMenuModel>(dt);
         }
-
-        #region commented out code
-        //public List<FinanceMenuModel> FinancePaymentListData(string SearchBy, string Keywords, string BranchName, int pageIndex, int pageSize,
-        //                                       int DocNoFrom, int DocNoTo, string StartDate, string EndDate,
-        //                                       string Status, string ModuleId, string DueDate, string ProcurementDepartment,
-        //                                       out int recordCount, out decimal GrandTotal)
-        //{
-        //    var items = repo.FinancePaymentListData(SearchBy, Keywords, BranchName, pageIndex, pageSize,
-        //        DocNoFrom, DocNoTo, StartDate, EndDate, Status, ModuleId, DueDate, ProcurementDepartment).GetAwaiter().GetResult();
-
-        //    recordCount = items[0].Record_Count;
-        //    GrandTotal = items[0].Grand_Total;
-        //    return items;
-        //}
-        #endregion
 
         public List<FinanceMenuModel> FinancePaymentListData(FinanceMenuSearchModel model, out int RecordCount, out decimal GrandTotal)
         {
