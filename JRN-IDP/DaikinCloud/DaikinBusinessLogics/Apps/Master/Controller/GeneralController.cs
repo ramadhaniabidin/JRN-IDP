@@ -15,7 +15,7 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 {
     public class GeneralController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db = new DatabaseManager();
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
