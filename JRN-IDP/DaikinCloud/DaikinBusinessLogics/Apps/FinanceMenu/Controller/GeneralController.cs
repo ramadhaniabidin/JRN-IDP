@@ -1,5 +1,7 @@
 ﻿using Daikin.BusinessLogics.Apps.Commercials.Model;
 using Daikin.BusinessLogics.Apps.FinanceMenu.Model;
+using Daikin.BusinessLogics.Apps.FinanceMenu.Repository;
+using Daikin.BusinessLogics.Apps.FinanceMenu.SharePointService;
 using Daikin.BusinessLogics.Common;
 using Daikin.BusinessLogics.Common.Model;
 using Microsoft.SharePoint;
@@ -10,16 +12,27 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Reporting.WebForms;
 
 namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 {
     public class GeneralController
     {
-        DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db;
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        SharePointManager sp = new SharePointManager();
+        private readonly SharePointManager sp = new SharePointManager();
+        private readonly FinanceMenuSharePointService service;
+        private readonly string siteUrl = Utility.SpSiteUrl;
+        private readonly FinanceMenuRepository repo;
+
+        public GeneralController()
+        {
+            db = new DatabaseManager();
+            repo = new FinanceMenuRepository(db);
+            service = new FinanceMenuSharePointService(sp);
+        }
 
         public DataTable GetDetailMenuByCode(string menu_code)
         {
@@ -64,41 +77,21 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
         }
+
+        public List<string> GetMappingBranchCurrentLogin(string CurrentLogin)
+        {
+            var listBranch = repo.GetMappingBranchByCurrentLogin(CurrentLogin).GetAwaiter().GetResult();
+            return listBranch;
+        }
+
         public List<OptionModel> GetMappingBranchByUser(string CurrentLogin)
         {
-            List<OptionModel> listOption = new List<OptionModel>();
-            try
-            {
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_MasterFinanceTeam_GetListBranchByCurrentLogin";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "PIC_Account", CurrentLogin);
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    OptionModel data = new OptionModel();
-                    data.Code = Utility.GetStringValue(row, "Branch");
-                    data.Name = Utility.GetStringValue(row, "Branch");
-                    listOption.Add(data);
-                }
-                return listOption;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            return repo.GetMappingBranchByUser(CurrentLogin).GetAwaiter().GetResult();
         }
 
         public List<OptionModel> GetMappingBranchByCurrentUser(string CurrentLogin)
@@ -147,7 +140,16 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             }
         }
 
-        //usp_FinancePayment_PaymentVoucher
+        public List<string> GetBranchFinance(int SPUserId, string AttributeName)
+        {
+            return service.GetBranchFinance(SPUserId, AttributeName);
+        }
+
+        public List<OptionModel> GetMenuList(int userId)
+        {
+            return service.GetMultipleValues(siteUrl, userId, "Module");
+        }
+
         public string GeneratePrintNumber(List<FinanceMenuModel> list, string CurrentLoginName)
         {
             try
@@ -176,12 +178,49 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             }
         }
 
+        public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string SiteUrl, string ServerPath, int ItemId, string RDLC, string ReportDS, string Tipe, string Title = "")
+        {
+            if (ItemId <= 0) throw new Exception("Item id cannot null");
+
+            string HeaderNo = BankName.ToUpper().Contains("MUFG") ? Title : BankName + PaymentDate.ToString("ddMMyyyy");
+            string ReferenceCode = PaymentDate.ToString("yyyyMMdd") + "_" + BankName + "_" + Tipe;
+            string StoredProcedure = "";
+
+            if (Tipe.ToUpper() == "DETAIL") StoredProcedure = "dbo.usp_ScheduledPaymentSubDetail_GetList";
+            else if (Tipe.ToUpper() == "PIVOT") StoredProcedure = "dbo.usp_ScheduledPayment_PivotTransaction";
+            else StoredProcedure = "dbo.usp_ScheduledPaymentDetails_GetList";
+
+            var dt = repo.GetReportData(StoredProcedure, HeaderNo).GetAwaiter().GetResult();
+
+            ReportViewer ReportViewer1 = new ReportViewer();
+            ReportViewer1.SizeToReportContent = true;
+            ReportViewer1.ProcessingMode = ProcessingMode.Local;
+            ReportViewer1.LocalReport.ReportPath = ServerPath + "RDLC\\" + RDLC + ".RDLC";
+            ReportViewer1.LocalReport.DataSources.Clear();
+
+            ReportDataSource dataSource = new ReportDataSource(ReportDS, dt);
+            ReportViewer1.LocalReport.DataSources.Add(dataSource);
+
+            Warning[] warnings;
+            string[] streamIds;
+            string contentType;
+            string encoding;
+            string extension;
+
+            byte[] bytes = ReportViewer1.LocalReport.Render("PDF", null, out contentType, out encoding, out extension, out streamIds, out warnings);
+            string docName = ReferenceCode + ".pdf";
+            string localPath = ServerPath + "/Exported/" + docName;
+            System.IO.File.WriteAllBytes(localPath, bytes);
+
+            sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, SiteUrl);
+        }
+
         public List<OptionModel> BindingMasterDatabase(string TableName, string codeColumn, string displayColumn, string firstOptionText)
         {
             try
             {
                 List<OptionModel> listOption = new List<OptionModel>();
-                using(var conn = new SqlConnection(Utility.GetSqlConnection()))
+                using (var conn = new SqlConnection(Utility.GetSqlConnection()))
                 {
                     conn.Open();
                     //var query = $"SELECT * FROM {TableName}";
@@ -190,11 +229,11 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                        using(var reader = cmd.ExecuteReader())
+                        using (var reader = cmd.ExecuteReader())
                         {
                             dt = new DataTable();
                             dt.Load(reader);
-                            foreach(DataRow row in dt.Rows)
+                            foreach (DataRow row in dt.Rows)
                             {
                                 listOption.Add(new OptionModel
                                 {
@@ -216,7 +255,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 }
                 return listOption.OrderBy(x => x.Name).ToList();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -224,40 +263,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
         public List<OptionModel> BindingMasterSPList(string ListName, string codeColumn, string displayColumn, string firstOptionText)
         {
-            List<OptionModel> listOption = new List<OptionModel>();
-            try
-            {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
-
-                    SPList list = web.Lists[ListName];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
-
-                if (!string.IsNullOrEmpty(firstOptionText))
-                {
-                    listOption.Add(new OptionModel
-                    {
-                        Code = "", Name = firstOptionText, Selected = true
-                    });
-                }
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new OptionModel
-                    {
-                        Code = Utility.GetStringValue(row, codeColumn), Name = Utility.GetStringValue(row, displayColumn)
-                    });
-                }
-                return listOption.OrderBy(o => o.Name).ToList();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return service.BindingMasterSPList(ListName, codeColumn, displayColumn, firstOptionText);
         }
 
         public List<PPJKOptionModel> BindingMasterSPListPPJK()
@@ -319,7 +325,11 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
                 listOption.Add(new ServiceCostConditionModel
                 {
-                    Code = "", Name = "Please Select", Selected = isSelected, Title = "", ID = "0"
+                    Code = "",
+                    Name = "Please Select",
+                    Selected = isSelected,
+                    Title = "",
+                    ID = "0"
                 });
 
                 foreach (DataRow row in dt.Rows)
@@ -392,40 +402,25 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             return Utility.ConvertDataTableToList<FinanceMenuModel>(dt);
         }
 
+        public List<FinanceMenuModel> FinancePaymentListData(string SearchBy, string Keywords, string BranchName, int pageIndex, int pageSize,
+                                               int DocNoFrom, int DocNoTo, string StartDate, string EndDate,
+                                               string Status, string ModuleId, string DueDate, string ProcurementDepartment,
+                                               out int recordCount, out decimal GrandTotal)
+        {
+            var items = repo.FinancePaymentListData(SearchBy, Keywords, BranchName, pageIndex, pageSize,
+                DocNoFrom, DocNoTo, StartDate, EndDate, Status, ModuleId, DueDate, ProcurementDepartment).GetAwaiter().GetResult();
+
+            recordCount = items[0].Record_Count;
+            GrandTotal = items[0].Grand_Total;
+            return items;
+        }
+
         public List<FinanceMenuModel> ScheduledPaymentList(int PageIndex, int PageSize, string TransNo, string NintexNo, out int recordCount, out decimal grandTotal)
         {
-            List<FinanceMenuModel> list = new List<FinanceMenuModel>();
-            dt = new DataTable();
-
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ScheduledPayment_ListData";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Header_No", TransNo);
-                db.AddInParameter(db.cmd, "PageIndex", PageIndex);
-                db.AddInParameter(db.cmd, "PageSize", PageSize);
-                db.AddInParameter(db.cmd, "Nintex_No", NintexNo);
-                db.AddOutParameter(db.cmd, "@RecordCount", SqlDbType.Int);
-                db.AddOutParameter(db.cmd, "@GrandTotal", SqlDbType.Decimal);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-
-                recordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
-                grandTotal = Convert.ToDecimal(db.cmd.Parameters["@GrandTotal"].Value);
-
-                db.CloseConnection(ref conn);
-                return Utility.ConvertDataTableToList<FinanceMenuModel>(dt);
-
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            var items = repo.ScheduledPaymentList(PageIndex, PageSize, TransNo, NintexNo).GetAwaiter().GetResult();
+            recordCount = items[0].Record_Count;
+            grandTotal = items[0].Grand_Total;
+            return items;
         }
 
         public List<FinanceMenuModel> GetFinanceConfirmation(int pageIndex, string identification,
@@ -632,44 +627,69 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 throw ex;
             }
         }
-        public void SubmitScheduleApproval(string SPSiteUrl, DateTime paymentDate, string branch, string bankName, decimal Grand_Total, string tipe)
+        public void SubmitScheduleApproval(string SPSiteUrl, DateTime paymentDate, string branch, string bankName, decimal Grand_Total, string tipe, string headerNo)
         {
-            #region Trigger Workflow
-            string TransNo = bankName + paymentDate.ToString("ddMMyyyy");
+            string currentLogin = sp.GetCurrentLoginFullName(SPSiteUrl);
+            string currentLoginEmail = sp.GetCurrentLoginEmail(SPSiteUrl);
+            string transNo = bankName + paymentDate.ToString("ddMMyyyy");
+            if (bankName.ToUpper().Contains("MUFG")) transNo = headerNo.Trim();
+            if (tipe.ToUpper() != "REGULAR") transNo = "ID-" + transNo;
+            int itemId = 0;
+            string financeStatus = "";
 
-            if (tipe.ToUpper() != "REGULAR")
+            var existingItem = service.GetExistingScheduledPaymentItem(transNo);
+            if (existingItem.Count > 0)
             {
-                TransNo = "AD-" + TransNo;
+                foreach (SPListItem item in existingItem)
+                {
+                    financeStatus = item["Status"].ToString();
+                    if (financeStatus == "99") throw new Exception("This scheduled payment is already on process");
+                    itemId = item.ID;
+                }
             }
 
-            SPSite spSite = new SPSite(SPSiteUrl);
-            SPWeb web = spSite.OpenWeb();
-            string CurrentLogin = sp.GetCurrentLoginFullName(SPSiteUrl);
-            string CurrentLoginEmail = sp.GetCurrentLoginEmail(SPSiteUrl);
+            itemId = service.SaveSPListScheduledPayment(itemId, Grand_Total, transNo, paymentDate, bankName, tipe, branch, SPSiteUrl);
+
+            repo.ScheduledPaymentUpdateItemId(bankName, branch, paymentDate, itemId, tipe, currentLogin, headerNo).GetAwaiter().GetResult();
+
+
+
+            #region Trigger Workflow
+            //string TransNo = bankName + paymentDate.ToString("ddMMyyyy");
+
+            //if (tipe.ToUpper() != "REGULAR")
+            //{
+            //    TransNo = "AD-" + TransNo;
+            //}
+
+            //SPSite spSite = new SPSite(SPSiteUrl);
+            //SPWeb web = spSite.OpenWeb();
+            //string CurrentLogin = sp.GetCurrentLoginFullName(SPSiteUrl);
+            //string CurrentLoginEmail = sp.GetCurrentLoginEmail(SPSiteUrl);
 
             //perlu tambah validasi jika status scheduled jgn jalanin lagi
 
             //end of
-            int ListItemId = 0;
+            //int ListItemId = 0;
 
             #region Check If SP List already inserted
-            SPList listCheck = web.Lists["Scheduled Payment"];
-            var q = new SPQuery()
-            {
-                Query = @"<Where><Eq><FieldRef Name='Title' /><Value Type='Text'>" + TransNo + "</Value></Eq></Where>"
-            };
+            //SPList listCheck = web.Lists["Scheduled Payment"];
+            //var q = new SPQuery()
+            //{
+            //    Query = @"<Where><Eq><FieldRef Name='Title' /><Value Type='Text'>" + TransNo + "</Value></Eq></Where>"
+            //};
 
-            var r = listCheck.GetItems(q);
-            string FinanceStatus = "";
-            if (r.Count > 0)
-            {
-                foreach (SPListItem item in r)
-                {
-                    FinanceStatus = item["Status"].ToString();
-                    ListItemId = item.ID;
-                }
-                if (FinanceStatus == "99") throw new Exception("This scheduled payment is already on process");
-            }
+            //var r = listCheck.GetItems(q);
+            //string FinanceStatus = "";
+            //if (r.Count > 0)
+            //{
+            //    foreach (SPListItem item in r)
+            //    {
+            //        FinanceStatus = item["Status"].ToString();
+            //        ListItemId = item.ID;
+            //    }
+            //    if (FinanceStatus == "99") throw new Exception("This scheduled payment is already on process");
+            //}
 
             /*
             db.OpenConnection(ref conn);
@@ -694,114 +714,131 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             #endregion
 
 
-            SPSecurity.RunWithElevatedPrivileges(delegate ()
-            {
+            //SPSecurity.RunWithElevatedPrivileges(delegate ()
+            //{
 
-                SPList list = web.Lists["Scheduled Payment"];
-                web.AllowUnsafeUpdates = true;
+            //    SPList list = web.Lists["Scheduled Payment"];
+            //    web.AllowUnsafeUpdates = true;
 
-                SPListItem item;
+            //    SPListItem item;
 
-                if (ListItemId == 0)
-                {
-                    item = list.Items.Add();
-                    item["Title"] = TransNo;
-                    item["Payment Date"] = paymentDate;
-                    item["Payment Date Text"] = paymentDate.ToString("yyyy-MM-dd");
-                    item["Url Trans List"] = SPSiteUrl + "/_layouts/15/Daikin.WebApps/FinanceMenu/List.aspx?m_id=9&bank=" + bankName + "&date=" + paymentDate.ToString("yyyy-MM-dd");
-                    item["Branch"] = branch;
-                    item["Bank"] = bankName;
-                    item["Status"] = "9";
-                    item["Form Type"] = tipe;
-                    item["Current Layer"] = "";
-                    item["Requester Name"] = CurrentLogin;
-                    item["Requester Email"] = CurrentLoginEmail;
-                    item["Grand Total"] = Grand_Total;
-                    item["Url Approval Log"] = SPSiteUrl + "/_layouts/15/Daikin.WebApps/ApprovalLog.aspx?Form_No=" +
-                                               TransNo + "&Module_Code=M008&Desc=Scheduled%20Payment%20" + paymentDate.ToString("dd%20MMM%20yyyy");
-                    //item["Payment Detail"] = GenerateXMLPaymentDetail(idList);
-                }
-                else
-                {
-                    item = list.GetItemById(ListItemId);
-                    item["Grand Total"] = Grand_Total;
-                    item["Status"] = "9";
-                    //item["Payment Detail"] = GenerateXMLPaymentDetail(idList);
-                }
-                item.Update();
-                ListItemId = item.ID;
-                web.AllowUnsafeUpdates = false;
+            //    if (ListItemId == 0)
+            //    {
+            //        item = list.Items.Add();
+            //        item["Title"] = TransNo;
+            //        item["Payment Date"] = paymentDate;
+            //        item["Payment Date Text"] = paymentDate.ToString("yyyy-MM-dd");
+            //        item["Url Trans List"] = SPSiteUrl + "/_layouts/15/Daikin.WebApps/FinanceMenu/List.aspx?m_id=9&bank=" + bankName + "&date=" + paymentDate.ToString("yyyy-MM-dd");
+            //        item["Branch"] = branch;
+            //        item["Bank"] = bankName;
+            //        item["Status"] = "9";
+            //        item["Form Type"] = tipe;
+            //        item["Current Layer"] = "";
+            //        item["Requester Name"] = CurrentLogin;
+            //        item["Requester Email"] = CurrentLoginEmail;
+            //        item["Grand Total"] = Grand_Total;
+            //        item["Url Approval Log"] = SPSiteUrl + "/_layouts/15/Daikin.WebApps/ApprovalLog.aspx?Form_No=" +
+            //                                   TransNo + "&Module_Code=M008&Desc=Scheduled%20Payment%20" + paymentDate.ToString("dd%20MMM%20yyyy");
+            //        //item["Payment Detail"] = GenerateXMLPaymentDetail(idList);
+            //    }
+            //    else
+            //    {
+            //        item = list.GetItemById(ListItemId);
+            //        item["Grand Total"] = Grand_Total;
+            //        item["Status"] = "9";
+            //        //item["Payment Detail"] = GenerateXMLPaymentDetail(idList);
+            //    }
+            //    item.Update();
+            //    ListItemId = item.ID;
+            //    web.AllowUnsafeUpdates = false;
 
 
-            });
+            //});
 
             #endregion
 
             #region Update Item ID
-            db.OpenConnection(ref conn, true);
+            //db.OpenConnection(ref conn, true);
 
-            db.cmd.CommandText = "usp_SchedulePaymentHeader_SaveUpdate";
-            db.cmd.CommandType = CommandType.StoredProcedure;
-            db.cmd.Parameters.Clear();
+            //db.cmd.CommandText = "usp_SchedulePaymentHeader_SaveUpdate";
+            //db.cmd.CommandType = CommandType.StoredProcedure;
+            //db.cmd.Parameters.Clear();
 
-            db.AddInParameter(db.cmd, "Bank_Name", bankName);
-            db.AddInParameter(db.cmd, "Branch", branch);
-            db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
-            db.AddInParameter(db.cmd, "Status", "9");
-            db.AddInParameter(db.cmd, "Item_ID", ListItemId);
-            db.AddInParameter(db.cmd, "Is_AutoDebet", tipe.ToUpper() == "REGULAR" ? 0 : 1);
-            db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
+            //db.AddInParameter(db.cmd, "Bank_Name", bankName);
+            //db.AddInParameter(db.cmd, "Branch", branch);
+            //db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
+            //db.AddInParameter(db.cmd, "Status", "9");
+            //db.AddInParameter(db.cmd, "Item_ID", ListItemId);
+            //db.AddInParameter(db.cmd, "Is_AutoDebet", tipe.ToUpper() == "REGULAR" ? 0 : 1);
+            //db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
 
-            int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
+            //int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
 
-            db.CloseConnection(ref conn, true);
+            //db.CloseConnection(ref conn, true);
             #endregion
 
         }
 
 
 
-        public WebModel<String> ProcessPayments2(List<FinanceMenuModel> idList, string identification, string bankName,
-            DateTime paymentDate, string SPSiteUrl, string CurrentLogin, string branch)
+        public WebModel<String> ProcessPayments2(List<FinanceMenuModel> idList, string identification, string bankName, DateTime paymentDate, string SPSiteUrl, string CurrentLogin, string branch)
         {
             WebModel<String> result = new WebModel<String>();
             int itemChanged = 0;
             int itemInserted = 0;
 
             string TransNo = bankName + paymentDate.ToString("ddMMyyyy");
-            decimal Grand_Total = 0;
 
             try
             {
                 #region Check if already processed
-                List<string> listNintexNo = new List<string>();
-                listNintexNo = idList.Select(s => s.Nintex_No).ToList();
-                string strListNintexNo = String.Join(";", listNintexNo.ToArray());
-
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_FinancePayment_CheckIfProcessed";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Nintex_No", strListNintexNo);
-                reader = db.cmd.ExecuteReader();
-                DataTable dtNtx = new DataTable();
-                dtNtx.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                string msg = "This below transaction no has been already processed: ";
-                foreach (DataRow row in dtNtx.Rows)
+                var listNintexNo = idList.Select(s => s.Nintex_No).ToList();
+                var strListNintexNo = string.Join(";", listNintexNo);
+                var processedFinancePayment = repo.GetProcessedFinancePayment(strListNintexNo).GetAwaiter().GetResult();
+                if (processedFinancePayment.Count > 0)
                 {
-                    msg += "\n " + Utility.GetStringValue(row, "Nintex_No") + " - " + Utility.GetDateValue(row, "Payment_Date").ToString("dd MMM yyyy");
-                }
+                    var sb = new StringBuilder("This below transaction no has been already processed:");
+                    foreach (var payment in processedFinancePayment)
+                    {
+                        sb.AppendLine(
+                            $"{payment.Nintex_No} - {payment.Payment_Date.ToString("dd MMM yyyy")}"
+                        );
+                    }
 
-                if (dtNtx.Rows.Count > 0)
-                {
-                    result.Message = msg;
+                    result.Message = sb.ToString();
                     result.Code = 500;
                     result.CountItem = 0;
                     return result;
                 }
+
+                //List<string> listNintexNo = new List<string>();
+                //listNintexNo = idList.Select(s => s.Nintex_No).ToList();
+                //string strListNintexNo = String.Join(";", listNintexNo.ToArray());
+
+                //db.OpenConnection(ref conn);
+                //db.cmd.CommandText = "usp_FinancePayment_CheckIfProcessed";
+                //db.cmd.CommandType = CommandType.StoredProcedure;
+                //db.cmd.Parameters.Clear();
+                //db.AddInParameter(db.cmd, "Nintex_No", strListNintexNo);
+                //reader = db.cmd.ExecuteReader();
+                //DataTable dtNtx = new DataTable();
+                //dtNtx.Load(reader);
+                //db.CloseDataReader(reader);
+                //db.CloseConnection(ref conn);
+
+                //string msg = "This below transaction no has been already processed: ";
+                //foreach (DataRow row in dtNtx.Rows)
+                //{
+                //    msg += "\n " + Utility.GetStringValue(row, "Nintex_No") + " - " + Utility.GetDateValue(row, "Payment_Date").ToString("dd MMM yyyy");
+                //}
+
+                //if (dtNtx.Rows.Count > 0)
+                //{
+                //    result.Message = msg;
+                //    result.Code = 500;
+                //    result.CountItem = 0;
+                //    return result;
+                //}
 
                 #endregion
 
@@ -809,77 +846,105 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
                 #region Check If already running
 
+                var runningScheduledPayment = repo.GetRunningScheduledPayment(bankName, paymentDate).GetAwaiter().GetResult();
+                if (runningScheduledPayment.Count > 0)
+                {
+                    var financeStatus = runningScheduledPayment[0].Status;
+                    if (financeStatus == "9")
+                    {
+                        result.Message = "Cannot process this payment due to on this " + paymentDate.ToString("dd-MMM-yyyy") + " is already on approval process";
+                        result.Code = 500;
+                        result.CountItem = 0;
+                        return result;
+                    }
+                }
 
                 //DataTable dt = db.GetValueFromSP("dbo.usp_SchedulePaymentHeader_GetItemId", "Transaction_No", TransNo);
 
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_SchedulePaymentHeader_GetItemId";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
+                //db.OpenConnection(ref conn);
+                //db.cmd.CommandText = "dbo.usp_SchedulePaymentHeader_GetItemId";
+                //db.cmd.CommandType = CommandType.StoredProcedure;
+                //db.cmd.Parameters.Clear();
 
-                db.AddInParameter(db.cmd, "bank", bankName);
-                db.AddInParameter(db.cmd, "payment_date", paymentDate);
+                //db.AddInParameter(db.cmd, "bank", bankName);
+                //db.AddInParameter(db.cmd, "payment_date", paymentDate);
 
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
+                //reader = db.cmd.ExecuteReader();
+                //dt.Load(reader);
+                //db.CloseDataReader(reader);
 
 
-                string Status = string.Empty;
-                foreach (DataRow row in dt.Rows)
-                {
-                    Status = Utility.GetStringValue(row, "Status");
-                }
-                db.CloseConnection(ref conn);
+                //string Status = string.Empty;
+                //foreach (DataRow row in dt.Rows)
+                //{
+                //    Status = Utility.GetStringValue(row, "Status");
+                //}
+                //db.CloseConnection(ref conn);
 
-                if (Status == "9")
-                {
-                    result.Message = "Cannot process this payment due to on this " + paymentDate.ToString("dd-MMM-yyyy") + " is already on approval process";
-                    result.Code = 500;
-                    result.CountItem = 0;
-                    return result;
-                }
+                //if (Status == "9")
+                //{
+                //    result.Message = "Cannot process this payment due to on this " + paymentDate.ToString("dd-MMM-yyyy") + " is already on approval process";
+                //    result.Code = 500;
+                //    result.CountItem = 0;
+                //    return result;
+                //}
 
                 #endregion
 
                 #region Save DB
-                db.OpenConnection(ref conn, true);
-
-                db.cmd.CommandText = "usp_SchedulePaymentHeader_SaveUpdate";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Bank_Name", bankName);
-                db.AddInParameter(db.cmd, "Branch", branch);
-                db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
-                db.AddInParameter(db.cmd, "Identification", identification);
-                db.AddInParameter(db.cmd, "Status", "4");
-                db.AddInParameter(db.cmd, "Item_ID", 0);
-                db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
-
-                int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
-
-                foreach (FinanceMenuModel data in idList)
+                using (var con = new SqlConnection(Utility.GetSqlConnection()))
                 {
-
-                    db.cmd.CommandText = "usp_SchedulePaymentDetail_SaveUpdate";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-
-                    db.AddInParameter(db.cmd, "Header_No", TransNo);
-                    db.AddInParameter(db.cmd, "Nintex_No", data.Nintex_No);
-                    db.AddInParameter(db.cmd, "Identification", identification);
-                    db.AddInParameter(db.cmd, "Red_Receipt", data.Red_Receipt);
-                    db.AddInParameter(db.cmd, "Header_ID", Header_ID);
-                    db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
-                    db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
-                    db.AddInParameter(db.cmd, "Status", "4");
-
-                    db.cmd.ExecuteNonQuery();
-                    Grand_Total += data.Amount;
+                    con.Open();
+                    using (var trans = con.BeginTransaction())
+                    {
+                        var saveHeaderResponse = repo.SaveScheduledPaymentHeader(con, trans, bankName, branch, paymentDate, identification, CurrentLogin).GetAwaiter().GetResult();
+                        foreach (var data in idList)
+                        {
+                            repo.SaveScheduledPaymentDetail(con, trans, data, saveHeaderResponse.Header_ID, identification, CurrentLogin,
+                                saveHeaderResponse.Transaction_No, paymentDate).GetAwaiter().GetResult();
+                        }
+                        trans.Commit();
+                    }
                 }
 
-                db.CloseConnection(ref conn, true);
+
+                //db.OpenConnection(ref conn, true);
+
+                //db.cmd.CommandText = "usp_SchedulePaymentHeader_SaveUpdate";
+                //db.cmd.CommandType = CommandType.StoredProcedure;
+                //db.cmd.Parameters.Clear();
+
+                //db.AddInParameter(db.cmd, "Bank_Name", bankName);
+                //db.AddInParameter(db.cmd, "Branch", branch);
+                //db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
+                //db.AddInParameter(db.cmd, "Identification", identification);
+                //db.AddInParameter(db.cmd, "Status", "4");
+                //db.AddInParameter(db.cmd, "Item_ID", 0);
+                //db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
+
+                //int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
+
+                //foreach (FinanceMenuModel data in idList)
+                //{
+
+                //    db.cmd.CommandText = "usp_SchedulePaymentDetail_SaveUpdate";
+                //    db.cmd.CommandType = CommandType.StoredProcedure;
+                //    db.cmd.Parameters.Clear();
+
+                //    db.AddInParameter(db.cmd, "Header_No", TransNo);
+                //    db.AddInParameter(db.cmd, "Nintex_No", data.Nintex_No);
+                //    db.AddInParameter(db.cmd, "Identification", identification);
+                //    db.AddInParameter(db.cmd, "Red_Receipt", data.Red_Receipt);
+                //    db.AddInParameter(db.cmd, "Header_ID", Header_ID);
+                //    db.AddInParameter(db.cmd, "Payment_Date", paymentDate);
+                //    db.AddInParameter(db.cmd, "Created_By", CurrentLogin);
+                //    db.AddInParameter(db.cmd, "Status", "4");
+
+                //    db.cmd.ExecuteNonQuery();
+                //    Grand_Total += data.Amount;
+                //}
+
+                //db.CloseConnection(ref conn, true);
 
                 #endregion
 
