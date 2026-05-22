@@ -591,7 +591,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 foreach (SPListItem item in existingItem)
                 {
                     financeStatus = item["Status"].ToString();
-                    if (financeStatus == "99") throw new Exception("This scheduled payment is already on process");
+                    if (financeStatus == "99") throw new InvalidOperationException("This scheduled payment is already on process");
                     itemId = item.ID;
                 }
             }
