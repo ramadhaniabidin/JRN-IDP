@@ -37,31 +37,24 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
         public DataTable GetDetailMenuByCode(string menu_code)
         {
             DataTable dtMenu = new DataTable();
-            try
+            using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
+                    cmd.CommandText = "[usp_MasterModule_GetByModuleCode]";
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@Module_Code", menu_code);
+                    using (SqlDataReader dr = cmd.ExecuteReader())
                     {
-                        cmd.CommandText = "[usp_MasterModule_GetByModuleCode]";
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.AddWithValue("@Module_Code", menu_code);
-                        using (SqlDataReader dr = cmd.ExecuteReader())
-                        {
-                            dtMenu.Load(dr);
-                        }
-
+                        dtMenu.Load(dr);
                     }
-                    conn.Close();
+
                 }
-                return dtMenu;
+                conn.Close();
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return dtMenu;
         }
 
         public void InsertToFinancePayment(string Module_ID, int Header_ID)
@@ -77,9 +70,9 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            finally
             {
-                throw ex;
+                db.CloseConnection(ref conn);
             }
         }
 
@@ -119,25 +112,16 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 }
                 return listOption;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
         public List<OptionModel> GetMenuList(SPWeb web, int UserId)
         {
-            try
-            {
-                List<OptionModel> list = sp.GetMultipleValues(web, UserId, "Module");
-                return list;
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+            List<OptionModel> list = sp.GetMultipleValues(web, UserId, "Module");
+            return list;
         }
 
         public List<string> GetBranchFinance(int SPUserId, string AttributeName)
@@ -171,10 +155,9 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 db.CloseConnection(ref conn, true);
                 return Print_No;
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -243,46 +226,39 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
         public List<OptionModel> BindingMasterDatabase(string TableName, string codeColumn, string displayColumn, string firstOptionText)
         {
-            try
+            List<OptionModel> listOption = new List<OptionModel>();
+            using (var conn = new SqlConnection(Utility.GetSqlConnection()))
             {
-                List<OptionModel> listOption = new List<OptionModel>();
-                using (var conn = new SqlConnection(Utility.GetSqlConnection()))
+                conn.Open();
+                using (var cmd = new SqlCommand("dbo.usp_GetMasterData", conn))
                 {
-                    conn.Open();
-                    using (var cmd = new SqlCommand("dbo.usp_GetMasterData", conn))
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                        using (var reader = cmd.ExecuteReader())
+                        dt = new DataTable();
+                        dt.Load(reader);
+                        foreach (DataRow row in dt.Rows)
                         {
-                            dt = new DataTable();
-                            dt.Load(reader);
-                            foreach (DataRow row in dt.Rows)
+                            listOption.Add(new OptionModel
                             {
-                                listOption.Add(new OptionModel
-                                {
-                                    Code = Utility.GetStringValue(row, codeColumn),
-                                    Name = Utility.GetStringValue(row, displayColumn)
-                                });
-                            }
+                                Code = Utility.GetStringValue(row, codeColumn),
+                                Name = Utility.GetStringValue(row, displayColumn)
+                            });
                         }
                     }
                 }
-                if (!string.IsNullOrEmpty(firstOptionText))
-                {
-                    listOption.Add(new OptionModel
-                    {
-                        Code = "",
-                        Name = firstOptionText,
-                        Selected = true
-                    });
-                }
-                return listOption.OrderBy(x => x.Name).ToList();
             }
-            catch (Exception ex)
+            if (!string.IsNullOrEmpty(firstOptionText))
             {
-                throw ex;
+                listOption.Add(new OptionModel
+                {
+                    Code = "",
+                    Name = firstOptionText,
+                    Selected = true
+                });
             }
+            return listOption.OrderBy(x => x.Name).ToList();
         }
 
         public List<OptionModel> BindingMasterSPList(string ListName, string codeColumn, string displayColumn, string firstOptionText)
@@ -293,86 +269,72 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
         public List<PPJKOptionModel> BindingMasterSPListPPJK()
         {
             List<PPJKOptionModel> listOption = new List<PPJKOptionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master PPJK"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
-                PPJKOptionModel data = new PPJKOptionModel();
-                data.Code = "";
-                data.Name = "Please Select";
-                data.Curr = "";
-                data.Category = "";
-                data.Bank_Account_No = "";
-                data.Bank_Key = "";
-                data.Bank_Name = "";
-                listOption.Add(data);
-                foreach (DataRow row in dt.Rows)
-                {
-                    data = new PPJKOptionModel();
-                    data.Code = Utility.GetStringValue(row, "Code");
-                    data.Name = data.Code + " - " + Utility.GetStringValue(row, "Bank_x0020_Account_x0020_Name");
-                    data.Curr = Utility.GetStringValue(row, "Curr");
-                    data.Category = Utility.GetStringValue(row, "Category");
-                    data.Bank_Account_No = Utility.GetStringValue(row, "Title");
-                    data.Bank_Key = Utility.GetStringValue(row, "Bank_x0020_Key");
-                    listOption.Add(data);
-                }
-                return listOption;
-            }
-            catch (Exception ex)
+                SPList list = web.Lists["Master PPJK"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
+            PPJKOptionModel data = new PPJKOptionModel();
+            data.Code = "";
+            data.Name = "Please Select";
+            data.Curr = "";
+            data.Category = "";
+            data.Bank_Account_No = "";
+            data.Bank_Key = "";
+            data.Bank_Name = "";
+            listOption.Add(data);
+            foreach (DataRow row in dt.Rows)
             {
-                throw ex;
+                data = new PPJKOptionModel();
+                data.Code = Utility.GetStringValue(row, "Code");
+                data.Name = data.Code + " - " + Utility.GetStringValue(row, "Bank_x0020_Account_x0020_Name");
+                data.Curr = Utility.GetStringValue(row, "Curr");
+                data.Category = Utility.GetStringValue(row, "Category");
+                data.Bank_Account_No = Utility.GetStringValue(row, "Title");
+                data.Bank_Key = Utility.GetStringValue(row, "Bank_x0020_Key");
+                listOption.Add(data);
             }
+            return listOption;
         }
 
         public List<ServiceCostConditionModel> BindingMasterSPListCondition(bool isSelected)
         {
             List<ServiceCostConditionModel> listOption = new List<ServiceCostConditionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master Service Cost Condition"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
+                SPList list = web.Lists["Master Service Cost Condition"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
 
+            listOption.Add(new ServiceCostConditionModel
+            {
+                Code = "",
+                Name = "Please Select",
+                Selected = isSelected,
+                Title = "",
+                ID = "0"
+            });
+
+            foreach (DataRow row in dt.Rows)
+            {
                 listOption.Add(new ServiceCostConditionModel
                 {
-                    Code = "",
-                    Name = "Please Select",
-                    Selected = isSelected,
-                    Title = "",
-                    ID = "0"
+                    Code = Utility.GetStringValue(row, "ID"),
+                    Name = Utility.GetStringValue(row, "Combine"),
+                    ID = Utility.GetStringValue(row, "ID"),
+                    Title = Utility.GetStringValue(row, "Title"),
+                    Selected = false
                 });
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new ServiceCostConditionModel
-                    {
-                        Code = Utility.GetStringValue(row, "ID"),
-                        Name = Utility.GetStringValue(row, "Combine"),
-                        ID = Utility.GetStringValue(row, "ID"),
-                        Title = Utility.GetStringValue(row, "Title"),
-                        Selected = false
-                    });
-                }
-                return listOption;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return listOption;
         }
 
         public List<FinanceMenuModel> ListData(string SearchBy, string Keywords, string BranchName, int pageIndex, int pageSize,
@@ -413,12 +375,14 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 db.CloseDataReader(reader);
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            catch
             {
-                db.CloseConnection(ref conn);
                 recordCount = 0;
                 GrandTotal = 0;
-                throw ex;
+            }
+            finally
+            {
+                db.CloseConnection(ref conn);
             }
             return Utility.ConvertDataTableToList<FinanceMenuModel>(dt);
         }
@@ -472,11 +436,10 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
                 db.CloseDataReader(reader);
             }
-            catch (Exception ex)
+            catch
             {
                 recordCount = 0;
                 grandTotal = 0;
-                throw ex;
             }
             finally
             {
@@ -497,10 +460,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
@@ -526,10 +485,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 reader = db.cmd.ExecuteReader();
                 dt.Load(reader);
                 db.CloseDataReader(reader);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
             }
             finally
             {
@@ -564,10 +519,9 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 web.AllowUnsafeUpdates = false;
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
 
         }
@@ -617,10 +571,9 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                 }
                 db.CloseConnection(ref conn, true);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public void SubmitScheduleApproval(string SPSiteUrl, DateTime paymentDate, string branch, string bankName, decimal Grand_Total, string tipe, string headerNo)
