@@ -191,12 +191,12 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             string HeaderNo = BankName.ToUpper().Contains("MUFG") ? Title : BankName + PaymentDate.ToString("ddMMyyyy");
             string ReferenceCode = PaymentDate.ToString("yyyyMMdd") + "_" + BankName + "_" + Tipe;
             var reportData = GetReportData(Tipe);
-            var dt = repo.GetReportData(reportData.StoredProcedure, HeaderNo).GetAwaiter().GetResult();
+            var t = repo.GetReportData(reportData.StoredProcedure, HeaderNo).GetAwaiter().GetResult();
 
             string docName = ReferenceCode + ".pdf";
             string localPath = ServerPath + "/Exported/" + docName;
 
-            GenerateReport(reportData.RDLC, reportData.Dataset, ServerPath, ReferenceCode, dt);
+            GenerateReport(reportData.RDLC, reportData.Dataset, ServerPath, ReferenceCode, t);
             sp.UploadFileInCustomList("Scheduled Payment", ItemId, localPath, siteUrl);
         }
 
@@ -226,18 +226,18 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
         public List<OptionModel> BindingMasterDatabase(string TableName, string codeColumn, string displayColumn, string firstOptionText)
         {
             List<OptionModel> listOption = new List<OptionModel>();
-            using (var conn = new SqlConnection(Utility.GetSqlConnection()))
+            using (var _conn = new SqlConnection(Utility.GetSqlConnection()))
             {
-                conn.Open();
-                using (var cmd = new SqlCommand("dbo.usp_GetMasterData", conn))
+                _conn.Open();
+                using (var cmd = new SqlCommand("dbo.usp_GetMasterData", _conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add(new SqlParameter { ParameterName = "TableName", Value = TableName, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                    using (var reader = cmd.ExecuteReader())
+                    using (var r = cmd.ExecuteReader())
                     {
-                        dt = new DataTable();
-                        dt.Load(reader);
-                        foreach (DataRow row in dt.Rows)
+                        var t = new DataTable();
+                        t.Load(r);
+                        foreach (DataRow row in t.Rows)
                         {
                             listOption.Add(new OptionModel
                             {
