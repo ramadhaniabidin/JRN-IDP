@@ -186,7 +186,7 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
 
         public void GenerateRDLCBytesReport(DateTime PaymentDate, string Branch, string BankName, string ServerPath, int ItemId, string Tipe, string Title = "")
         {
-            if (ItemId <= 0) throw new ArgumentNullException("Item id cannot null");
+            if (ItemId <= 0) throw new ArgumentNullException("ItemId", "Item Id cannot null");
 
             string HeaderNo = BankName.ToUpper().Contains("MUFG") ? Title : BankName + PaymentDate.ToString("ddMMyyyy");
             string ReferenceCode = PaymentDate.ToString("yyyyMMdd") + "_" + BankName + "_" + Tipe;
