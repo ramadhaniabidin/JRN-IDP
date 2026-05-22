@@ -683,7 +683,5 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
             result.Data = itemInserted + " Item inserted " + itemChanged + " Item changed";
             return result;
         }
-
-        Utility util = new Utility();
     }
 }
