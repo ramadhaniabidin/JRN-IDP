@@ -37,10 +37,10 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
         public DataTable GetDetailMenuByCode(string menu_code)
         {
             DataTable dtMenu = new DataTable();
-            using (SqlConnection conn = new SqlConnection(db.GetSQLConnectionString()))
+            using (SqlConnection _conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                _conn.Open();
+                using (SqlCommand cmd = _conn.CreateCommand())
                 {
                     cmd.CommandText = "[usp_MasterModule_GetByModuleCode]";
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -52,7 +52,6 @@ namespace Daikin.BusinessLogics.Apps.FinanceMenu.Controller
                     }
 
                 }
-                conn.Close();
             }
             return dtMenu;
         }
