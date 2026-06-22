@@ -15,19 +15,27 @@ using System.Web.Script.Serialization;
 using Daikin.BusinessLogics.Common.Model;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Daikin.BusinessLogics.Apps.NonCommercials.Repository;
 
 namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
     public class POContractController
     {
-        private readonly DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db;
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        private readonly SharePointManager sp = new SharePointManager();
+        private readonly SharePointManager sp;
         public string SPList = "Non Commercials";
-        private readonly bool isDev = true;
         private readonly bool configureAwait = false;
+        private readonly POContractRepository repo;
+
+        public POContractController()
+        {
+            db = new DatabaseManager();
+            repo = new POContractRepository(db);
+            sp = new SharePointManager();
+        }
 
         public List<Master.Model.OptionModel> GetContractUserProcDepts()
         {
@@ -190,6 +198,20 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
+        public async Task<List<Master.Model.OptionModel>> GetVendorAsync(string ProcurementDepartment)
+        {
+            string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
+            var list = await repo.GetVendorAsync(ProcurementDepartment, currentLogin).ConfigureAwait(configureAwait);
+            list = list.OrderBy(o => o.Name).ToList();
+            list.Insert(0, new Master.Model.OptionModel
+            {
+                Code = string.Empty,
+                Name = "Please Select",
+                Selected = true
+            });
+            return list;
+        }
+
         public List<Master.Model.OptionModel> GetBranches(string VendorCode, string ProcurementDepartment)
         {
             ContractController cc = new ContractController();
@@ -240,6 +262,19 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
+        public async Task<List<Master.Model.OptionModel>> GetBranchAsync(string VendorCode, string ProcurementDepartment)
+        {
+            string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
+            var list = await repo.GetBranchesAsync(VendorCode, ProcurementDepartment, currentLogin).ConfigureAwait(false);
+            list.Insert(0, new Master.Model.OptionModel
+            {
+                Code = string.Empty,
+                Name = "Please Select",
+                Selected = true
+            });
+            return list;
+        }
+
         public List<POContractDetail> GetContract(string Vendor_Code, string Branch, string Contract_No, string Remarks_Contract, string Procurement_Department)
         {
             try
@@ -265,18 +300,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
                 foreach (DataRow row in dt.Rows)
                 {
+                    int id = Convert.ToInt32(row["ID"]);
                     var data = new POContractDetail();
 
                     data.ID = 0;
-                    data.Contract_ID = Convert.ToInt32(row["ID"]);
+                    data.Contract_ID = id;
+                    data.CT_Number = Convert.ToString(row["CT_Number"]);
                     data.Contract_No = Convert.ToString(row["Contract_No"]);
                     data.Remarks_Contract = Convert.ToString(row["Remarks"]);
                     data.Period_Start = Convert.ToDateTime(row["Period_Start"]);
                     data.Period_End = Convert.ToDateTime(row["Period_End"]);
                     data.Internal_Order_Code = Convert.ToString(row["Internal_Order_Code"]);
                     data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
-                    data.Materials = GetContractDetail(Convert.ToInt32(row["ID"]));
-                    data.Attachments = GetContractAttachment(Convert.ToInt32(row["ID"]));
+                    data.Materials = GetContractDetail(id);
+                    data.Attachments = GetContractAttachmentAsync(id);
+                    //data.Attachments = GetContractAttachment(id);
 
                     listOption.Add(data);
                 }
@@ -585,11 +623,17 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             }
         }
 
+        public List<POContractAttachment> GetContractAttachmentAsync(int Header_Id)
+        {
+            var list = repo.GetContractAttachmentAsync(Header_Id).GetAwaiter().GetResult();
+            return list;
+        }
+
         public POContractHeader Save(POContractHeader h, List<POContractDetail> d, string SiteUrl, string ServerPath, string Form_Status, string Notes)
         {
             try
             {
-                POContractHeader listHeader = new POContractHeader();
+                //POContractHeader listHeader = new POContractHeader();
                 h.Requester_Name = SPContext.Current.Web.CurrentUser.Name;
                 h.Requester_Email = SPContext.Current.Web.CurrentUser.Email;
                 bool isNew = SiteUrl.Contains("3473");
@@ -652,7 +696,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 dt.Load(reader);
                 db.CloseDataReader(reader);
 
-                listHeader = Utility.ConvertDataTableToList<POContractHeader>(dt)[0];
+                var listHeader = Utility.ConvertDataTableToList<POContractHeader>(dt)[0];
                 h.ID = listHeader.ID;
                 h.Created_Date = listHeader.Created_Date;
                 #endregion
@@ -668,7 +712,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     db.cmd.ExecuteNonQuery();
                     #endregion
 
-                    POContractDetail listDetail = new POContractDetail();
+                    //POContractDetail listDetail = new POContractDetail();
                     foreach (POContractDetail detail in d)
                     {
                         #region SAVING DETAIL
@@ -691,7 +735,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         dt.Load(reader);
                         db.CloseDataReader(reader);
 
-                        listDetail = Utility.ConvertDataTableToList<POContractDetail>(dt)[0];
+                        var listDetail = Utility.ConvertDataTableToList<POContractDetail>(dt)[0];
                         detail.ID = listDetail.ID;
                         #endregion
 
