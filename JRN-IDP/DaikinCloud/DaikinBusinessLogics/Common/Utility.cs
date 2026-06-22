@@ -37,58 +37,6 @@ namespace Daikin.BusinessLogics.Common
         /// </summary>
         private static readonly byte[] Salt = Encoding.ASCII.GetBytes(SALT_KEY);
 
-        /// <summary>
-        /// Encrypts any string using the Rijndael algorithm.
-        /// </summary>
-        /// <param name="inputText">The string to encrypt.</param>
-        /// <returns>A Base64 encrypted string.</returns>
-        public static string Encrypt(string inputText)
-        {
-            using (var aes = Aes.Create())
-            {
-                var keyGen = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 100000);
-
-                aes.Key = keyGen.GetBytes(32);
-                aes.IV = keyGen.GetBytes(16);
-
-                using (var memory = new MemoryStream())
-                using (var crypto = new CryptoStream(memory, aes.CreateEncryptor(), CryptoStreamMode.Write))
-                using (var writer = new StreamWriter(crypto, Encoding.Unicode))
-                {
-                    writer.Write(inputText);
-                    writer.Flush();
-                    crypto.FlushFinalBlock();
-                    return Convert.ToBase64String(memory.ToArray());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Decrypts a previously encrypted string.
-        /// </summary>
-        /// <param name="inputText">The encrypted string to decrypt.</param>
-        /// <returns>A decrypted string.</returns>
-        public static string Decrypt(string inputText)
-        {
-            byte[] encryptedText = Convert.FromBase64String(inputText);
-            using (var aes = Aes.Create())
-            {
-                var keyGenerator = new Rfc2898DeriveBytes(ENCRYPTION_KEY, Salt, 100000);
-                aes.Key = keyGenerator.GetBytes(32);
-                aes.IV = keyGenerator.GetBytes(16);
-                using (var memoryStram = new MemoryStream(encryptedText))
-                {
-                    using (var cryptoStream = new CryptoStream(memoryStram, aes.CreateDecryptor(), CryptoStreamMode.Read))
-                    {
-                        using (var reader = new StreamReader(cryptoStream, Encoding.Unicode))
-                        {
-                            return reader.ReadToEnd();
-                        }
-                    }
-                }
-            }
-        }
-
         #endregion
 
         public List<string> ListRemarks(SPWeb web, string Module_Name)
