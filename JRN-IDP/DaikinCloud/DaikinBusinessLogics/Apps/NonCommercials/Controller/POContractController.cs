@@ -39,41 +39,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> GetContractUserProcDepts()
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-            try
-            {
-                dt = new DataTable();
-                #region GET VENDOR
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_GetDepartment";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                #endregion
-
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        listOption.Add(new Master.Model.OptionModel
-                        {
-                            Name = row["Procurement_Department"].ToString()
-                        });
-                    }
-                    listOption = listOption.OrderBy(o => o.Name).ToList();
-                }
-
-                return listOption;
-
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            var options = repo.GetContractUserProcDeptsAsync().GetAwaiter().GetResult();
+            options = options.OrderBy(o => o.Name).ToList();
+            return options;
         }
 
         public async Task<List<Master.Model.OptionModel>> GetContractUserProcDeptsAsync()
