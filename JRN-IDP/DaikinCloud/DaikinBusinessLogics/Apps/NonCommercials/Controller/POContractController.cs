@@ -55,8 +55,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.CloseConnection(ref conn);
                 #endregion
 
-                //Master.Model.OptionModel data = new Master.Model.OptionModel();
-
                 if (dt.Rows.Count > 0)
                 {
                     foreach (DataRow row in dt.Rows)
@@ -598,7 +596,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         {
             try
             {
-                //POContractHeader listHeader = new POContractHeader();
                 h.Requester_Name = SPContext.Current.Web.CurrentUser.Name;
                 h.Requester_Email = SPContext.Current.Web.CurrentUser.Email;
                 bool isNew = SiteUrl.Contains("3473");
@@ -641,7 +638,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 db.AddInParameter(db.cmd, "Requester_Name", h.Requester_Name);
                 db.AddInParameter(db.cmd, "Requester_Email", h.Requester_Email);
                 db.AddInParameter(db.cmd, "Requester_Department", h.Procurement_Department);
-                //db.AddInParameter(db.cmd, "Procurement_Department_ID", h.Procurement_Department_ID);
                 db.AddInParameter(db.cmd, "Procurement_Department", h.Procurement_Department);
                 db.AddInParameter(db.cmd, "Marketing_Category_ID", h.Marketing_Category_ID);
                 db.AddInParameter(db.cmd, "Marketing_Category_Name", h.Marketing_Category_Name);
@@ -677,7 +673,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     db.cmd.ExecuteNonQuery();
                     #endregion
 
-                    //POContractDetail listDetail = new POContractDetail();
                     foreach (POContractDetail detail in d)
                     {
                         #region SAVING DETAIL
@@ -705,11 +700,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                         #endregion
 
                         #region COLLECT PO NUMBER
-                        //string dbName = isDev ? "Daikin_Nintex_Development" : "Daikin_nintex";
-                        //db.cmd.CommandText = $"UPDATE {dbName}.[dbo].[ContractHeader] SET [PO_Number] = [PO_Number]+'" + h.Form_No + ";' WHERE [ID] = " + detail.Contract_ID;
-                        //db.cmd.CommandType = CommandType.Text;
-                        //db.cmd.Parameters.Clear();
-                        //db.cmd.ExecuteNonQuery();
                         UpdatePONumberContract(h.Form_No, (int)detail.Contract_ID);
                         #endregion
 
@@ -747,23 +737,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     }
                     db.CloseConnection(ref conn);
                     #region Trigger WF
-                    //h.Item_ID = SaveSPList(SiteUrl, h, d, Form_Status); //1 Trigger WF
                     if (h.Approval_Status == "1")
                     {
                         #region Old and riskier way to trigger workflow
-                        //startNACNonComWorkflow("PO Contract", "M020", h.ID, (int)h.Item_ID);
-                        //StartData startData = new StartData();
-                        //startData.se_itemid = (int)h.Item_ID;
-                        //startData.se_listname = "PO Contract";
-                        //startData.se_headerid = h.ID;
-                        //startData.se_modulecode = "M020";
-                        //NWCParamModel nwcParamModel = new NWCParamModel();
-                        //nwcParamModel.startData = startData;
-                        //NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                        ////nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/8a6eb64d-43b7-41f8-8ef8-ee7e5c90b2a4/instances?token=AMdaBAo6P3AEmS0pJ9ZAqw8l2Ieq3OjSMhTs8g0FJfYE6Vi8ztkqTyrsWQD1VERi9ycmUz";
-                        //nwc.url = "https://daikin.workflowcloud.com/api/v1/workflow/published/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances?token=GniSz54QFGNBeRa6c0suYL33oZkRFX44jF0hglrl6t5P55STREgkm1kvBG93IpY8MPxCCX";
-                        //nwc.param = nwcParamModel;
-                        //Task.Run(async () => { await StartNWC(nwc); }).Wait();
                         #endregion
                         #region New and better way
                         Task.Run(async () =>
@@ -861,8 +837,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             client.DefaultRequestHeaders
                 .Accept
                 .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
-            //string token = Program.GetToken();
-            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
 
@@ -872,7 +846,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             {
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadAsStringAsync();
-                //return result; //instance guid
             }
 
         }
@@ -965,8 +938,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             int ListItemId = Convert.ToInt32(h.Item_ID); ;
             SPWeb web = new SPSite(SiteUrl).OpenWeb();
             SPList list = web.Lists["PO Contract"];
-            //SPContentType ct = list.ContentTypes["PO Contract"];
-            //SPContentTypeId ctId = ct.Id;
             web.AllowUnsafeUpdates = true;
 
             string Created_By = sp.GetCurrentUserLogin(SiteUrl);
@@ -1004,7 +975,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             item["MKT Category Id"] = h.Marketing_Category_ID;
 
             item["Grand Total"] = h.Grand_Total;
-            //item["ContentTypeId"] = ctId;
             item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
             item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
 
@@ -1058,8 +1028,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             db.cmd.Parameters.Clear();
 
             db.AddInParameter(db.cmd, "Form_No", data.Form_No);
-            // db.AddInParameter(db.cmd, "Request_Date ", Header.Request_Date);
-            // db.AddInParameter(db.cmd, "Procurement_DepartmentID", Header.Procurement_DepartmentID);
             db.AddInParameter(db.cmd, "Procurement_Department", Header.Procurement_Department);
             db.AddInParameter(db.cmd, "Branch", Header.Branch);
             db.AddInParameter(db.cmd, "Vendor_Code", Header.Vendor_Code);
@@ -1083,8 +1051,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             db.AddInParameter(db.cmd, "Item_ID", data.Item_ID);
             int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
             data.ID = Header_ID;
-
-            //data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "1"); //1 Trigger WF
         }
 
         public SAPNonCommercialPODataHeader GetDataSAPNonCommercialPODataHeader(string Form_No)
@@ -1160,16 +1126,11 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 item["Total VAT Amount"] = "0";
                 item["Vendor Appointed"] = Header.Vendor_Name;
                 item["DigiSign_x0020_Attachment_x0020_"] = Header.DigiSign_Attachment_Url;
-
-                // item["Workflow Status"] = "Generated";
-                // item["Approval Status"] = "Generated";
-                // item["MKT Category Id"] = h.Marketing_Category_ID;
             }
             else
             {
                 item = list.GetItemById(ListItemId);
                 if (data.ID > 0) item["Transaction ID"] = data.ID;
-                // item["Form Status"] = "1";
                 item["Grand Total"] = 0;
             }
             item.Update();
@@ -1190,7 +1151,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 int Contract_Amount = Convert.ToInt32(data.WHT) / Convert.ToInt32(data.Qty);
                 xml += "<Item>";
                 xml += "<No type=\"System.String\">" + seq.ToString() + "</No>";
-                //xml += "<Item_Text type=\"System.String\">"+ SecurityElement.Escape(data.Material_Name) +"</Item_Text>";
                 xml += "<Item_Text type=\"System.String\">" + SecurityElement.Escape(data.Text) + "</Item_Text>";
                 xml += "<ddl_MaterialAnaplan type=\"System.String\">" + SecurityElement.Escape(data.Material_Number) + "</ddl_MaterialAnaplan>";
                 xml += "<GL type=\"System.String\">" + SecurityElement.Escape(data.GL_Description) + "</GL>";
@@ -1215,7 +1175,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public void GeneratePOContractRelease()
         {
-            //POWithContractGetRemarks
             try
             {
                 DataTable dt = new DataTable();
