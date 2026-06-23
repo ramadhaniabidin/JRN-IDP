@@ -313,8 +313,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     data.Internal_Order_Code = Convert.ToString(row["Internal_Order_Code"]);
                     data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
                     data.Materials = GetContractDetail(id);
-                    data.Attachments = GetContractAttachmentAsync(id);
-                    //data.Attachments = GetContractAttachment(id);
+                    data.Attachments = GetContractAttachment(id);
 
                     listOption.Add(data);
                 }
@@ -591,39 +590,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         }
 
         public List<POContractAttachment> GetContractAttachment(int Header_Id)
-        {
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractAttachment_List";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Header_Id", Header_Id); //Parameter Contract No
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                #endregion
-
-                if (dt.Rows.Count > 0)
-                {
-                    return Utility.ConvertDataTableToList<POContractAttachment>(dt);
-                }
-                else
-                {
-                    return new List<POContractAttachment>();
-                }
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
-
-        public List<POContractAttachment> GetContractAttachmentAsync(int Header_Id)
         {
             var list = repo.GetContractAttachmentAsync(Header_Id).GetAwaiter().GetResult();
             return list;
@@ -1067,145 +1033,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public POContractHeader GetDataPOContractHeader(string Form_No)
         {
-            POContractHeader listOption = new POContractHeader();
-            try
-            {
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_POContractHeader_GetData";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Form_No", Form_No);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    listOption = Utility.ConvertDataTableToList<POContractHeader>(dt)[0];
-
-                    listOption.Detail = GetDetail(listOption.ID);
-                }
-                else
-                {
-                    listOption = new POContractHeader();
-                }
-
-                return listOption;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            var data = repo.GetPOContractHeaderAsync(Form_No).GetAwaiter().GetResult();
+            return data;
         }
 
         public List<POContractDetail> GetDetail(int Header_ID)
         {
-            List<POContractDetail> listOption = new List<POContractDetail>();
-            try
-            {
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_POContractDetail_ListByID";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Header_ID", Header_ID);
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                POContractDetail data = new POContractDetail();
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    data = new POContractDetail();
-
-                    data.Contract_ID = Convert.ToInt32(row["Contract_ID"]);
-                    data.Contract_No = Convert.ToString(row["Contract_No"]);
-                    data.Create_PO_From_Period = Convert.ToDateTime(row["Create_PO_From_Period"]);
-                    data.Create_PO_To_Period = Convert.ToDateTime(row["Create_PO_To_Period"]);
-                    data.Created_Date = Convert.ToDateTime(row["Created_Date"]);
-                    data.Form_No = Convert.ToString(row["Form_No"]);
-                    data.Header_ID = Convert.ToInt32(row["Header_ID"]);
-                    data.Internal_Order_Code = Convert.ToString(row["Internal_Order_Code"]);
-                    data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
-                    data.ID = Convert.ToInt32(row["ID"]);
-                    data.No = Convert.ToInt32(row["No"]);
-                    data.CT_Number = Convert.ToString(row["CT_Number"]);
-                    //data.Remark = Convert.ToString(row["Remark"]);
-                    data.Show = Convert.ToBoolean(0);
-                    data.Period_Start = Convert.ToDateTime(row["Period_Start"]);
-                    data.Period_End = Convert.ToDateTime(row["Period_End"]);
-                    data.Remarks_Contract = Convert.ToString(row["Remarks_Contract"]);
-
-                    data.Materials = GetMaterial(Convert.ToInt32(row["ID"]));
-                    data.Attachments = GetContractAttachment(Convert.ToInt32(row["Contract_ID"]));
-
-                    listOption.Add(data);
-                }
-
-                return listOption;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            var details = repo.GetPOContractDetailAsync(Header_ID).GetAwaiter().GetResult();
+            return details;
         }
 
         public List<POContractMaterial> GetMaterial(int Detail_ID)
         {
-            List<POContractMaterial> listOption = new List<POContractMaterial>();
-            try
-            {
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_POContractMaterial_ListByID";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Detail_ID", Detail_ID);
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    listOption = Utility.ConvertDataTableToList<POContractMaterial>(dt);
-                }
-                else
-                {
-                    listOption = new List<POContractMaterial>();
-                }
-
-                return listOption;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
+            var materials = repo.GetPOContractMaterialAsync(Detail_ID).GetAwaiter().GetResult();
+            return materials;
         }
-
-        //public void PO_Approval(NintexApprovalModel model)
-        //{
-        //    try
-        //    {
-        //        NintexManager ntx = new NintexManager();
-        //        ntx.Approval(model);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-        //}
 
         public void POContractGeneratePORelease(string Form_No)
         {
