@@ -72,10 +72,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 return listOption;
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -830,10 +829,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 return listHeader;
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -908,127 +906,113 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public int SaveSPList(string SiteUrl, POContractHeader h, List<POContractDetail> d, string Status)
         {
             ContractController cc = new ContractController();
-            try
+            int ListItemId = Convert.ToInt32(h.Item_ID); ;
+            SPWeb web = new SPSite(SiteUrl).OpenWeb();
+            SPList list = web.Lists[SPList];
+            SPContentType ct = list.ContentTypes["PO Contract"];
+            SPContentTypeId ctId = ct.Id;
+            web.AllowUnsafeUpdates = true;
+
+            string Created_By = sp.GetCurrentUserLogin(SiteUrl);
+            h.Created_By = Created_By;
+
+            SPListItem item;
+
+            if (ListItemId == 0)
             {
-                int ListItemId = Convert.ToInt32(h.Item_ID); ;
-                SPWeb web = new SPSite(SiteUrl).OpenWeb();
-                SPList list = web.Lists[SPList];
-                SPContentType ct = list.ContentTypes["PO Contract"];
-                SPContentTypeId ctId = ct.Id;
-                web.AllowUnsafeUpdates = true;
-
-                string Created_By = sp.GetCurrentUserLogin(SiteUrl);
-                h.Created_By = Created_By;
-
-                SPListItem item;
-
-                if (ListItemId == 0)
+                item = list.Items.Add();
+                item["Form Status"] = Status;
+            }
+            else
+            {
+                item = list.GetItemById(ListItemId);
+                if (h.ID > 0)
                 {
-                    item = list.Items.Add();
+                    item["Transaction ID"] = h.ID;
                     item["Form Status"] = Status;
                 }
-                else
-                {
-                    item = list.GetItemById(ListItemId);
-                    if (h.ID > 0)
-                    {
-                        item["Transaction ID"] = h.ID;
-                        item["Form Status"] = Status;
-                    }
-                }
-
-                item["Title"] = h.Form_No;
-
-                item["Request Date"] = h.Created_Date;
-                item["Requester Branch"] = h.Branch;
-                item["Requester Department"] = h.Requester_Department;
-                item["Requester Name"] = h.Requester_Name;
-                item["Requester Email"] = h.Requester_Email;
-                item["Requester Account"] = h.Created_By;
-                item["Procurement_x0020_Department0"] = h.Procurement_Department;
-                item["Procurement_x0020_Department_x00"] = h.Procurement_Department_ID;
-
-                item["Module"] = "M020";
-                item["MKT Category Id"] = h.Marketing_Category_ID;
-
-                item["Grand Total"] = h.Grand_Total;
-                item["ContentTypeId"] = ctId;
-                item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
-                item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
-
-                item.Update();
-                ListItemId = item.ID;
-                web.AllowUnsafeUpdates = false;
-
-                return ListItemId;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+
+            item["Title"] = h.Form_No;
+
+            item["Request Date"] = h.Created_Date;
+            item["Requester Branch"] = h.Branch;
+            item["Requester Department"] = h.Requester_Department;
+            item["Requester Name"] = h.Requester_Name;
+            item["Requester Email"] = h.Requester_Email;
+            item["Requester Account"] = h.Created_By;
+            item["Procurement_x0020_Department0"] = h.Procurement_Department;
+            item["Procurement_x0020_Department_x00"] = h.Procurement_Department_ID;
+
+            item["Module"] = "M020";
+            item["MKT Category Id"] = h.Marketing_Category_ID;
+
+            item["Grand Total"] = h.Grand_Total;
+            item["ContentTypeId"] = ctId;
+            item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
+            item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
+
+            item.Update();
+            ListItemId = item.ID;
+            web.AllowUnsafeUpdates = false;
+
+            return ListItemId;
         }
 
         public int SaveSPListPOContract(string SiteUrl, POContractHeader h, List<POContractDetail> d, string Status)
         {
             ContractController cc = new ContractController();
-            try
+            int ListItemId = Convert.ToInt32(h.Item_ID); ;
+            SPWeb web = new SPSite(SiteUrl).OpenWeb();
+            SPList list = web.Lists["PO Contract"];
+            //SPContentType ct = list.ContentTypes["PO Contract"];
+            //SPContentTypeId ctId = ct.Id;
+            web.AllowUnsafeUpdates = true;
+
+            string Created_By = sp.GetCurrentUserLogin(SiteUrl);
+            h.Created_By = Created_By;
+
+            SPListItem item;
+
+            if (ListItemId == 0)
             {
-                int ListItemId = Convert.ToInt32(h.Item_ID); ;
-                SPWeb web = new SPSite(SiteUrl).OpenWeb();
-                SPList list = web.Lists["PO Contract"];
-                //SPContentType ct = list.ContentTypes["PO Contract"];
-                //SPContentTypeId ctId = ct.Id;
-                web.AllowUnsafeUpdates = true;
-
-                string Created_By = sp.GetCurrentUserLogin(SiteUrl);
-                h.Created_By = Created_By;
-
-                SPListItem item;
-
-                if (ListItemId == 0)
+                item = list.Items.Add();
+                item["Form Status"] = Status;
+            }
+            else
+            {
+                item = list.GetItemById(ListItemId);
+                if (h.ID > 0)
                 {
-                    item = list.Items.Add();
+                    item["Transaction ID"] = h.ID;
                     item["Form Status"] = Status;
                 }
-                else
-                {
-                    item = list.GetItemById(ListItemId);
-                    if (h.ID > 0)
-                    {
-                        item["Transaction ID"] = h.ID;
-                        item["Form Status"] = Status;
-                    }
-                }
-
-                item["Title"] = h.Form_No;
-
-                item["Request Date"] = h.Created_Date;
-                item["Requester Branch"] = h.Branch;
-                item["Requester Department"] = h.Requester_Department;
-                item["Requester Name"] = h.Requester_Name;
-                item["Requester Email"] = h.Requester_Email;
-                item["Requester Account"] = h.Created_By;
-                item["Procurement Department"] = h.Procurement_Department;
-                item["Procurement Department ID"] = h.Procurement_Department_ID;
-
-                item["Module"] = "M020";
-                item["MKT Category Id"] = h.Marketing_Category_ID;
-
-                item["Grand Total"] = h.Grand_Total;
-                //item["ContentTypeId"] = ctId;
-                item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
-                item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
-
-                item.Update();
-                ListItemId = item.ID;
-                web.AllowUnsafeUpdates = false;
-
-                return ListItemId;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+
+            item["Title"] = h.Form_No;
+
+            item["Request Date"] = h.Created_Date;
+            item["Requester Branch"] = h.Branch;
+            item["Requester Department"] = h.Requester_Department;
+            item["Requester Name"] = h.Requester_Name;
+            item["Requester Email"] = h.Requester_Email;
+            item["Requester Account"] = h.Created_By;
+            item["Procurement Department"] = h.Procurement_Department;
+            item["Procurement Department ID"] = h.Procurement_Department_ID;
+
+            item["Module"] = "M020";
+            item["MKT Category Id"] = h.Marketing_Category_ID;
+
+            item["Grand Total"] = h.Grand_Total;
+            //item["ContentTypeId"] = ctId;
+            item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
+            item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
+
+            item.Update();
+            ListItemId = item.ID;
+            web.AllowUnsafeUpdates = false;
+
+            return ListItemId;
         }
 
         public POContractHeader GetDataPOContractHeader(string Form_No)
@@ -1052,62 +1036,55 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public void POContractGeneratePORelease(string Form_No)
         {
             POReleaseHeader data = new POReleaseHeader();
-            try
-            {
-                string SiteUrl = Utility.SpSiteUrl;
+            string SiteUrl = Utility.SpSiteUrl;
 
 
-                var Header = GetDataPOContractHeader(Form_No);
-                data.Form_No = Header.Form_No.Replace("PC", "RC");
+            var Header = GetDataPOContractHeader(Form_No);
+            data.Form_No = Header.Form_No.Replace("PC", "RC");
 
-                data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "-"); //1 Trigger WF
+            data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "-"); //1 Trigger WF
 
-                var SAPData = GetDataSAPNonCommercialPODataHeader(Form_No);
-                data.Purchasing_Document = SAPData.Purchasing_Document;
-                data.Company_Code = SAPData.Company_Code;
-                data.Purchasing_Doc_Type = SAPData.Purchasing_Doc_Type;
-                data.Release_Group = SAPData.Release_Group;
-                data.Release_Strategy = SAPData.Release_Strategy;
+            var SAPData = GetDataSAPNonCommercialPODataHeader(Form_No);
+            data.Purchasing_Document = SAPData.Purchasing_Document;
+            data.Company_Code = SAPData.Company_Code;
+            data.Purchasing_Doc_Type = SAPData.Purchasing_Doc_Type;
+            data.Release_Group = SAPData.Release_Group;
+            data.Release_Strategy = SAPData.Release_Strategy;
 
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_POReleaseHeader_Save";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
+            dt = new DataTable();
+            db.OpenConnection(ref conn);
+            db.cmd.CommandText = "dbo.usp_POReleaseHeader_Save";
+            db.cmd.CommandType = CommandType.StoredProcedure;
+            db.cmd.Parameters.Clear();
 
-                db.AddInParameter(db.cmd, "Form_No", data.Form_No);
-                // db.AddInParameter(db.cmd, "Request_Date ", Header.Request_Date);
-                // db.AddInParameter(db.cmd, "Procurement_DepartmentID", Header.Procurement_DepartmentID);
-                db.AddInParameter(db.cmd, "Procurement_Department", Header.Procurement_Department);
-                db.AddInParameter(db.cmd, "Branch", Header.Branch);
-                db.AddInParameter(db.cmd, "Vendor_Code", Header.Vendor_Code);
-                db.AddInParameter(db.cmd, "Vendor_Name", Header.Vendor_Name);
-                db.AddInParameter(db.cmd, "PO_Header_ID", Header.ID);
-                db.AddInParameter(db.cmd, "PO_Item_ID", Header.Item_ID);
-                db.AddInParameter(db.cmd, "PO_No", Header.Form_No);
-                db.AddInParameter(db.cmd, "Requester_Name", Header.Requester_Name);
-                db.AddInParameter(db.cmd, "Requester_Email", Header.Requester_Email);
-                db.AddInParameter(db.cmd, "Requester_Department", Header.Requester_Department);
+            db.AddInParameter(db.cmd, "Form_No", data.Form_No);
+            // db.AddInParameter(db.cmd, "Request_Date ", Header.Request_Date);
+            // db.AddInParameter(db.cmd, "Procurement_DepartmentID", Header.Procurement_DepartmentID);
+            db.AddInParameter(db.cmd, "Procurement_Department", Header.Procurement_Department);
+            db.AddInParameter(db.cmd, "Branch", Header.Branch);
+            db.AddInParameter(db.cmd, "Vendor_Code", Header.Vendor_Code);
+            db.AddInParameter(db.cmd, "Vendor_Name", Header.Vendor_Name);
+            db.AddInParameter(db.cmd, "PO_Header_ID", Header.ID);
+            db.AddInParameter(db.cmd, "PO_Item_ID", Header.Item_ID);
+            db.AddInParameter(db.cmd, "PO_No", Header.Form_No);
+            db.AddInParameter(db.cmd, "Requester_Name", Header.Requester_Name);
+            db.AddInParameter(db.cmd, "Requester_Email", Header.Requester_Email);
+            db.AddInParameter(db.cmd, "Requester_Department", Header.Requester_Department);
 
-                db.AddInParameter(db.cmd, "Purchasing_Document", data.Purchasing_Document);
-                db.AddInParameter(db.cmd, "Company_Code", data.Company_Code);
-                db.AddInParameter(db.cmd, "Purchasing_Doc_Type ", data.Purchasing_Doc_Type);
-                db.AddInParameter(db.cmd, "Release_Group", data.Release_Group);
-                db.AddInParameter(db.cmd, "Release_Strategy", data.Release_Strategy);
+            db.AddInParameter(db.cmd, "Purchasing_Document", data.Purchasing_Document);
+            db.AddInParameter(db.cmd, "Company_Code", data.Company_Code);
+            db.AddInParameter(db.cmd, "Purchasing_Doc_Type ", data.Purchasing_Doc_Type);
+            db.AddInParameter(db.cmd, "Release_Group", data.Release_Group);
+            db.AddInParameter(db.cmd, "Release_Strategy", data.Release_Strategy);
 
-                db.AddInParameter(db.cmd, "PIC_Team", Header.PIC_Team);
-                db.AddInParameter(db.cmd, "Created_By", Header.Created_By);
-                db.AddInParameter(db.cmd, "Modified_By", Header.Modified_By);
-                db.AddInParameter(db.cmd, "Item_ID", data.Item_ID);
-                int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
-                data.ID = Header_ID;
+            db.AddInParameter(db.cmd, "PIC_Team", Header.PIC_Team);
+            db.AddInParameter(db.cmd, "Created_By", Header.Created_By);
+            db.AddInParameter(db.cmd, "Modified_By", Header.Modified_By);
+            db.AddInParameter(db.cmd, "Item_ID", data.Item_ID);
+            int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
+            data.ID = Header_ID;
 
-                //data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "1"); //1 Trigger WF
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            //data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "1"); //1 Trigger WF
         }
 
         public SAPNonCommercialPODataHeader GetDataSAPNonCommercialPODataHeader(string Form_No)
@@ -1136,78 +1113,70 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     return new SAPNonCommercialPODataHeader();
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public int SaveSPListPORelease(string SiteUrl, POContractHeader Header, POReleaseHeader data, string Status)
         {
             ContractController cc = new ContractController();
-            try
+            int ListItemId = Convert.ToInt32(data.Item_ID);
+            SPWeb web = new SPSite(SiteUrl).OpenWeb();
+            SPList list = web.Lists[SPList];
+            SPContentType ct = list.ContentTypes["PO Release GA IT"];
+            SPContentTypeId ctId = ct.Id;
+            web.AllowUnsafeUpdates = true;
+
+            SPListItem item;
+            string xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><RepeaterData><Version />";
+            xml += "<Items>";
+            xml += "<Item>";
+            xml += "<m_DocType type=\"System.String\">Invoice</m_DocType>";
+            xml += "<m_atc type=\"System.String\"></m_atc>";
+            xml += "</Item>";
+            xml += "</Items>";
+            xml += "</RepeaterData> ";
+
+            if (ListItemId == 0)
             {
-                int ListItemId = Convert.ToInt32(data.Item_ID);
-                SPWeb web = new SPSite(SiteUrl).OpenWeb();
-                SPList list = web.Lists[SPList];
-                SPContentType ct = list.ContentTypes["PO Release GA IT"];
-                SPContentTypeId ctId = ct.Id;
-                web.AllowUnsafeUpdates = true;
+                item = list.Items.Add();
+                item["Title"] = data.Form_No;
 
-                SPListItem item;
-                string xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><RepeaterData><Version />";
-                xml += "<Items>";
-                xml += "<Item>";
-                xml += "<m_DocType type=\"System.String\">Invoice</m_DocType>";
-                xml += "<m_atc type=\"System.String\"></m_atc>";
-                xml += "</Item>";
-                xml += "</Items>";
-                xml += "</RepeaterData> ";
+                item["Request Date"] = DateTime.Now.ToString("M-d-yyyy");
+                item["Requester Branch"] = Header.Branch;
+                item["Module"] = "M018";
+                item["Procurement_x0020_Department0"] = Header.Procurement_Department;
+                item["Request No"] = data.Form_No;
+                item["PO Number"] = Header.Form_No;
+                item["Current Layer"] = "0";
+                item["Details"] = GenerateXML_PORelease(Header.Detail[0].Materials);
+                item["Mandatory Attachment"] = xml;
+                item["Grand Total"] = 0;
+                item["Disc Amount"] = 0;
+                item["Purchasing Document"] = Header.Purchasing_Document;
+                item["ContentTypeId"] = ctId;
+                item["Total Tax Base Amount"] = "0";
+                item["Total VAT Amount"] = "0";
+                item["Vendor Appointed"] = Header.Vendor_Name;
+                item["DigiSign_x0020_Attachment_x0020_"] = Header.DigiSign_Attachment_Url;
 
-                if (ListItemId == 0)
-                {
-                    item = list.Items.Add();
-                    item["Title"] = data.Form_No;
-
-                    item["Request Date"] = DateTime.Now.ToString("M-d-yyyy");
-                    item["Requester Branch"] = Header.Branch;
-                    item["Module"] = "M018";
-                    item["Procurement_x0020_Department0"] = Header.Procurement_Department;
-                    item["Request No"] = data.Form_No;
-                    item["PO Number"] = Header.Form_No;
-                    item["Current Layer"] = "0";
-                    item["Details"] = GenerateXML_PORelease(Header.Detail[0].Materials);
-                    item["Mandatory Attachment"] = xml;
-                    item["Grand Total"] = 0;
-                    item["Disc Amount"] = 0;
-                    item["Purchasing Document"] = Header.Purchasing_Document;
-                    item["ContentTypeId"] = ctId;
-                    item["Total Tax Base Amount"] = "0";
-                    item["Total VAT Amount"] = "0";
-                    item["Vendor Appointed"] = Header.Vendor_Name;
-                    item["DigiSign_x0020_Attachment_x0020_"] = Header.DigiSign_Attachment_Url;
-
-                    // item["Workflow Status"] = "Generated";
-                    // item["Approval Status"] = "Generated";
-                    // item["MKT Category Id"] = h.Marketing_Category_ID;
-                }
-                else
-                {
-                    item = list.GetItemById(ListItemId);
-                    if (data.ID > 0) item["Transaction ID"] = data.ID;
-                    // item["Form Status"] = "1";
-                    item["Grand Total"] = 0;
-                }
-                item.Update();
-                ListItemId = item.ID;
-                web.AllowUnsafeUpdates = false;
-
-                return ListItemId;
+                // item["Workflow Status"] = "Generated";
+                // item["Approval Status"] = "Generated";
+                // item["MKT Category Id"] = h.Marketing_Category_ID;
             }
-            catch (Exception ex)
+            else
             {
-                throw ex;
+                item = list.GetItemById(ListItemId);
+                if (data.ID > 0) item["Transaction ID"] = data.ID;
+                // item["Form Status"] = "1";
+                item["Grand Total"] = 0;
             }
+            item.Update();
+            ListItemId = item.ID;
+            web.AllowUnsafeUpdates = false;
+
+            return ListItemId;
         }
 
 
@@ -1265,10 +1234,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     POContractGeneratePORelease(Form_No);
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
     }
