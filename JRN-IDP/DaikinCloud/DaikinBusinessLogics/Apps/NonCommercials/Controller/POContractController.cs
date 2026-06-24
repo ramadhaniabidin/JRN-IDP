@@ -348,41 +348,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> GetContractRemarks(string Vendor_Code, string Branch, string Procurement_Department)
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_Remarks";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Vendor_Code", Vendor_Code);
-                db.AddInParameter(db.cmd, "Branch", Branch);
-                db.AddInParameter(db.cmd, "Procurement_Department", Procurement_Department);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    var data = new Master.Model.OptionModel();
-                    data.Code = row["Contract_No"].ToString();
-                    data.Name = row["Remarks"].ToString();
-                    listOption.Add(data);
-                }
-
-                #endregion
-                return listOption.OrderBy(o => o.Name).ToList();
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            var remarks = repo.GetContractRemarksAsync(Vendor_Code, Branch, Procurement_Department).GetAwaiter().GetResult();
+            remarks = remarks.OrderBy(r => r.Name).ToList();
+            return remarks;
         }
 
         public List<Master.Model.OptionModel> GetContractRemarksExist(string Vendor_Code, string Branch, string Procurement_Department)
