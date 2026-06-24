@@ -44,137 +44,57 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             return options;
         }
 
-        public async Task<List<Master.Model.OptionModel>> GetContractUserProcDeptsAsync()
-        {
-            using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
-            {
-                await _conn.OpenAsync().ConfigureAwait(configureAwait);
-                using (SqlCommand cmd = new SqlCommand("dbo.usp_ContractHeader_GetDepartment", _conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    using (SqlDataReader _r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
-                    {
-                        var list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
-                        list = list.OrderBy(o => o.Name).ToList();
-                        return list;
-                    }
-                }
-            }
-        }
-
         public List<Master.Model.OptionModel> GetMarketingCategories()
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
+            var options = repo.GetMarketingCategoriesAsync().GetAwaiter().GetResult();
+            options = options.OrderBy(o => o.Name).ToList();
+            return options;
+            //List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
 
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_MasterMarketingCategory_List";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
+            //try
+            //{
+            //    dt = new DataTable();
+            //    #region Validasi Contract No
+            //    db.OpenConnection(ref conn);
+            //    db.cmd.CommandText = "dbo.usp_MasterMarketingCategory_List";
+            //    db.cmd.CommandType = CommandType.StoredProcedure;
+            //    db.cmd.Parameters.Clear();
 
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
+            //    reader = db.cmd.ExecuteReader();
+            //    dt.Load(reader);
+            //    db.CloseDataReader(reader);
+            //    db.CloseConnection(ref conn);
 
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new Master.Model.OptionModel
-                    {
-                        Code = row["ID"].ToString(),
-                        Name = row["Title"].ToString()
-                    });
-                }
+            //    foreach (DataRow row in dt.Rows)
+            //    {
+            //        listOption.Add(new Master.Model.OptionModel
+            //        {
+            //            Code = row["ID"].ToString(),
+            //            Name = row["Title"].ToString()
+            //        });
+            //    }
 
-                #endregion
-                return listOption.OrderBy(o => o.Name).ToList();
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
-
-        public async Task<List<Master.Model.OptionModel>> GetMarketingCategoriesAsync()
-        {
-            using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
-            {
-                await _conn.OpenAsync().ConfigureAwait(configureAwait);
-                using (SqlCommand cmd = new SqlCommand("dbo.usp_MasterMarketingCategory_List", _conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    using (SqlDataReader _r = await cmd.ExecuteReaderAsync().ConfigureAwait(configureAwait))
-                    {
-                        var list = await Utility.MapReaderToList<Master.Model.OptionModel>(_r).ConfigureAwait(configureAwait);
-                        list = list.OrderBy(o => o.Name).ToList();
-                        return list;
-                    }
-                }
-            }
+            //    #endregion
+            //    return listOption.OrderBy(o => o.Name).ToList();
+            //}
+            //finally
+            //{
+            //    db.CloseConnection(ref conn);
+            //}
         }
 
         public List<Master.Model.OptionModel> GetVendor(string ProcurementDepartment)
         {
-            ContractController cc = new ContractController();
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-            try
-            {
-                string SiteUrl = SPContext.Current.Site.Url;
-                string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
-
-                dt = new DataTable();
-                #region GET VENDOR
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_GetVendor";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Procurement_Department", ProcurementDepartment);
-                db.AddInParameter(db.cmd, "Title", currentLogin);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                #endregion
-
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        listOption.Add(new Master.Model.OptionModel
-                        {
-                            Code = row["Vendor_Code"].ToString(),
-                            Name = row["Vendor_Name"].ToString()
-                        });
-                    }
-                    listOption = listOption.OrderBy(o => o.Name).ToList();
-                }
-
-                return listOption;
-
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
-
-        public async Task<List<Master.Model.OptionModel>> GetVendorAsync(string ProcurementDepartment)
-        {
             string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
-            var list = await repo.GetVendorAsync(ProcurementDepartment, currentLogin).ConfigureAwait(configureAwait);
-            list = list.OrderBy(o => o.Name).ToList();
-            list.Insert(0, new Master.Model.OptionModel
+            var options = repo.GetVendorAsync(ProcurementDepartment, currentLogin).GetAwaiter().GetResult();
+            options = options.OrderBy(o => o.Name).ToList();
+            options.Insert(0, new Master.Model.OptionModel
             {
                 Code = string.Empty,
                 Name = "Please Select",
                 Selected = true
             });
-            return list;
+            return options;
         }
 
         public List<Master.Model.OptionModel> GetBranches(string VendorCode, string ProcurementDepartment)
