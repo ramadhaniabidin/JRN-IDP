@@ -99,58 +99,8 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> GetBranches(string VendorCode, string ProcurementDepartment)
         {
-            ContractController cc = new ContractController();
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-            try
-            {
-                string SiteUrl = SPContext.Current.Site.Url;
-                string currentLogin = sp.GetCurrentUserLogin(SiteUrl);
-
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_GetBranch";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Vendor_Code", VendorCode);
-                db.AddInParameter(db.cmd, "Procurement_Department", ProcurementDepartment);
-                db.AddInParameter(db.cmd, "Title", currentLogin);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        listOption.Add(new Master.Model.OptionModel
-                        {
-                            Code = row["Branch"].ToString(),
-                            Name = row["Branch"].ToString()
-                        });
-                    }
-
-                }
-                else
-                {
-                    throw new Exception("Contract data is empty!");
-                }
-
-                return listOption.OrderBy(o => o.Name).ToList();
-                #endregion
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
-
-        public async Task<List<Master.Model.OptionModel>> GetBranchAsync(string VendorCode, string ProcurementDepartment)
-        {
             string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
-            var list = await repo.GetBranchesAsync(VendorCode, ProcurementDepartment, currentLogin).ConfigureAwait(false);
+            var list = repo.GetBranchesAsync(VendorCode, ProcurementDepartment, currentLogin).GetAwaiter().GetResult();
             list.Insert(0, new Master.Model.OptionModel
             {
                 Code = string.Empty,
