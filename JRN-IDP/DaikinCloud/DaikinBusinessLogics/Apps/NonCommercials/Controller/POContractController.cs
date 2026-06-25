@@ -27,7 +27,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         DataTable dt = new DataTable();
         private readonly SharePointManager sp;
         public string SPList = "Non Commercials";
-        private readonly bool configureAwait = false;
         private readonly POContractRepository repo;
 
         public POContractController()
