@@ -111,55 +111,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<POContractDetail> GetContract(string Vendor_Code, string Branch, string Contract_No, string Remarks_Contract, string Procurement_Department)
         {
-            try
+            var contract = repo.GetContractAsync(Vendor_Code, Branch, Contract_No, Remarks_Contract, Procurement_Department).GetAwaiter().GetResult();
+            contract.Materials = repo.GetContractDetailAsync((int)contract.Contract_ID).GetAwaiter().GetResult();
+            return new List<POContractDetail>
             {
-                List<POContractDetail> listOption = new List<POContractDetail>();
-
-                dt = new DataTable();
-                #region GET CONTRACT
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_List";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Vendor_Code", Vendor_Code); //Parameter Contract No
-                db.AddInParameter(db.cmd, "Branch", Branch); //Parameter Contract No
-                db.AddInParameter(db.cmd, "Contract_No", Contract_No); //Parameter Contract No
-                db.AddInParameter(db.cmd, "Remarks_Contract", Remarks_Contract); //Parameter Contract No
-                db.AddInParameter(db.cmd, "Procurement_Department", Procurement_Department); //Parameter Contract No
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    int id = Convert.ToInt32(row["ID"]);
-                    var data = new POContractDetail();
-
-                    data.ID = 0;
-                    data.Contract_ID = id;
-                    data.CT_Number = Convert.ToString(row["CT_Number"]);
-                    data.Contract_No = Convert.ToString(row["Contract_No"]);
-                    data.Remarks_Contract = Convert.ToString(row["Remarks"]);
-                    data.Period_Start = Convert.ToDateTime(row["Period_Start"]);
-                    data.Period_End = Convert.ToDateTime(row["Period_End"]);
-                    data.Internal_Order_Code = Convert.ToString(row["Internal_Order_Code"]);
-                    data.Internal_Order_Name = Convert.ToString(row["Internal_Order_Name"]);
-                    data.Materials = GetContractDetail(id);
-                    data.Attachments = GetContractAttachment(id);
-
-                    listOption.Add(data);
-                }
-
-                #endregion
-
-                return listOption;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+                contract
+            };
         }
 
         public List<MasterMappingCostCenter> GetCostCenter(string Branch)
