@@ -111,8 +111,9 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<POContractDetail> GetContract(string Vendor_Code, string Branch, string Contract_No, string Remarks_Contract, string Procurement_Department)
         {
-            var contract = repo.GetContractAsync(Vendor_Code, Branch, Contract_No, Remarks_Contract, Procurement_Department).GetAwaiter().GetResult();
-            contract.Materials = repo.GetContractDetailAsync((int)contract.Contract_ID).GetAwaiter().GetResult();
+            var contract = repo.GetContract(Vendor_Code, Branch, Contract_No, Remarks_Contract, Procurement_Department);
+            contract.Materials = GetContractDetail((int)contract.Contract_ID);
+            contract.Attachments = GetContractAttachment((int)contract.Contract_ID);
             return new List<POContractDetail>
             {
                 contract
@@ -121,97 +122,12 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<MasterMappingCostCenter> GetCostCenter(string Branch)
         {
-            List<MasterMappingCostCenter> listOption = new List<MasterMappingCostCenter>();
-
-            try
-            {
-                dt = new DataTable();
-                #region GET CONTRACT
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_MasterMappingCostCenter_GetOptions";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Branch", Branch); //Parameter Contract No
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    var data = new MasterMappingCostCenter();
-
-                    data.ID = Convert.ToInt32(row["ID"]);
-                    data.Cost_Center = Convert.ToString(row["Cost_Center"]);
-                    data.Description = Convert.ToString(row["Description"]);
-                    data.Business_Area = Convert.ToString(row["Business_Area"]);
-                    data.Branch = Convert.ToString(row["Branch"]);
-                    data.Combine = Convert.ToString(row["Combine"]);
-                    data.Code = Convert.ToString(row["Cost_Center"]);
-                    data.Name = Convert.ToString(row["Combine"]);
-
-                    listOption.Add(data);
-                }
-
-                #endregion
-
-                return listOption;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            return repo.GetCostCenter(Branch);
         }
 
         public List<POContractMaterial> GetContractDetail(int Header_Id)
         {
-            List<POContractMaterial> listOption = new List<POContractMaterial>();
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractDetail_List";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Header_Id", Header_Id); //Parameter Contract No
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                #endregion
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    var data = new POContractMaterial();
-
-                    data.Contract_Detail_Id = Convert.ToInt32(row["ID"]);
-                    data.Contract_ID = Convert.ToInt32(row["Header_ID"]);
-                    data.Contract_No = Convert.ToString(row["Contract_No"]);
-                    data.No = Convert.ToInt32(row["No"]);
-                    data.Material_Number = Convert.ToString(row["Material_Number"]);
-                    data.Material_Name = Convert.ToString(row["Material_Name"]);
-                    data.Material_Description = Convert.ToString(row["Material_Description"]);
-                    data.GL = Convert.ToString(row["GL"]);
-                    data.GL_Description = Convert.ToString(row["GL_Description"]);
-                    data.Variable_Amount = Convert.ToBoolean(row["Variable_Amount"]);
-                    data.Contract_Amount = Convert.ToDecimal(row["Contract_Amount"]);
-
-                    data.CostCenter.Code = "";
-                    data.CostCenter.Name = "Please Select";
-                    data.CostCenter.Selected = true;
-
-                    listOption.Add(data);
-                }
-
-                return listOption;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            return repo.GetContractDetail(Header_Id);
         }
 
         public List<Master.Model.OptionModel> GetContractHeaderVendorByOption(string Vendor_Code)
@@ -350,8 +266,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<POContractAttachment> GetContractAttachment(int Header_Id)
         {
-            var list = repo.GetContractAttachmentAsync(Header_Id).GetAwaiter().GetResult();
-            return list;
+            return repo.GetContractAttachment(Header_Id);
         }
 
         public POContractHeader Save(POContractHeader h, List<POContractDetail> d, string SiteUrl, string ServerPath, string Form_Status, string Notes)
