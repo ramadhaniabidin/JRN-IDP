@@ -422,27 +422,43 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public TaskResponse GetTasks(string NAC_Guid)
+        public TaskResponse GetTasks(string Instance_ID)
         {
-            string queryParam = $"?from=2025-02-01&workflowInstanceId={NAC_Guid}";
+            string queryParam = $"?from=2025-02-01&workflowInstanceId={Instance_ID}";
             string url = $"{NAC_TASK_URL}{queryParam}";
-            return Task.Run(async () =>
+
+            // 1. Initialize the request synchronously
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "GET";
+            request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {GetToken()}");
+
+            try
             {
-                using (var request = new HttpRequestMessage(HttpMethod.Get, url))
+                // 2. Execute the request synchronously
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var responseStream = response.GetResponseStream())
+                using (var reader = new StreamReader(responseStream))
                 {
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", GetToken());
-                    using (var response = await client.SendAsync(request))
+                    string responseJson = reader.ReadToEnd();
+                    var taskResponse = serializer.Deserialize<TaskResponse>(responseJson);
+                    return taskResponse;
+                }
+            }
+            catch (WebException webEx)
+            {
+                string errorDetails = string.Empty;
+                if (webEx.Response != null)
+                {
+                    using (var errorStream = webEx.Response.GetResponseStream())
+                    using (var reader = new StreamReader(errorStream))
                     {
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            throw new HttpRequestException($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                        }
-                        string responseJson = await response.Content.ReadAsStringAsync();
-                        var taskResponse = serializer.Deserialize<TaskResponse>(responseJson);
-                        return taskResponse;
+                        errorDetails = reader.ReadToEnd();
                     }
                 }
-            }).GetAwaiter().GetResult();
+
+                // Re-throwing as HttpRequestException (or similar) to match your legacy exception contract
+                throw new HttpRequestException($"Error: {webEx.Status} - {errorDetails}", webEx);
+            }
         }
 
         public TaskAssignmentResponseModel GetTaskAssignment(string Instance_ID, string Transaction_No)
