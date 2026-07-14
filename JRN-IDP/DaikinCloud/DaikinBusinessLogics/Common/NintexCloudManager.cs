@@ -626,28 +626,6 @@ namespace Daikin.BusinessLogics.Common
             return nwc;
         }
 
-        public Dictionary<string, object> GenerateNACRequest(NintexWorkflowCloud nwc, string endpoint)
-        {
-            string token = GetToken();
-            string requestBody = new JavaScriptSerializer().Serialize(nwc.param);
-            HttpClient client = new HttpClient
-            {
-                BaseAddress = new Uri(nwc.url)
-            };
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-            client.BaseAddress = new Uri(nwc.url);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint)
-            {
-                Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE)
-            };
-            return new Dictionary<string, object>
-                {
-                    {"Request", request},
-                    {"Client", client }
-                };
-        }
-
         public string NonCommercial_StartWorkflow(int Item_ID, int Header_ID, string Module_Code, string List_Name)
         {
             var payload = NonCommNACPayload(Header_ID, Item_ID, Module_Code, List_Name);
