@@ -589,21 +589,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public IEnumerable<dynamic> GetFailedInstanceByDocNo(string DocNo)
-        {
-            string token = GetToken1();
-            string workflow_id = GetNacInfo("PO_Subcon_WF_ID");
-            string url = $"https://au.nintex.io/workflows/v2/designs/{workflow_id}/instances?status=Failed&order=ASC";
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
-                var response = client.GetAsync(url).Result;
-                var responseJson = response.Content.ReadAsStringAsync().Result;
-                dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-                return responseObject;
-            }
-        }
-
         public string GetToken1()
         {
             string url = GetNacInfo("token_url");
