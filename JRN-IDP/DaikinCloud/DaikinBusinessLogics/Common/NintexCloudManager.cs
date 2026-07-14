@@ -172,48 +172,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public IEnumerable<dynamic> GetTasks()
-        {
-            string url = System.Configuration.ConfigurationManager.AppSettings["NAC:task_url"].ToString();
-            string token = GetToken();
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
-            var response = client.GetAsync(url).Result;
-            var responseJson = response.Content.ReadAsStringAsync().Result;
-            dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-            var tasks = responseObject.tasks;
-            return tasks;
-        }
-
-        public IEnumerable<dynamic> GetTasks(string token, string instance_id)
-        {
-            string queryParam = $"?from=2025-02-01&workflowInstanceId={instance_id}";
-            string url = $"{NAC_TASK_URL}{queryParam}";
-            return Task.Run(async () =>
-            {
-                using (var request = new HttpRequestMessage(HttpMethod.Get, url))
-                {
-                    request.Headers.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-                    var response = await client.SendAsync(request);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return Enumerable.Empty<dynamic>();
-                    }
-                    var responseJson = await response.Content.ReadAsStringAsync();
-                    var responseObject = serializer.Deserialize<Dictionary<string, object>>(responseJson);
-
-                    if (responseObject != null && responseObject.ContainsKey("tasks"))
-                    {
-                        return (IEnumerable<dynamic>)responseObject["tasks"];
-                    }
-
-                    return Enumerable.Empty<dynamic>();
-                }
-            }).GetAwaiter().GetResult();
-        }
-
         public static bool IsCurrentApprover(string FullName, string ModuleCode, string TransactionNumber)
         {
             int count = 0;
