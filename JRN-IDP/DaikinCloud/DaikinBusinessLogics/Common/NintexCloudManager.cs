@@ -652,7 +652,7 @@ namespace Daikin.BusinessLogics.Common
                 };
                 string endpoint = "/workflows/v1/designs/" + WorkflowId + "/instances";
                 var client1 = new HttpClient();
-                client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
+                client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, await GetTokenAsync());
                 client1.BaseAddress = new Uri(nwc.url);
                 client1.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -888,7 +888,7 @@ namespace Daikin.BusinessLogics.Common
 
         public async Task PAL_StartWorkflow(int Item_ID, string Module_Code)
         {
-            var param = GenerateNACPayload(0, Item_ID, Module_Code, "");
+            var param = await GenerateNACPayloadAsync(0, Item_ID, Module_Code, "");
             await StartNWC(param);
         }
 
