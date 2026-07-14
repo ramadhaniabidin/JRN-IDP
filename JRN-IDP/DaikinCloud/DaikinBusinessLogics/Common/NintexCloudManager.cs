@@ -365,9 +365,9 @@ namespace Daikin.BusinessLogics.Common
                 string token = GetToken();
                 string queryParam = $"?from=2024-01-01&workflowInstanceId={NAC_Guid}";
                 string url = $"{NAC_TASK_URL}{queryParam}";
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
-                var response = client.GetAsync(url);
+                HttpClient client1 = new HttpClient();
+                client1.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
+                var response = client1.GetAsync(url);
                 var responseJson = response.Result.Content.ReadAsStringAsync().Result;
                 dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
                 var tasks = responseObject["tasks"];
@@ -679,24 +679,6 @@ namespace Daikin.BusinessLogics.Common
                 StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"General error: {ex.Message}", -1);
                 throw;
             }
-        }
-
-        public NintexWorkflowCloud NonComm_GenerateNACPayload(int Header_ID, int Item_ID, string Module_Code, string List_Name)
-        {
-            return new NintexWorkflowCloud
-            {
-                param = new NWCParamModel
-                {
-                    startData = new StartData
-                    {
-                        se_headerid = Header_ID,
-                        se_itemid = Item_ID,
-                        se_modulecode = Module_Code,
-                        se_listname = List_Name
-                    }
-                },
-                url = NACBaseURL
-            };
         }
 
         public NintexWorkflowCloud GenerateNACPayload(int HeaderID, int ItemID, string ModuleCode, string ListName, string PoNumber = "")
