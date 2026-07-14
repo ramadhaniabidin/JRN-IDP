@@ -1134,24 +1134,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public async Task Trigger_GetAttachment_Workflow(NintexWorkflowCloud nwcModel)
-        {
-            Console.WriteLine("Begin retriggering stopped approval workflow");
-            nwcModel.url = NACBaseURL;
-            string token = GetToken();
-            string requestBody = serializer.Serialize(nwcModel.param);
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-            client.BaseAddress = new Uri(nwcModel.url);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, GetAttachmentWorkflowURL);
-            request.Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE);
-            using (var response = await client.SendAsync(request))
-            {
-                response.EnsureSuccessStatusCode();
-            }
-        }
-
         public void StartNAC_InsertLog(string Module_Code, int Item_ID, int Transaction_ID, string Instance_ID, string Sys_Message, int Trigger_Status)
         {
             using (var _conn = new SqlConnection(db.GetSQLConnectionString()))
