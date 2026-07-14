@@ -281,43 +281,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public CommonResponseModel CompleteNACTask(string approval_value, string approval_responder, TaskResponse task)
-        {
-            try
-            {
-                string token = GetToken();
-                string task_id = task.Tasks[0].Id;
-                var assignment = task.Tasks[0].TaskAssignments.FirstOrDefault(t => t.Assignee.ToLower().Contains(approval_responder.ToLower()));
-                string assignment_id = assignment.Id;
-                string url = $"https://au.nintex.io/workflows/v2/tasks/{task_id}/assignments/{assignment_id}";
-                return Task.Run(async () =>
-                {
-                    using (var request = new HttpRequestMessage(new HttpMethod("PATCH"), url))
-                    {
-                        request.Headers.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-                        using (var response = await client.SendAsync(request))
-                        {
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                throw new HttpRequestException($"Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                            }
-                            string responseJson = await response.Content.ReadAsStringAsync();
-                            return new CommonResponseModel
-                            {
-                                Success = response.IsSuccessStatusCode,
-                                Message = response.IsSuccessStatusCode ? "OK" : $"Failed to complete NAC Task | {responseJson}"
-                            };
-                        }
-                    }
-                }).GetAwaiter().GetResult();
-
-            }
-            catch (Exception ex)
-            {
-                return new CommonResponseModel { Success = false, Message = $"Error occurred at CompleteNACTask method | {ex.Message}" };
-            }
-        }
-
         public static CurrentApproverModel NonCommercial_GetCurrentApprover(string listName, int itemID)
         {
             SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
