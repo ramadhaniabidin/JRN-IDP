@@ -279,28 +279,6 @@ namespace Daikin.BusinessLogics.Common
             {
                 return new CommonResponseModel { Success = false, Message = $"Error occurred at CompleteNACTask method | {ex.Message}" };
             }
-            #region Commented out code
-            //try
-            //{
-            //    string token = GetToken();
-            //    var stringContent = GenerateApprovalPayload(approval_value);
-            //    string url = $"https://au.nintex.io/workflows/v2/tasks/{task_id}/assignments/{assignment_id}";
-            //    HttpClient client = new HttpClient();
-            //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-            //    var request = new HttpRequestMessage(new HttpMethod("PATCH"), url);
-            //    request.Content = stringContent;
-            //    var response = client.SendAsync(request).Result;
-            //    return new CommonResponseModel
-            //    {
-            //        Success = response.IsSuccessStatusCode,
-            //        Message = response.IsSuccessStatusCode ? "OK" : $"Failed to complete NAC Task | {response.Content.ReadAsStringAsync().Result}"
-            //    };
-            //}
-            //catch (Exception ex)
-            //{
-            //    return new CommonResponseModel { Success = false, Message = $"Error occurred at CompleteNACTask method | {ex.Message}" };
-            //}
-            #endregion
         }
 
         public CommonResponseModel CompleteNACTask(string approval_value, string approval_responder, TaskResponse task)
@@ -478,7 +456,6 @@ namespace Daikin.BusinessLogics.Common
         {
             try
             {
-                //var tasks = GetTask_ByInstanceID_Async(Instance_ID).GetAwaiter().GetResult();
                 var tasks = Task.Run(async () =>
                 {
                     return await GetTask_ByInstanceID_Async(Instance_ID);
@@ -715,45 +692,6 @@ namespace Daikin.BusinessLogics.Common
             var payload = NonCommNACPayload(Header_ID, Item_ID, Module_Code, List_Name);
             TriggerWorkflow(payload);
             return "OK";
-
-            //try
-            //{
-            //    NintexWorkflowCloud nwc = NonCommercial_GenerateNACPayload(Item_ID, Header_ID, Module_Code, List_Name);
-            //    string endpoint = "/workflows/v1/designs/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances";
-            //    var clientRequestPair = GenerateNACRequest(nwc, endpoint);
-            //    HttpClient client = (HttpClient)clientRequestPair["Client"];
-            //    HttpRequestMessage request = (HttpRequestMessage)clientRequestPair["Request"];
-            //    using (client)
-            //    using (request)
-            //    using (var response = await client.SendAsync(request))
-            //    {
-            //        response.EnsureSuccessStatusCode();
-            //        if (response.IsSuccessStatusCode)
-            //        {
-            //            var result = await response.Content.ReadAsStringAsync();
-            //            StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, result, "OK", 1);
-            //            return result;
-            //        }
-            //        else
-            //        {
-            //            string errorContent = response.Content.ReadAsStringAsync().Result;
-            //            StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", errorContent, -1);
-            //            return "{}";
-            //        }
-            //    }
-            //}
-            //catch (HttpRequestException httpEx)
-            //{
-            //    Console.WriteLine($"Request error: {httpEx.Message}");
-            //    StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", httpEx.Message, -1);
-            //    return httpEx.Message;
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"General error: {ex.Message}");
-            //    StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", ex.Message, -1);
-            //    return ex.Message;
-            //}
         }
 
         public async Task Commercial_StartWorkflow(int Item_ID, int Header_ID, string Module_Code, string WorkflowId)
@@ -831,100 +769,6 @@ namespace Daikin.BusinessLogics.Common
             else if ((ModuleCode == "M027" || ModuleCode == "M028")) return AffiliatePayload(ItemID, ModuleCode);
             else if (ModuleCode == "M019-01") return GetAttachmentPayload(ItemID, PoNumber);
             return ClaimReimbursementPayload(ItemID, ModuleCode);
-
-            #region Commented-out code
-            //#region Non Commercials
-            //if (nonCommercials.Contains(ModuleCode))
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData
-            //            {
-            //                se_headerid = HeaderID,
-            //                se_itemid = ItemID,
-            //                se_modulecode = ModuleCode,
-            //                se_listname = ListName
-            //            }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-            //#region Commercial Subcon
-            //else if (ModuleCode == "M019")
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData { se_itemid = ItemID, se_modulecode = ModuleCode }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-            //#region SAP Business Partners
-            //else if (ModuleCode == "M029" || ModuleCode == "M030")
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData { se_itemid = ItemID, se_modulecode = ModuleCode }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-            //#region Affiliate Claim & Not Claim
-            //else if ((ModuleCode == "M027" || ModuleCode == "M028"))
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData { se_headerid = ItemID, se_tablename = ModuleCode }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-            //#region PO Subcon Get Attachment From SF
-            //else if (ModuleCode == "M019-01")
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData { se_itemid = ItemID, se_ponumber = PoNumber }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-            //#region Claim Reimbursement
-            //else
-            //{
-            //    return new NintexWorkflowCloud
-            //    {
-            //        param = new NWCParamModel
-            //        {
-            //            startData = new StartData { se_itemid = ItemID, se_tablename = ModuleCode }
-            //        },
-            //        url = NACBaseURL,
-            //        endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(ModuleCode)}/instances"
-            //    };
-            //}
-            //#endregion
-
-            #endregion
         }
 
         public async Task<NintexWorkflowCloud> GenerateNACPayloadAsync(int HeaderID, int ItemID, string ModuleCode, string ListName, string PoNumber = "")
@@ -1170,7 +1014,6 @@ namespace Daikin.BusinessLogics.Common
                 nwc.param.startData.se_listname = List_Name;
 
                 nwc.url = NACBaseURL;
-                //string endpoint = "/workflows/v1/designs/a8091cb6-6bd4-42e8-b8b9-be00e066574f/instances";         // prod
                 string endpoint = "/workflows/v1/designs/d6f0b3f9-50d1-46b6-abdc-46b8252dd3b7/instances";         // dev
                 string token = GetToken();
                 Console.WriteLine(token);
@@ -1195,7 +1038,6 @@ namespace Daikin.BusinessLogics.Common
                         string errorContent = response.Content.ReadAsStringAsync().Result;
                         StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", errorContent, -1);
                     }
-                    //return result; //instance guid
                 }
             }
             catch (HttpRequestException httpEx)
@@ -1350,31 +1192,6 @@ namespace Daikin.BusinessLogics.Common
             int status = 0;
             try
             {
-                #region commented-out code
-                //string sBody = serializer.Serialize(nwc.param);
-                //HttpClient client = new HttpClient();
-                //client.BaseAddress = new Uri(nwc.url);
-                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetToken_DaikinNAC());
-                //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.endpoint);
-                //request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-                //using (var response = await client.SendAsync(request))
-                //{
-                //    response.EnsureSuccessStatusCode();
-                //    if (response.IsSuccessStatusCode)
-                //    {
-                //        var result = await response.Content.ReadAsStringAsync();
-                //        StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, 
-                //            nwc.param.startData.se_headerid, result, "OK", 1, _conn, _trans);
-                //    }
-                //    else
-                //    {
-                //        string errorContent = response.Content.ReadAsStringAsync().Result;
-                //        StartNAC_InsertLog(nwc.param.startData.se_modulecode, nwc.param.startData.se_itemid, 
-                //            nwc.param.startData.se_headerid, "-", errorContent, -1, _conn, _trans);
-                //    }
-                //}
-                #endregion
                 string endpoint = nwc.url.TrimEnd('/') + "/" + nwc.endpoint.TrimStart('/');
                 string requestBody = serializer.Serialize(nwc.param);
                 using (var request = new HttpRequestMessage(HttpMethod.Post, endpoint))
