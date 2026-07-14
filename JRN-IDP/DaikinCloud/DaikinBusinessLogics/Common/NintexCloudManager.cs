@@ -940,59 +940,6 @@ namespace Daikin.BusinessLogics.Common
             await StartNWC(param);
         }
 
-        public async Task NonCommercial_StartWorkflow_V2(int Item_ID, int Header_ID, string Module_Code, string List_Name)
-        {
-            try
-            {
-                NintexWorkflowCloud nwc = new NintexWorkflowCloud();
-                nwc.param = new NWCParamModel();
-                nwc.param.startData = new StartData();
-                nwc.param.startData.se_itemid = Item_ID;
-                nwc.param.startData.se_headerid = Header_ID;
-                nwc.param.startData.se_modulecode = Module_Code;
-                nwc.param.startData.se_listname = List_Name;
-
-                nwc.url = NACBaseURL;
-                string endpoint = "/workflows/v1/designs/d6f0b3f9-50d1-46b6-abdc-46b8252dd3b7/instances";         // dev
-                string token = GetToken();
-                Console.WriteLine(token);
-                string requestBody = new JavaScriptSerializer().Serialize(nwc.param);
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, token);
-                client.BaseAddress = new Uri(nwc.url);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Content = new StringContent(requestBody, Encoding.UTF8, CONTENT_TYPE);
-                using (var response = await client.SendAsync(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await response.Content.ReadAsStringAsync();
-                        StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, result, "OK", 1);
-                    }
-                    else
-                    {
-                        string errorContent = response.Content.ReadAsStringAsync().Result;
-                        StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", errorContent, -1);
-                    }
-                }
-            }
-            catch (HttpRequestException httpEx)
-            {
-                Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"Request error: {httpEx.Message}", -1);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, "-", $"General error: {ex.Message}", -1);
-                throw;
-            }
-        }
-
         public void TriggerWorkflow(NintexWorkflowCloud Payload)
         {
             string result = "";
