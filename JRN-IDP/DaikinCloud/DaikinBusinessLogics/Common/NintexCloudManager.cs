@@ -589,30 +589,6 @@ namespace Daikin.BusinessLogics.Common
             }
         }
 
-        public string GetToken1()
-        {
-            string url = GetNacInfo("token_url");
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HttpClient client = new HttpClient();
-
-            var requestBody = new
-            {
-                client_id = GetNacInfo("client_id"),
-                client_secret = GetNacInfo("client_secret"),
-                grant_type = GetNacInfo("grant_type")
-            };
-            var jsonBody = new JavaScriptSerializer().Serialize(requestBody);
-            var HttpContent = new StringContent(jsonBody, Encoding.UTF8, CONTENT_TYPE);
-            var response = client.PostAsync(url, HttpContent).Result;
-            var responseJson = response.Content.ReadAsStringAsync().Result;
-            var responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
-            string accessToken = responseObject["access_token"];
-
-
-            return accessToken;
-        }
-
         public string GetNacInfo(string key)
         {
             string info = "";
