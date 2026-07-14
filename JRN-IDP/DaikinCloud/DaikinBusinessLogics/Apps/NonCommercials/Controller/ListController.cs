@@ -8,15 +8,25 @@ using System.Text;
 using System.Threading.Tasks;
 using Daikin.BusinessLogics.Apps.Master.Model;
 using Microsoft.SharePoint;
+using Daikin.BusinessLogics.Apps.NonCommercials.Repository;
 
 namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
     public class ListController
     {
-        private readonly DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db;
+        private readonly ListRepository repo;
         SqlConnection conn = new SqlConnection();
         private readonly SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager ntx = new NintexCloudManager();
+        private readonly string connString;
+
+        public ListController()
+        {
+            db = new DatabaseManager();
+            connString = db.GetSQLConnectionString();
+            repo = new ListRepository(db);
+        }
 
         private Common.Model.CurrentApproverModel GetCurrentApprover(string List_Name, int Item_ID)
         {
@@ -111,6 +121,65 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             return approver;
         }
 
+        public async Task<Common.Model.CurrentApproverModel> ApproveRequestAsync(Common.Model.ApprovalActionModel model)
+        {
+            Common.Model.CurrentApproverModel approver = GetCurrentApprover(model.ListName, model.ItemId);
+            var tasks = await ntx.GetTask_ByInstanceID_Async(model.InstanceId).ConfigureAwait(false);
+            var task = tasks.Tasks[0];
+            var targetAssignment = task.TaskAssignments.FirstOrDefault(a => a.Assignee.ToLower().Contains(approver.Email.ToLower()));
+
+            await ntx.CompleteNACTaskAsync(model.ApprovalValue, task.Id, targetAssignment.Id).ConfigureAwait(false);
+
+            await UpdateApprovalAsync(model, approver).ConfigureAwait(false);
+
+            return approver;
+        }
+
+        public void ApproveRequest(Common.Model.ApprovalActionModel model)
+        {
+            var tasks = ntx.GetTasks(model.InstanceId);
+            var task = tasks.Tasks[0];
+            var targetAssignment = task.TaskAssignments.FirstOrDefault(a => a.Assignee.ToLower().Contains(model.ApproverEmail.ToLower()));
+            repo.UpdateApproval(model, new Common.Model.CurrentApproverModel
+            {
+                Email = model.ApproverEmail,
+                FullName = model.ApproverFullName,
+                UserName = model.ApproverUserName
+            });
+            ntx.CompleteNACTask(model.ApprovalValue, task.Id, targetAssignment.Id);
+        }
+
+        private async Task UpdateApprovalAsync(Common.Model.ApprovalActionModel model, Common.Model.CurrentApproverModel Approver)
+        {
+            using (var _conn = new SqlConnection(connString))
+            {
+                await _conn.OpenAsync().ConfigureAwait(false);
+                using (var _trans = _conn.BeginTransaction())
+                {
+                    if (model.ListName.ToUpper().Contains("CONTRACT"))
+                    {
+                        await CustomFormUpdateApproverAsync(model.HeaderId, model.ListName, Approver.UserName, Approver.FullName, model.Comments, _conn, _trans).ConfigureAwait(false);
+                    }
+                    var log = GenerateInsertLogData(model.ListName, model.Comments, model.ApprovalValue, model.ItemId, Approver);
+                    await InsertLogAsync(log, _conn, _trans).ConfigureAwait(false);
+                    _trans.Commit();
+                }
+            }
+        }
+
+        private ClaimReimbursement.Model.InsertHistoryLogModel GenerateInsertLogData(string ListName, string Comments, string ApprovalValue, int ListItemId, Common.Model.CurrentApproverModel Approver)
+        {
+            return new ClaimReimbursement.Model.InsertHistoryLogModel
+            {
+                List_Name = ListName,
+                Comments = Comments,
+                Action_Id = ConvertApprovalValue(ApprovalValue),
+                Item_ID = ListItemId,
+                Personal_Account = Approver.UserName,
+                Personal_Name = Approver.FullName
+            };
+        }
+
         private void InsertLog(ClaimReimbursement.Model.InsertHistoryLogModel Log, SqlConnection Conn, SqlTransaction Trans)
         {
             using (var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", Conn, Trans))
@@ -123,6 +192,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 cmd.Parameters.Add(db.AddInParameter("CurrLoginName", Log.Personal_Name));
                 cmd.Parameters.Add(db.AddInParameter("Comment", Log.Comments));
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        private async Task InsertLogAsync(ClaimReimbursement.Model.InsertHistoryLogModel Log, SqlConnection Conn, SqlTransaction Trans)
+        {
+            using (var cmd = new SqlCommand("usp_NonComm_InsertApprovalLog", Conn, Trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(db.AddInParameter("ListName", Log.List_Name));
+                cmd.Parameters.Add(db.AddInParameter("ListItemID", Log.Item_ID));
+                cmd.Parameters.Add(db.AddInParameter("Action", Log.Action_Id));
+                cmd.Parameters.Add(db.AddInParameter("CurrentLogin", Log.Personal_Account));
+                cmd.Parameters.Add(db.AddInParameter("CurrLoginName", Log.Personal_Name));
+                cmd.Parameters.Add(db.AddInParameter("Comment", Log.Comments));
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
@@ -167,25 +251,27 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<OptionModel> GetPendingApproverRoles(string Module_ID)
         {
-            var dt = new DataTable();
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_NonCommercials_ListPendingApproverRoles";
-                db.cmd.CommandType = CommandType.StoredProcedure;
+            var list = repo.GetPendingApproverRoles(Module_ID).GetAwaiter().GetResult();
+            return list;
+            //var dt = new DataTable();
+            //try
+            //{
+            //    db.OpenConnection(ref conn);
+            //    db.cmd.CommandText = "usp_NonCommercials_ListPendingApproverRoles";
+            //    db.cmd.CommandType = CommandType.StoredProcedure;
 
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Module_ID", Module_ID);
+            //    db.cmd.Parameters.Clear();
+            //    db.AddInParameter(db.cmd, "Module_ID", Module_ID);
 
-                var reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<OptionModel>(dt) : new List<OptionModel>();
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            //    var reader = db.cmd.ExecuteReader();
+            //    dt.Load(reader);
+            //    db.CloseDataReader(reader);
+            //    return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<OptionModel>(dt) : new List<OptionModel>();
+            //}
+            //finally
+            //{
+            //    db.CloseConnection(ref conn);
+            //}
         }
 
         public List<OptionModel> GetMasterUserProcDept()
@@ -371,6 +457,20 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                 cmd.Parameters.AddWithValue("@Approver_Name", ApproverName);
                 cmd.Parameters.AddWithValue("@Approver_Account", ApproverAccount);
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static async Task CustomFormUpdateApproverAsync(int HeaderID, string ListName, string ApproverAccount, string ApproverName, string Comments, SqlConnection Conn, SqlTransaction Trans)
+        {
+            using (var cmd = new SqlCommand("usp_NonComm_CustomFormUpdateApprover", Conn, Trans))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@List_Name", ListName);
+                cmd.Parameters.AddWithValue("@Header_ID", HeaderID);
+                cmd.Parameters.AddWithValue("@Comments", Comments);
+                cmd.Parameters.AddWithValue("@Approver_Name", ApproverName);
+                cmd.Parameters.AddWithValue("@Approver_Account", ApproverAccount);
+                await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
 
