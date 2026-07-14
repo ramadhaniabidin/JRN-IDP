@@ -651,13 +651,13 @@ namespace Daikin.BusinessLogics.Common
                     url = NACBaseURL
                 };
                 string endpoint = "/workflows/v1/designs/" + WorkflowId + "/instances";
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
-                client.BaseAddress = new Uri(nwc.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
+                var client1 = new HttpClient();
+                client1.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
+                client1.BaseAddress = new Uri(nwc.url);
+                client1.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                 request.Content = new StringContent(new JavaScriptSerializer().Serialize(nwc.param), Encoding.UTF8, CONTENT_TYPE);
-                using (var response = await client.SendAsync(request))
+                using (var response = await client1.SendAsync(request))
                 {
                     response.EnsureSuccessStatusCode();
                     var result = await response.Content.ReadAsStringAsync();
@@ -902,36 +902,6 @@ namespace Daikin.BusinessLogics.Common
             string instanceID = response.IsSuccessStatusCode ? responseContent : "-";
             int triggerStatus = response.IsSuccessStatusCode ? 1 : -1;
             StartNAC_InsertLog(Module_Code, Item_ID, Header_ID, instanceID, message, triggerStatus);
-        }
-
-        public async Task NonComm_StartNACWorkflow(int Header_ID, int Item_ID, string Module_Code, string List_Name)
-        {
-            try
-            {
-                string endpoint = $"/workflows/v1/designs/{GetNACWorfklowID(Module_Code)}/instances";
-                var param = NonCommercial_GenerateNACPayload(Item_ID, Header_ID, Module_Code, List_Name);
-                var client = new HttpClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TOKEN_TYPE, GetToken());
-                client.BaseAddress = new Uri(param.url);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
-                var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Content = new StringContent(serializer.Serialize(param.param), Encoding.UTF8, CONTENT_TYPE);
-                var response = await client.SendAsync(request);
-                await HandleResponse(Header_ID, Item_ID, Module_Code, response);
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException httpEx)
-            {
-                Console.WriteLine($"Request error: {httpEx.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"Request error: {httpEx.Message}", -1);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"General error: {ex.Message}");
-                StartNAC_InsertLog(Module_Code, Item_ID, 0, "-", $"General error: {ex.Message}", -1);
-                throw;
-            }
         }
 
         public async Task PAL_StartWorkflow(int Item_ID, string Module_Code)
@@ -1196,9 +1166,9 @@ namespace Daikin.BusinessLogics.Common
             string token = GetToken();
             string queryParam = $"?from=2024-01-01&workflowInstanceId={NAC_Guid}";
             string url = $"{NAC_TASK_URL}{queryParam}";
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
-            var response = client.GetAsync(url);
+            HttpClient client1 = new HttpClient();
+            client1.DefaultRequestHeaders.Add(HEADERS_AUTHORIZATION, $"Bearer {token}");
+            var response = client1.GetAsync(url);
             var responseJson = response.Result.Content.ReadAsStringAsync().Result;
             dynamic responseObject = new JavaScriptSerializer().Deserialize<dynamic>(responseJson);
             var tasks = responseObject["tasks"];
