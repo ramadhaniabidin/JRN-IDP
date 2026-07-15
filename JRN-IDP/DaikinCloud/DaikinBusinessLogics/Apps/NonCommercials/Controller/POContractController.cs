@@ -16,6 +16,7 @@ using Daikin.BusinessLogics.Common.Model;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Daikin.BusinessLogics.Apps.NonCommercials.Repository;
+using Daikin.BusinessLogics.Apps.NonCommercials.SharePointService;
 
 namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 {
@@ -26,66 +27,39 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
         private readonly SharePointManager sp;
+        private readonly POContractSharePointService service;
         public string SPList = "Non Commercials";
+        private string moduleCode = "M020";
         private readonly POContractRepository repo;
+        private readonly NintexCloudManager nintexManager;
 
         public POContractController()
         {
             db = new DatabaseManager();
             repo = new POContractRepository(db);
             sp = new SharePointManager();
+            service = new POContractSharePointService(sp);
+            nintexManager = new NintexCloudManager();
         }
 
         public List<Master.Model.OptionModel> GetContractUserProcDepts()
         {
-            var options = repo.GetContractUserProcDeptsAsync().GetAwaiter().GetResult();
+            var options = repo.GetContractUserProcDepts();
             options = options.OrderBy(o => o.Name).ToList();
             return options;
         }
 
         public List<Master.Model.OptionModel> GetMarketingCategories()
         {
-            var options = repo.GetMarketingCategoriesAsync().GetAwaiter().GetResult();
+            var options = repo.GetMarketingCategories();
             options = options.OrderBy(o => o.Name).ToList();
             return options;
-            //List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-
-            //try
-            //{
-            //    dt = new DataTable();
-            //    #region Validasi Contract No
-            //    db.OpenConnection(ref conn);
-            //    db.cmd.CommandText = "dbo.usp_MasterMarketingCategory_List";
-            //    db.cmd.CommandType = CommandType.StoredProcedure;
-            //    db.cmd.Parameters.Clear();
-
-            //    reader = db.cmd.ExecuteReader();
-            //    dt.Load(reader);
-            //    db.CloseDataReader(reader);
-            //    db.CloseConnection(ref conn);
-
-            //    foreach (DataRow row in dt.Rows)
-            //    {
-            //        listOption.Add(new Master.Model.OptionModel
-            //        {
-            //            Code = row["ID"].ToString(),
-            //            Name = row["Title"].ToString()
-            //        });
-            //    }
-
-            //    #endregion
-            //    return listOption.OrderBy(o => o.Name).ToList();
-            //}
-            //finally
-            //{
-            //    db.CloseConnection(ref conn);
-            //}
         }
 
         public List<Master.Model.OptionModel> GetVendor(string ProcurementDepartment)
         {
             string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
-            var options = repo.GetVendorAsync(ProcurementDepartment, currentLogin).GetAwaiter().GetResult();
+            var options = repo.GetVendor(ProcurementDepartment, currentLogin);
             options = options.OrderBy(o => o.Name).ToList();
             options.Insert(0, new Master.Model.OptionModel
             {
@@ -99,7 +73,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public List<Master.Model.OptionModel> GetBranches(string VendorCode, string ProcurementDepartment)
         {
             string currentLogin = sp.GetCurrentUserLogin(SPContext.Current.Site.Url);
-            var list = repo.GetBranchesAsync(VendorCode, ProcurementDepartment, currentLogin).GetAwaiter().GetResult();
+            var list = repo.GetBranches(VendorCode, ProcurementDepartment, currentLogin);
             list.Insert(0, new Master.Model.OptionModel
             {
                 Code = string.Empty,
@@ -132,141 +106,101 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public List<Master.Model.OptionModel> GetContractHeaderVendorByOption(string Vendor_Code)
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_GetVendorByOption";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Vendor_Code", Vendor_Code);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        var data = new Master.Model.OptionModel();
-                        data.Code = row["Vendor_Code"].ToString();
-                        data.Name = row["Vendor_Name"].ToString();
-                        listOption.Add(data);
-                    }
-
-                }
-                else
-                {
-                    throw new Exception("Vendor data not valid!");
-                }
-
-                return listOption;
-
-                #endregion
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            return repo.GetContractHeaderVendorByOption(Vendor_Code);
         }
 
         public List<Master.Model.OptionModel> GetContractHeaderBranchByOption(string Vendor_Code)
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_ContractHeader_GetBranchByOption";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Vendor_Code", Vendor_Code); //Parameter Contract No
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        var data = new Master.Model.OptionModel();
-                        data.Code = row["Branch"].ToString();
-                        data.Name = row["Branch"].ToString();
-                        listOption.Add(data);
-                    }
-
-                }
-                else
-                {
-                    throw new Exception("Branch data not valid!");
-                }
-
-                return listOption;
-                #endregion
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            return repo.GetContractHeaderBranchByOption(Vendor_Code);
         }
 
         public List<Master.Model.OptionModel> GetContractRemarks(string Vendor_Code, string Branch, string Procurement_Department)
         {
-            var remarks = repo.GetContractRemarksAsync(Vendor_Code, Branch, Procurement_Department).GetAwaiter().GetResult();
+            var remarks = repo.GetContractRemarks(Vendor_Code, Branch, Procurement_Department);
             remarks = remarks.OrderBy(r => r.Name).ToList();
             return remarks;
         }
 
         public List<Master.Model.OptionModel> GetContractRemarksExist(string Vendor_Code, string Branch, string Procurement_Department)
         {
-            List<Master.Model.OptionModel> listOption = new List<Master.Model.OptionModel>();
-
-            try
-            {
-                dt = new DataTable();
-                #region Validasi Contract No
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "SELECT DISTINCT [Contract_No], [Remarks] FROM [ContractHeader] WHERE [Vendor_Code] = @vendor_code AND Branch = @branch AND Procurement_Department = @proc_dept";
-                db.cmd.CommandType = CommandType.Text;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "vendor_code", Vendor_Code);
-                db.AddInParameter(db.cmd, "branch", Branch);
-                db.AddInParameter(db.cmd, "proc_dept", Procurement_Department);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    var data = new Master.Model.OptionModel();
-                    data.Code = row["Contract_No"].ToString();
-                    data.Name = row["Remarks"].ToString();
-                    listOption.Add(data);
-                }
-
-                #endregion
-                return listOption.OrderBy(o => o.Name).ToList(); ;
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            var remarks = repo.GetContractRemarksExist(Vendor_Code, Branch, Procurement_Department);
+            return remarks.OrderBy(r => r.Name).ToList();
         }
 
         public List<POContractAttachment> GetContractAttachment(int Header_Id)
         {
             return repo.GetContractAttachment(Header_Id);
+        }
+
+        private POContractHeader PreparePOContractSaveHeader(POContractHeader Header, string SiteUrl, string FormStatus)
+        {
+            Header.Requester_Name = sp.GetCurrentLoginFullName(SiteUrl);
+            Header.Requester_Email = sp.GetCurrentLoginEmail(SiteUrl);
+            Header.Created_By = sp.GetCurrentUserLogin(SiteUrl, true);
+            Header.Approval_Status = FormStatus == "-" ? "8" : "1";
+            if (Header.ID == 0)
+            {
+                Header.Form_No = repo.GenerateFormNumber();
+                Header.Item_ID = service.SaveSharePointList(SiteUrl, Header, "-");
+            }
+            return Header;
+        }
+
+        public POContractHeader Save1(POContractHeader h, List<POContractDetail> d, string SiteUrl, string Form_Status, string Notes)
+        {
+            h = PreparePOContractSaveHeader(h, SiteUrl, Form_Status);
+            using (var conn = new SqlConnection(db.GetSQLConnectionString()))
+            {
+                conn.Open();
+                using (var trans = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        var insertedHeader = repo.SaveHeader(h, conn, trans);
+                        h.ID = insertedHeader.ID;
+                        h.Created_Date = insertedHeader.Created_Date;
+
+                        if (h.ID > 0)
+                        {
+                            repo.DeleteExistingDetail(h.ID, h.Form_No, conn, trans);
+                            foreach (var detail in d)
+                            {
+                                var insertedDetail = repo.SaveDetail(detail, h, conn, trans);
+                                repo.UpdatePONumberContract(h.Form_No, (int)insertedDetail.Contract_ID, conn, trans);
+                                foreach (var material in detail.Materials)
+                                {
+                                    repo.SaveMaterial(material, insertedDetail, h, conn, trans);
+                                }
+                            }
+                        }
+
+
+
+                        trans.Commit();
+                    }
+                    catch
+                    {
+                        trans.Rollback();
+                        throw;
+                    }
+                }
+            }
+
+
+            if (Form_Status == "1" || Form_Status == "19")
+            {
+                repo.InsertHistoryLogAfterSave(h, Notes, Form_Status);
+            }
+
+            if (h.Approval_Status == "1")
+            {
+                var payload = nintexManager.GenerateNACPayload(h.ID, (int)h.Item_ID, moduleCode, "PO Contract");
+                nintexManager.TriggerWorkflow(payload);
+            }
+
+            repo.CollectPICTeam(h.ID);
+
+            return h;
         }
 
         public POContractHeader Save(POContractHeader h, List<POContractDetail> d, string SiteUrl, string ServerPath, string Form_Status, string Notes)
@@ -416,14 +350,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
                     #region Trigger WF
                     if (h.Approval_Status == "1")
                     {
-                        #region Old and riskier way to trigger workflow
-                        #endregion
-                        #region New and better way
-                        Task.Run(async () =>
-                        {
-                            await new NintexCloudManager().NonCommercial_StartWorkflow_V2((int)h.Item_ID, h.ID, "M020", "PO Contract");
-                        }).Wait();
-                        #endregion
+                        nintexManager.NonCommercial_StartWorkflow((int)h.Item_ID, h.ID, "M020", "PO Contract");
                     }
 
 
@@ -490,67 +417,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public void UpdatePONumberContract(string PoNumber, int ID)
         {
-            using (var con = new SqlConnection(Utility.GetSqlConnection()))
-            {
-                con.Open();
-                using (var cmd = new SqlCommand("usp_ContractHeader_UpdatePONumber", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "PO_Number", Value = PoNumber, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "ID", Value = ID, SqlDbType = SqlDbType.Int, Direction = ParameterDirection.Input });
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public async Task StartNWC(NintexWorkflowCloud nwc)
-        {
-
-            string sBody = new JavaScriptSerializer().Serialize(nwc.param);
-
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(nwc.url);
-
-            client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json")); //ACCEPT Header
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, nwc.url);
-
-            request.Content = new StringContent(sBody, Encoding.UTF8, "application/json");
-
-            using (var response = await client.SendAsync(request))
-            {
-                response.EnsureSuccessStatusCode();
-                var result = await response.Content.ReadAsStringAsync();
-            }
-
-        }
-
-        private string startNACNonComWorkflow(string listName, string moduleCode, int headerID, int listItemID)
-        {
-            string response = "";
-            try
-            {
-                NintexCloudManager nintexCloudManager = new NintexCloudManager();
-                Task.Run(async () => { await nintexCloudManager.NonCommercial_StartWorkflow(listItemID, headerID, moduleCode, listName); }).Wait();
-                var respBody = new
-                {
-                    Success = true,
-                    Message = "OK"
-                };
-                response = new JavaScriptSerializer().Serialize(respBody);
-            }
-            catch (Exception ex)
-            {
-                var respBody = new
-                {
-                    Success = false,
-                    Message = $"{ex.Message}"
-                };
-                response = new JavaScriptSerializer().Serialize(respBody);
-            }
-            return response;
+            repo.UpdatePONumberContract(PoNumber, ID);
         }
 
         public int SaveSPList(string SiteUrl, POContractHeader h, List<POContractDetail> d, string Status)
@@ -664,216 +531,21 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
 
         public POContractHeader GetDataPOContractHeader(string Form_No)
         {
-            var data = repo.GetPOContractHeaderAsync(Form_No).GetAwaiter().GetResult();
+            var data = repo.GetPOContractHeader(Form_No);
             return data;
         }
 
         public List<POContractDetail> GetDetail(int Header_ID)
         {
-            var details = repo.GetPOContractDetailAsync(Header_ID).GetAwaiter().GetResult();
+            var details = repo.GetPOContractDetail(Header_ID);
             return details;
         }
 
         public List<POContractMaterial> GetMaterial(int Detail_ID)
         {
-            var materials = repo.GetPOContractMaterialAsync(Detail_ID).GetAwaiter().GetResult();
+            var materials = repo.GetPOContractMaterial(Detail_ID);
             return materials;
         }
 
-        public void POContractGeneratePORelease(string Form_No)
-        {
-            POReleaseHeader data = new POReleaseHeader();
-            string SiteUrl = Utility.SpSiteUrl;
-
-
-            var Header = GetDataPOContractHeader(Form_No);
-            data.Form_No = Header.Form_No.Replace("PC", "RC");
-
-            data.Item_ID = SaveSPListPORelease(SiteUrl, Header, data, "-"); //1 Trigger WF
-
-            var SAPData = GetDataSAPNonCommercialPODataHeader(Form_No);
-            data.Purchasing_Document = SAPData.Purchasing_Document;
-            data.Company_Code = SAPData.Company_Code;
-            data.Purchasing_Doc_Type = SAPData.Purchasing_Doc_Type;
-            data.Release_Group = SAPData.Release_Group;
-            data.Release_Strategy = SAPData.Release_Strategy;
-
-            dt = new DataTable();
-            db.OpenConnection(ref conn);
-            db.cmd.CommandText = "dbo.usp_POReleaseHeader_Save";
-            db.cmd.CommandType = CommandType.StoredProcedure;
-            db.cmd.Parameters.Clear();
-
-            db.AddInParameter(db.cmd, "Form_No", data.Form_No);
-            db.AddInParameter(db.cmd, "Procurement_Department", Header.Procurement_Department);
-            db.AddInParameter(db.cmd, "Branch", Header.Branch);
-            db.AddInParameter(db.cmd, "Vendor_Code", Header.Vendor_Code);
-            db.AddInParameter(db.cmd, "Vendor_Name", Header.Vendor_Name);
-            db.AddInParameter(db.cmd, "PO_Header_ID", Header.ID);
-            db.AddInParameter(db.cmd, "PO_Item_ID", Header.Item_ID);
-            db.AddInParameter(db.cmd, "PO_No", Header.Form_No);
-            db.AddInParameter(db.cmd, "Requester_Name", Header.Requester_Name);
-            db.AddInParameter(db.cmd, "Requester_Email", Header.Requester_Email);
-            db.AddInParameter(db.cmd, "Requester_Department", Header.Requester_Department);
-
-            db.AddInParameter(db.cmd, "Purchasing_Document", data.Purchasing_Document);
-            db.AddInParameter(db.cmd, "Company_Code", data.Company_Code);
-            db.AddInParameter(db.cmd, "Purchasing_Doc_Type ", data.Purchasing_Doc_Type);
-            db.AddInParameter(db.cmd, "Release_Group", data.Release_Group);
-            db.AddInParameter(db.cmd, "Release_Strategy", data.Release_Strategy);
-
-            db.AddInParameter(db.cmd, "PIC_Team", Header.PIC_Team);
-            db.AddInParameter(db.cmd, "Created_By", Header.Created_By);
-            db.AddInParameter(db.cmd, "Modified_By", Header.Modified_By);
-            db.AddInParameter(db.cmd, "Item_ID", data.Item_ID);
-            int Header_ID = Convert.ToInt32(db.cmd.ExecuteScalar());
-            data.ID = Header_ID;
-        }
-
-        public SAPNonCommercialPODataHeader GetDataSAPNonCommercialPODataHeader(string Form_No)
-        {
-            try
-            {
-                dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_SAPNonCommercialPODataHeader_getbyid";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "Nintex_No", Form_No);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                if (dt.Rows.Count > 0)
-                {
-                    return Utility.ConvertDataTableToList<SAPNonCommercialPODataHeader>(dt)[0];
-                }
-                else
-                {
-                    return new SAPNonCommercialPODataHeader();
-                }
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
-        public int SaveSPListPORelease(string SiteUrl, POContractHeader Header, POReleaseHeader data, string Status)
-        {
-            ContractController cc = new ContractController();
-            int ListItemId = Convert.ToInt32(data.Item_ID);
-            SPWeb web = new SPSite(SiteUrl).OpenWeb();
-            SPList list = web.Lists[SPList];
-            SPContentType ct = list.ContentTypes["PO Release GA IT"];
-            SPContentTypeId ctId = ct.Id;
-            web.AllowUnsafeUpdates = true;
-
-            SPListItem item;
-            string xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><RepeaterData><Version />";
-            xml += "<Items>";
-            xml += "<Item>";
-            xml += "<m_DocType type=\"System.String\">Invoice</m_DocType>";
-            xml += "<m_atc type=\"System.String\"></m_atc>";
-            xml += "</Item>";
-            xml += "</Items>";
-            xml += "</RepeaterData> ";
-
-            if (ListItemId == 0)
-            {
-                item = list.Items.Add();
-                item["Title"] = data.Form_No;
-
-                item["Request Date"] = DateTime.Now.ToString("M-d-yyyy");
-                item["Requester Branch"] = Header.Branch;
-                item["Module"] = "M018";
-                item["Procurement_x0020_Department0"] = Header.Procurement_Department;
-                item["Request No"] = data.Form_No;
-                item["PO Number"] = Header.Form_No;
-                item["Current Layer"] = "0";
-                item["Details"] = GenerateXML_PORelease(Header.Detail[0].Materials);
-                item["Mandatory Attachment"] = xml;
-                item["Grand Total"] = 0;
-                item["Disc Amount"] = 0;
-                item["Purchasing Document"] = Header.Purchasing_Document;
-                item["ContentTypeId"] = ctId;
-                item["Total Tax Base Amount"] = "0";
-                item["Total VAT Amount"] = "0";
-                item["Vendor Appointed"] = Header.Vendor_Name;
-                item["DigiSign_x0020_Attachment_x0020_"] = Header.DigiSign_Attachment_Url;
-            }
-            else
-            {
-                item = list.GetItemById(ListItemId);
-                if (data.ID > 0) item["Transaction ID"] = data.ID;
-                item["Grand Total"] = 0;
-            }
-            item.Update();
-            ListItemId = item.ID;
-            web.AllowUnsafeUpdates = false;
-
-            return ListItemId;
-        }
-
-
-        public string GenerateXML_PORelease(List<POContractMaterial> idList)
-        {
-            string xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><RepeaterData><Version/><Items>";
-            int seq = 1;
-            foreach (POContractMaterial data in idList)
-            {
-                var WHT = (Convert.ToInt32(data.WHT) == 1) ? "WHT" : "Non WHT";
-                int Contract_Amount = Convert.ToInt32(data.WHT) / Convert.ToInt32(data.Qty);
-                xml += "<Item>";
-                xml += "<No type=\"System.String\">" + seq.ToString() + "</No>";
-                xml += "<Item_Text type=\"System.String\">" + SecurityElement.Escape(data.Text) + "</Item_Text>";
-                xml += "<ddl_MaterialAnaplan type=\"System.String\">" + SecurityElement.Escape(data.Material_Number) + "</ddl_MaterialAnaplan>";
-                xml += "<GL type=\"System.String\">" + SecurityElement.Escape(data.GL_Description) + "</GL>";
-                xml += "<ddl_CostCenter type=\"System.String\">" + SecurityElement.Escape(data.Cost_Center) + "</ddl_CostCenter>";
-                xml += "<Tax_Type type=\"System.String\">" + SecurityElement.Escape(WHT) + "</Tax_Type>";
-                xml += "<Qty type=\"System.String\">" + data.Qty + "</Qty>";
-                xml += "<Unit_Price type=\"System.Double\">" + Contract_Amount.ToString() + "</Unit_Price>";
-                xml += "<Currency type=\"System.String\">IDR</Currency>";
-                xml += "<cvAmount type=\"System.Double\">" + data.Contract_Amount + "</cvAmount>";
-                xml += "<cost_center_code type=\"System.String\">" + data.Cost_Center + "</cost_center_code>";
-                xml += "<Material_Anaplan_Name type=\"System.String\">" + SecurityElement.Escape(data.Material_Number) + " " + SecurityElement.Escape(data.Material_Name) + "</Material_Anaplan_Name>";
-                xml += "<material_anaplan_code type=\"System.String\">" + SecurityElement.Escape(data.Material_Number) + "</material_anaplan_code>";
-                xml += "<Amount type=\"System.String\">" + data.Contract_Amount + "</Amount>";
-                xml += "</Item>";
-                seq++;
-            }
-
-            xml += "</Items></RepeaterData>";
-
-            return xml;
-        }
-
-        public void GeneratePOContractRelease()
-        {
-            try
-            {
-                DataTable dt = new DataTable();
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_POReleaseHeader_ListPendingGenerate";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                foreach (DataRow row in dt.Rows)
-                {
-                    string Form_No = Utility.GetStringValue(row, "Nintex_No");
-                    Console.WriteLine(Form_No);
-                    POContractGeneratePORelease(Form_No);
-                }
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
-        }
     }
 }
