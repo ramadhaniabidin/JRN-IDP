@@ -29,7 +29,7 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         private readonly SharePointManager sp;
         private readonly POContractSharePointService service;
         public string SPList = "Non Commercials";
-        private string moduleCode = "M020";
+        private readonly string moduleCode = "M020";
         private readonly POContractRepository repo;
         private readonly NintexCloudManager nintexManager;
 
@@ -149,27 +149,27 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public POContractHeader Save1(POContractHeader h, List<POContractDetail> d, string SiteUrl, string Form_Status, string Notes)
         {
             h = PreparePOContractSaveHeader(h, SiteUrl, Form_Status);
-            using (var conn = new SqlConnection(db.GetSQLConnectionString()))
+            using (var _conn = new SqlConnection(db.GetSQLConnectionString()))
             {
-                conn.Open();
-                using (var trans = conn.BeginTransaction())
+                _conn.Open();
+                using (var trans = _conn.BeginTransaction())
                 {
                     try
                     {
-                        var insertedHeader = repo.SaveHeader(h, conn, trans);
+                        var insertedHeader = repo.SaveHeader(h, _conn, trans);
                         h.ID = insertedHeader.ID;
                         h.Created_Date = insertedHeader.Created_Date;
 
                         if (h.ID > 0)
                         {
-                            repo.DeleteExistingDetail(h.ID, h.Form_No, conn, trans);
+                            repo.DeleteExistingDetail(h.ID, h.Form_No, _conn, trans);
                             foreach (var detail in d)
                             {
-                                var insertedDetail = repo.SaveDetail(detail, h, conn, trans);
-                                repo.UpdatePONumberContract(h.Form_No, (int)insertedDetail.Contract_ID, conn, trans);
+                                var insertedDetail = repo.SaveDetail(detail, h, _conn, trans);
+                                repo.UpdatePONumberContract(h.Form_No, (int)insertedDetail.Contract_ID, _conn, trans);
                                 foreach (var material in detail.Materials)
                                 {
-                                    repo.SaveMaterial(material, insertedDetail, h, conn, trans);
+                                    repo.SaveMaterial(material, insertedDetail, h, _conn, trans);
                                 }
                             }
                         }
@@ -418,62 +418,6 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
         public void UpdatePONumberContract(string PoNumber, int ID)
         {
             repo.UpdatePONumberContract(PoNumber, ID);
-        }
-
-        public int SaveSPList(string SiteUrl, POContractHeader h, List<POContractDetail> d, string Status)
-        {
-            ContractController cc = new ContractController();
-            int ListItemId = Convert.ToInt32(h.Item_ID); ;
-            SPWeb web = new SPSite(SiteUrl).OpenWeb();
-            SPList list = web.Lists[SPList];
-            SPContentType ct = list.ContentTypes["PO Contract"];
-            SPContentTypeId ctId = ct.Id;
-            web.AllowUnsafeUpdates = true;
-
-            string Created_By = sp.GetCurrentUserLogin(SiteUrl);
-            h.Created_By = Created_By;
-
-            SPListItem item;
-
-            if (ListItemId == 0)
-            {
-                item = list.Items.Add();
-                item["Form Status"] = Status;
-            }
-            else
-            {
-                item = list.GetItemById(ListItemId);
-                if (h.ID > 0)
-                {
-                    item["Transaction ID"] = h.ID;
-                    item["Form Status"] = Status;
-                }
-            }
-
-            item["Title"] = h.Form_No;
-
-            item["Request Date"] = h.Created_Date;
-            item["Requester Branch"] = h.Branch;
-            item["Requester Department"] = h.Requester_Department;
-            item["Requester Name"] = h.Requester_Name;
-            item["Requester Email"] = h.Requester_Email;
-            item["Requester Account"] = h.Created_By;
-            item["Procurement_x0020_Department0"] = h.Procurement_Department;
-            item["Procurement_x0020_Department_x00"] = h.Procurement_Department_ID;
-
-            item["Module"] = "M020";
-            item["MKT Category Id"] = h.Marketing_Category_ID;
-
-            item["Grand Total"] = h.Grand_Total;
-            item["ContentTypeId"] = ctId;
-            item["Workflow Status"] = Status.Equals("-") ? "Draft" : "Generated";
-            item["Approval Status"] = Status.Equals("-") ? "Draft" : "Generated";
-
-            item.Update();
-            ListItemId = item.ID;
-            web.AllowUnsafeUpdates = false;
-
-            return ListItemId;
         }
 
         public int SaveSPListPOContract(string SiteUrl, POContractHeader h, List<POContractDetail> d, string Status)
