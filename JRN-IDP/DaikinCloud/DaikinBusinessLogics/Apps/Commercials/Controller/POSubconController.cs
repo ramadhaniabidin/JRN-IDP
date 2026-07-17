@@ -25,39 +25,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         private readonly NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly JavaScriptSerializer js = new JavaScriptSerializer();
 
-        public bool IsThereWorkflowRunning(int ListItemId)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_POSubconHeader_CheckRunningWorkflow";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-
-                db.AddInParameter(db.cmd, "ListItemId", ListItemId);
-
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                return dt.Rows.Count >= 0;
-
-                //foreach (DataRow row in dt.Rows)
-                //{
-                //    return true;
-                //}
-
-                //return false;
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         public void UpdateNeedSyncToZero(string Vendor_Code, string Partner_Bank_ID, int Item_ID)
         {
             try
