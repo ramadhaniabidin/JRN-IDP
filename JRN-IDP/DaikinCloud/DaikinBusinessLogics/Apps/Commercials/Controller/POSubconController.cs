@@ -576,53 +576,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         }
 
-        public void SaveBulkSPList()
-        {
-            try
-            {
-                List<POSubconModel> list = ListPendingData();
-                foreach (POSubconModel data in list)
-                {
-                    Console.WriteLine(data.Form_No);
-                    List<POSubconDetailModel> listDetail = listDetailByNintexNo(data.Purchasing_Document);
-                    string xml_RS = GenerateXML_RS(listDetail, true);
-                    string xml_RS_Atc_Mandatory = GenerateXML_RS_AttachmentMandatory(listAttachmentType("1", data.Subcon_Category_ID));
-                    string xml_RS_Atc_Optional = GenerateXML_RS_AttachmentOptional(listAttachmentType("0", data.Subcon_Category_ID));
-
-
-
-                    int Item_ID = SaveSPList(Utility.SpSiteUrl, data, xml_RS, xml_RS_Atc_Mandatory, xml_RS_Atc_Optional);
-                    Console.WriteLine(Item_ID);
-
-
-                    #region Update Item ID
-                    db.OpenConnection(ref conn);
-                    //db.cmd.CommandText = "dbo.usp_POSubconHeader_UpdateItemId";
-                    db.cmd.CommandText = "SAP.usp_POSubconHeader_UpdateItemId";
-                    db.cmd.CommandType = CommandType.StoredProcedure;
-                    db.cmd.Parameters.Clear();
-                    db.AddInParameter(db.cmd, "Purchasing_Document", data.Purchasing_Document);
-                    db.AddInParameter(db.cmd, "Item_ID", Item_ID);
-                    db.cmd.ExecuteNonQuery();
-                    db.CloseConnection(ref conn);
-                    #endregion
-
-                    #region Upload Print out PO Subcon
-                    new SAPSubconController().SaveAttachmentPOSubcon(data.Form_No, Item_ID);
-                    #endregion
-
-                    // Trigger workflow Get Attachment
-                    GetAttachment(Item_ID, data.Form_No);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         public void GetAttachment(int ItemID, string PoNumber)
         {
             var param = ntxManager.GenerateNACPayload(0, ItemID, "M019-01", "", PoNumber);
