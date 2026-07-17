@@ -362,22 +362,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         }
 
-        public string ProcessGRLine(string line, string filePath)
-        {
-            string[] columns = line.Split(';');
-            string purchasingDoc = columns[0];
-            try
-            {
-                SaveCommercialSubconSAP_GR(columns);
-                Utility.SaveLog("Read Commercial Subcon GR", purchasingDoc, filePath, "", 1);
-            }
-            catch (Exception ex)
-            {
-                Utility.SaveLog("Fail Commercial Subcon GR", purchasingDoc, filePath, ex.Message, 0);
-            }
-            return purchasingDoc;
-        }
-
         public void MoveFileToFolder(string folderPath, string fileName, string category)
         {
             string destPath = System.IO.Path.Combine(folderPath, category, fileName);
