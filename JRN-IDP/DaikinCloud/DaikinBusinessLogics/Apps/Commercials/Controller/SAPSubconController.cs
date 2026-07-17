@@ -244,43 +244,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             }
         }
 
-        public void SaveAttachmentPOSubcon()
-        {
-            try
-            {
-                dt = new DataTable();
-                dt = new BatchController().GetFolderLocation("7");
-                foreach (DataRow row in dt.Rows)
-                {
-                    string moduleCode = Utility.GetStringValue(row, "Module_Code");
-                    string folder = Utility.GetStringValue(row, "Path_Location");
-                    foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.pdf"))
-                    {
-                        string file_name = System.IO.Path.GetFileNameWithoutExtension(file);
-
-                        Console.WriteLine(file);
-                        int Item_ID = new POSubconController().GetItemId(file_name);
-                        new SharePointManager().UploadFileInCustomList("Commercials", Item_ID, file, Utility.SpSiteUrl);
-                        file_name = System.IO.Path.GetFileName(file);
-                        UpdatePOSubconHeaderAttachment(Item_ID, "/Lists/Commercials/Attachments/" + Item_ID.ToString() + "/" + file_name);
-
-                        string DoneFilePath = folder + "\\DONE\\" + file_name;
-                        if (System.IO.File.Exists(DoneFilePath))
-                        {
-                            System.IO.File.Delete(DoneFilePath);
-                        }
-                        System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-
         public void SaveAttachmentPOSubcon(string Purchasing_Document, int Item_ID)
         {
             try
