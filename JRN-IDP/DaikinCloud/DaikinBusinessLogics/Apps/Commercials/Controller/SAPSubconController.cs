@@ -396,28 +396,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             return purchasingDoc;
         }
 
-        public void ProcessGRFile(string filePath, string folderPath)
-        {
-            HashSet<string> purchasingDocs = new HashSet<string>();
-            string fileName = System.IO.Path.GetFileName(filePath);
-            try
-            {
-                string[] lines = System.IO.File.ReadAllLines(filePath);
-                foreach (var line in lines)
-                {
-                    string purchasingDoc = ProcessGRLine(line, filePath);
-                    purchasingDocs.Add(purchasingDoc);
-                }
-                UpdateDeliveryDate(purchasingDocs.ToList(), filePath);
-                MoveFileToFolder(folderPath, fileName, "DONE");
-            }
-            catch (Exception ex)
-            {
-                Utility.SaveLog("Read Commercial Subcon GR", "-", filePath, ex.Message, 0);
-                MoveFileToFolder(folderPath, fileName, "ERROR");
-            }
-        }
-
         public void MoveFileToFolder(string folderPath, string fileName, string category)
         {
             string destPath = System.IO.Path.Combine(folderPath, category, fileName);
