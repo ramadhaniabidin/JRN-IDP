@@ -254,38 +254,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             return xml;
         }
 
-        public void GetAllNintexNeedsUpdateWHT()
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.usp_POSubconDetail_ListNoWHTAmount";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                foreach (DataRow row in dt.Rows)
-                {
-                    string pd = Utility.GetStringValue(row, "Form_No");
-                    int Item_ID = Utility.GetIntValue(row, "Item_ID");
-                    List<POSubconDetailModel> listDetail = new POSubconController().listDetailByNintexNo(pd);
-                    Console.WriteLine(pd);
-
-                    string xmlDetails = FixingXMLRS(listDetail);
-                    UpdateXML_List_Fixing(xmlDetails, Item_ID);
-
-                }
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         public string FixingXMLRS(List<POSubconDetailModel> idList)
         {
             string xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?><RepeaterData><Version/><Items>";
