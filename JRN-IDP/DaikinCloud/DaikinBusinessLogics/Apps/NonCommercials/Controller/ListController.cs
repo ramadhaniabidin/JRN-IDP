@@ -140,6 +140,10 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.Controller
             var tasks = ntx.GetTasks(model.InstanceId);
             var task = tasks.Tasks[0];
             var targetAssignment = task.TaskAssignments.FirstOrDefault(a => a.Assignee.ToLower().Contains(model.ApproverEmail.ToLower()));
+            if (targetAssignment == null)
+            {
+                throw new InvalidOperationException($"Target assignment was not found for assignee: {model.ApproverEmail}");
+            }
             repo.UpdateApproval(model, new Common.Model.CurrentApproverModel
             {
                 Email = model.ApproverEmail,
