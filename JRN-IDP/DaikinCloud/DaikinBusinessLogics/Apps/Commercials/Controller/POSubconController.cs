@@ -23,34 +23,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         private readonly NintexCloudManager ntxManager = new NintexCloudManager();
-
-        public List<VendorSubconModel> ListVendor(int PageIndex, string Keywords, out int RecordCount)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_SAPCommercialVendorData_PopListData";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "PageIndex", PageIndex);
-                db.AddInParameter(db.cmd, "Keywords", Keywords);
-                db.AddOutParameter(db.cmd, "@RecordCount", SqlDbType.Int);
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
-
-                db.CloseConnection(ref conn);
-                return Utility.ConvertDataTableToList<VendorSubconModel>(dt);
-
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
+        private readonly JavaScriptSerializer js = new JavaScriptSerializer();
 
         public List<POSubconModel> ListPendingData()
         {
