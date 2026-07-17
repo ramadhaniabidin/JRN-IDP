@@ -25,29 +25,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         private readonly NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly JavaScriptSerializer js = new JavaScriptSerializer();
 
-        public List<POSubconModel> ListPendingData()
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                //db.cmd.CommandText = "usp_SAPCommercialPOSubconHeader_ListPending";
-                db.cmd.CommandText = "SAP.usp_SAPCommercialPOSubconHeader_ListPending";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                return Utility.ConvertDataTableToList<POSubconModel>(dt);
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         public bool IsThereWorkflowRunning(int ListItemId)
         {
             try
