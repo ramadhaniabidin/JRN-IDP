@@ -45,68 +45,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 throw ex;
             }
         }
-        public void SyncUpdateVendorBankSubcon()
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.[usp_SAPCommercialVendorBankData_PendingSync]";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
-                    SPList list = web.Lists["Master Vendor Subcon"];
-                    web.AllowUnsafeUpdates = true;
-                    int ListItemId = Utility.GetIntValue(row, "Item_ID");
-                    try
-                    {
-                        SPListItem item;
-
-                        if (ListItemId == 0)
-                        {
-                            item = list.Items.Add();
-                        }
-                        else
-                        {
-                            item = list.GetItemById(ListItemId);
-                        }
-                        item["Title"] = Utility.GetStringValue(row, "Vendor_Name");
-                        item["Code"] = Utility.GetStringValue(row, "Vendor_Code");
-                        item["Vendor_x0020_PIC"] = Utility.GetStringValue(row, "Vendor_PIC");
-                        item["Bank_x0020_Key_x0020_ID"] = Utility.GetStringValue(row, "Bank_Key");
-                        item["Bank_x0020_Key_x0020_Name"] = Utility.GetStringValue(row, "Bank_Key_Name");
-                        item["Bank_x0020_Account"] = Utility.GetStringValue(row, "Bank_Account");
-                        item["Partner_x0020_Bank_x0020_ID"] = Utility.GetStringValue(row, "Partner_Bank_ID");
-                        item["Account_x0020_Holder"] = Utility.GetStringValue(row, "Account_Holder");
-                        item.Update();
-
-                        UpdateNeedSyncToZero(Utility.GetStringValue(row, "Vendor_Code"), Utility.GetStringValue(row, "Partner_Bank_ID"), item.ID);
-                    }
-                    catch (Exception ex)
-                    {
-                        db.CloseConnection(ref conn);
-                        throw ex;
-                    }
-                    finally
-                    {
-                        web.AllowUnsafeUpdates = false;
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
 
         public int UpdateXML_List_Fixing(string xml, int ListItemId)
         {
