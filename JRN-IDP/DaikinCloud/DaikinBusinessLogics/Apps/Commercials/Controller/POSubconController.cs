@@ -141,38 +141,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             }
         }
 
-        //TriggerWorkflow and notif to Admin Service to submit documents
-        public int UpdateXML_List(string xml, int ListItemId)
-        {
-            SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
-            //SPList list = web.Lists["Commercials"];
-            SPList list = web.Lists["PO Subcon Sales Force"];
-            web.AllowUnsafeUpdates = true;
-            try
-            {
-                SPListItem item;
-
-                item = list.GetItemById(ListItemId);
-                item["Notify"] = "X";
-                item["Status"] = IsThereWorkflowRunning(ListItemId) ? "Already Running" : "1";
-                item["Lap"] = 1;
-                item["Allow Edit"] = "0";
-                item["Approval Type"] = "2"; //Admin Service (Show Mandatory& Optional Attachment)
-                item["Details"] = xml;
-                item.Update();
-
-                return item.ID;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                web.AllowUnsafeUpdates = false;
-            }
-        }
-
         public int UpdateXML_List_Fixing(string xml, int ListItemId)
         {
             SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
