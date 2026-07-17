@@ -396,14 +396,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             return purchasingDoc;
         }
 
-        public void ProcessFolderGRFiles(string folderPath)
-        {
-            foreach (string filePath in System.IO.Directory.EnumerateFiles(folderPath, "*.txt"))
-            {
-                ProcessGRFile(filePath, folderPath);
-            }
-        }
-
         public void ProcessGRFile(string filePath, string folderPath)
         {
             HashSet<string> purchasingDocs = new HashSet<string>();
