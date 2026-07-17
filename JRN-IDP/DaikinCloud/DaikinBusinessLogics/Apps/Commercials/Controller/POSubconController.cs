@@ -25,27 +25,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         private readonly NintexCloudManager ntxManager = new NintexCloudManager();
         private readonly JavaScriptSerializer js = new JavaScriptSerializer();
 
-        public void UpdateNeedSyncToZero(string Vendor_Code, string Partner_Bank_ID, int Item_ID)
-        {
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "dbo.[usp_SAPCommercialVendorBankData_UpdateSync]";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Vendor_Code", Vendor_Code);
-                db.AddInParameter(db.cmd, "Partner_Bank_ID", Partner_Bank_ID);
-                db.AddInParameter(db.cmd, "Item_ID", Item_ID);
-                db.cmd.ExecuteNonQuery();
-                db.CloseConnection(ref conn);
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
-
         public int UpdateXML_List_Fixing(string xml, int ListItemId)
         {
             SPWeb web = new SPSite(Utility.SpSiteUrl).OpenWeb();
