@@ -362,24 +362,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         }
 
-        public void UpdateDeliveryDate(List<string> purchasingDocs, string file)
-        {
-            foreach (string pd in purchasingDocs)
-            {
-                List<POSubconDetailModel> listDetail = new POSubconController().listDetailByNintexNo(pd);
-                if (listDetail.Count > 0)
-                {
-                    string xml_RS = new POSubconController().GenerateXML_RS(listDetail, false);
-
-                    int ListItemId = new POSubconController().GetItemId(pd);
-                    //Trigger Workflow and Continue to Finance Receiver
-                    if (ListItemId > 0) new POSubconController().UpdateXML_List(xml_RS, ListItemId);
-                    else Utility.SaveLog("Read Commercial Subcon GR", pd, file, "Item Id not found", 0);
-
-                }
-            }
-        }
-
         public string ProcessGRLine(string line, string filePath)
         {
             string[] columns = line.Split(';');
