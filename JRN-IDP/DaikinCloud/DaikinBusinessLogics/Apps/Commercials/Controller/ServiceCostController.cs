@@ -38,49 +38,39 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public List<OptionModel> BindingMasterSPListVendorLC(string ExpenseType)
         {
-            try
+            List<OptionModel> listOption = new List<OptionModel>();
+            SPWeb web = SPContext.Current.Web;
+            SPList list = web.Lists["Master Vendor Service Cost"];
+            var q = new SPQuery()
             {
-                List<OptionModel> listOption = new List<OptionModel>();
-                SPWeb web = SPContext.Current.Web;
-                SPList list = web.Lists["Master Vendor Service Cost"];
-                var q = new SPQuery()
-                {
-                    Query = @"<Where><Eq><FieldRef Name='Criteria_x003a_Title' /><Value Type='Lookup'>" +
-                                ExpenseType.ToUpper() + "</Value></Eq></Where>"
-                };
-                var r = list.GetItems(q);
-                dt = new DataTable();
-                dt = r.GetDataTable();
+                Query = @"<Where><Eq><FieldRef Name='Criteria_x003a_Title' /><Value Type='Lookup'>" +
+                            ExpenseType.ToUpper() + "</Value></Eq></Where>"
+            };
+            var r = list.GetItems(q);
+            dt = new DataTable();
+            dt = r.GetDataTable();
+            listOption.Add(new OptionModel
+            {
+                Code = "",
+                Name = "Please Select",
+                Selected = true
+            });
+            foreach (DataRow row in dt.Rows)
+            {
                 listOption.Add(new OptionModel
                 {
-                    Code = "",
-                    Name = "Please Select",
-                    Selected = true
+                    Code = Utility.GetStringValue(row, "Title"),
+                    Name = Utility.GetStringValue(row, "Combine")
                 });
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new OptionModel
-                    {
-                        Code = Utility.GetStringValue(row, "Title"),
-                        Name = Utility.GetStringValue(row, "Combine")
-                    });
-                }
-                return listOption;
-
             }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+            return listOption;
         }
 
 
@@ -102,10 +92,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 return Utility.ConvertDataTableToList<ServiceCostRemarks>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -127,10 +116,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 return Utility.ConvertDataTableToList<ServiceCostDetail>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -192,10 +180,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     return new ServiceCostHeader();
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public CommonSaveResponseModel SaveSPList(string SiteUrl, ServiceCostHeader h, int TotalItems, string Status)
@@ -272,159 +259,130 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         public List<WHTOptionModel> BindingMasterSPListWHT()
         {
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master WHT"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
-                List<WHTOptionModel> listOption = new List<WHTOptionModel>();
-                int ct = 0;
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new WHTOptionModel
-                    {
-                        Code = Utility.GetStringValue(row, "Title"),
-                        Name = Utility.GetStringValue(row, "Name"),
-                        Percentage = Utility.GetDecimalValue(row, "Percentage"),
-                        Selected = ct == 0
-                    });
-                    ct++;
-                }
-                return listOption;
-            }
-            catch (Exception ex)
+                SPList list = web.Lists["Master WHT"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
+            List<WHTOptionModel> listOption = new List<WHTOptionModel>();
+            int ct = 0;
+            foreach (DataRow row in dt.Rows)
             {
-                throw ex;
+                listOption.Add(new WHTOptionModel
+                {
+                    Code = Utility.GetStringValue(row, "Title"),
+                    Name = Utility.GetStringValue(row, "Name"),
+                    Percentage = Utility.GetDecimalValue(row, "Percentage"),
+                    Selected = ct == 0
+                });
+                ct++;
             }
+            return listOption;
         }
 
         public List<VATOptionModel> BindingMasterSPListVAT()
         {
             List<VATOptionModel> listOption = new List<VATOptionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master VAT"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
+                SPList list = web.Lists["Master VAT"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
+            foreach (DataRow row in dt.Rows)
+            {
+                listOption.Add(new VATOptionModel
+                {
+                    Code = Utility.GetStringValue(row, "Title"),
+                    Name = Utility.GetStringValue(row, "Name"),
+                    VAT_Percent = Utility.GetStringValue(row, "Percentage"),
+                    Order_x0020_Id = Utility.GetIntValue(row, "Order_x0020_Id"),
+                    Selected = Utility.GetIntValue(row, "Order_x0020_Id") == 1
                 });
-                foreach (DataRow row in dt.Rows)
-                {
-                    listOption.Add(new VATOptionModel
-                    {
-                        Code = Utility.GetStringValue(row, "Title"),
-                        Name = Utility.GetStringValue(row, "Name"),
-                        VAT_Percent = Utility.GetStringValue(row, "Percentage"),
-                        Order_x0020_Id = Utility.GetIntValue(row, "Order_x0020_Id"),
-                        Selected = Utility.GetIntValue(row, "Order_x0020_Id") == 1
-                    });
-                }
-                return listOption.OrderBy(o => o.Order_x0020_Id).ToList();
-
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return listOption.OrderBy(o => o.Order_x0020_Id).ToList();
         }
 
         public List<PPJKOptionModel> BindingMasterSPListPPJK()
         {
             List<PPJKOptionModel> listOption = new List<PPJKOptionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master PPJK"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
+                SPList list = web.Lists["Master PPJK"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
 
 
-                PPJKOptionModel data = new PPJKOptionModel();
-                data.Code = "";
-                data.Name = "Please Select";
-                data.Curr = "";
-                data.Category = "";
-                data.Bank_Account_No = "";
-                data.Bank_Key = "";
-                data.Bank_Name = "";
+            PPJKOptionModel data = new PPJKOptionModel();
+            data.Code = "";
+            data.Name = "Please Select";
+            data.Curr = "";
+            data.Category = "";
+            data.Bank_Account_No = "";
+            data.Bank_Key = "";
+            data.Bank_Name = "";
+            listOption.Add(data);
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                data = new PPJKOptionModel();
+                data.Code = Utility.GetStringValue(row, "Code");
+                data.Name = data.Code + " - " + Utility.GetStringValue(row, "Bank_x0020_Account_x0020_Name");
+                data.Curr = Utility.GetStringValue(row, "Curr");
+                data.Category = Utility.GetStringValue(row, "Category");
+                data.Bank_Account_No = Utility.GetStringValue(row, "Title");
+                data.Bank_Key = Utility.GetStringValue(row, "Bank_x0020_Key");
                 listOption.Add(data);
-
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    data = new PPJKOptionModel();
-                    data.Code = Utility.GetStringValue(row, "Code");
-                    data.Name = data.Code + " - " + Utility.GetStringValue(row, "Bank_x0020_Account_x0020_Name");
-                    data.Curr = Utility.GetStringValue(row, "Curr");
-                    data.Category = Utility.GetStringValue(row, "Category");
-                    data.Bank_Account_No = Utility.GetStringValue(row, "Title");
-                    data.Bank_Key = Utility.GetStringValue(row, "Bank_x0020_Key");
-                    listOption.Add(data);
-                }
-                return listOption;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return listOption;
         }
 
         public List<ServiceCostConditionModel> BindingMasterSPListCondition(bool isSelected)
         {
             List<ServiceCostConditionModel> listOption = new List<ServiceCostConditionModel>();
-            try
+            SPWeb web = SPContext.Current.Web;
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                SPWeb web = SPContext.Current.Web;
-                SPSecurity.RunWithElevatedPrivileges(delegate ()
-                {
 
-                    SPList list = web.Lists["Master Service Cost Condition"];
-                    SPListItemCollection items = list.Items;
-                    dt = new DataTable();
-                    dt = items.GetDataTable();
-                });
+                SPList list = web.Lists["Master Service Cost Condition"];
+                SPListItemCollection items = list.Items;
+                dt = new DataTable();
+                dt = items.GetDataTable();
+            });
 
 
-                ServiceCostConditionModel data = new ServiceCostConditionModel();
-                data.Code = "";
-                data.Name = "Please Select";
-                data.Selected = isSelected;
-                data.Title = "";
-                data.ID = "0";
+            ServiceCostConditionModel data = new ServiceCostConditionModel();
+            data.Code = "";
+            data.Name = "Please Select";
+            data.Selected = isSelected;
+            data.Title = "";
+            data.ID = "0";
+            listOption.Add(data);
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                data = new ServiceCostConditionModel();
+                data.Code = Utility.GetStringValue(row, "ID");
+                data.Name = Utility.GetStringValue(row, "Combine");
+                data.ID = Utility.GetStringValue(row, "ID");
+                data.Title = Utility.GetStringValue(row, "Title");
+                data.Selected = false;
                 listOption.Add(data);
-
-
-                foreach (DataRow row in dt.Rows)
-                {
-                    data = new ServiceCostConditionModel();
-                    data.Code = Utility.GetStringValue(row, "ID");
-                    data.Name = Utility.GetStringValue(row, "Combine");
-                    data.ID = Utility.GetStringValue(row, "ID");
-                    data.Title = Utility.GetStringValue(row, "Title");
-                    data.Selected = false;
-                    listOption.Add(data);
-                }
-                return listOption;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return listOption;
         }
         public CommonResponseModel UpdateRemarks(List<ServiceCostRemarks> listRemarks, string CurrentLoginName)
         {
@@ -436,7 +394,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     if (string.IsNullOrEmpty(r.Outcome) && string.IsNullOrEmpty(r.Reason_Rejection))
                     {
                         db.CloseConnection(ref conn);
-                        throw new Exception("Please tick if OK for " + r.Remarks + "\n if not, then specify the reason of rejection");
+                        throw new InvalidOperationException("Please tick if OK for " + r.Remarks + "\n if not, then specify the reason of rejection");
                     }
                     db.cmd.CommandText = "dbo.usp_ServiceCostRemarks_Update";
                     db.cmd.CommandType = CommandType.StoredProcedure;
@@ -473,7 +431,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 switch (ntx.Position_ID)
                 {
                     case "22":
-                        if (!IsDocumentReceived && ntx.OutcomeName == "Approve") throw new Exception("Please tick if the physical document has been received. Then you can continue to approval.");
+                        if (!IsDocumentReceived && ntx.OutcomeName == "Approve") throw new InvalidOperationException("Please tick if the physical document has been received. Then you can continue to approval.");
                         response = new Utility().UpdateDocumentReceived(ntx.Transaction_ID.ToString(), "M011");
                         break;
                     case "15":
@@ -655,7 +613,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     if (string.IsNullOrEmpty(d.WHT_Type_Name))
                     {
                         db.CloseConnection(ref conn);
-                        throw new Exception("Please select the WHT Type for BL No. " + d.BL_No);
+                        throw new InvalidOperationException("Please select the WHT Type for BL No. " + d.BL_No);
                     }
                     db.cmd.CommandText = "dbo.[usp_ServiceCostDetail_SaveUpdate]";
                     db.cmd.CommandType = CommandType.StoredProcedure;
@@ -970,10 +928,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     return false;
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -994,14 +951,13 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 if (dt.Rows.Count <= 0)
                 {
-                    throw new Exception(ReferenceType + " No. [" + ReferenceNo + "] not found");
+                    throw new InvalidOperationException(ReferenceType + " No. [" + ReferenceNo + "] not found");
                 }
                 return Utility.ConvertDataTableToList<SAPInboundModel>(dt)[0];
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -1025,10 +981,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 return Utility.ConvertDataTableToList<PopReferenceModel>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
