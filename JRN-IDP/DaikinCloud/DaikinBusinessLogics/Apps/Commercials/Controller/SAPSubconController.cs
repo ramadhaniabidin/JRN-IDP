@@ -323,13 +323,21 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         public void ProcessEachFileSubconGR(string FolderPath)
         {
             List<string> listPurchasingDoc = new List<string>();
-            foreach(string file in System.IO.Directory.EnumerateFiles(FolderPath, "*.txt"))
+            foreach (string file in System.IO.Directory.EnumerateFiles(FolderPath, "*.txt"))
             {
-                string[] lines = System.IO.File.ReadAllLines(file);
-                foreach (string line in lines)
+                try
                 {
-                    ProcessEachLineSubconGR(file, line);
+                    string[] lines = System.IO.File.ReadAllLines(file);
+                    foreach (string line in lines)
+                    {
+                        ProcessEachLineSubconGR(file, line);
+                    }
                 }
+                catch
+                {
+
+                }
+
             }
         }
 
@@ -338,7 +346,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             string file_name = System.IO.Path.GetFileName(File);
             string[] split_data = Line.Split(';');
             string[] lines = System.IO.File.ReadAllLines(File);
-            foreach(string line in lines)
+            foreach (string line in lines)
             {
                 try
                 {
@@ -352,13 +360,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
             }
 
-        }
-
-        public void ReadCommercialSubconGR(string SAPFolderID)
-        {
-            var folderLocation = batch.GetFolderLocation_V2(SAPFolderID);
-            string folderPath = folderLocation.PathLocation;
-            ProcessFolderGRFiles(folderPath);
         }
 
         public void UpdateDeliveryDate(List<string> purchasingDocs, string file)
@@ -388,7 +389,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 SaveCommercialSubconSAP_GR(columns);
                 Utility.SaveLog("Read Commercial Subcon GR", purchasingDoc, filePath, "", 1);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Utility.SaveLog("Fail Commercial Subcon GR", purchasingDoc, filePath, ex.Message, 0);
             }
@@ -397,7 +398,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
         public void ProcessFolderGRFiles(string folderPath)
         {
-            foreach(string filePath in System.IO.Directory.EnumerateFiles(folderPath, "*.txt"))
+            foreach (string filePath in System.IO.Directory.EnumerateFiles(folderPath, "*.txt"))
             {
                 ProcessGRFile(filePath, folderPath);
             }
@@ -410,7 +411,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             try
             {
                 string[] lines = System.IO.File.ReadAllLines(filePath);
-                foreach(var line in lines)
+                foreach (var line in lines)
                 {
                     string purchasingDoc = ProcessGRLine(line, filePath);
                     purchasingDocs.Add(purchasingDoc);
@@ -418,7 +419,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 UpdateDeliveryDate(purchasingDocs.ToList(), filePath);
                 MoveFileToFolder(folderPath, fileName, "DONE");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Utility.SaveLog("Read Commercial Subcon GR", "-", filePath, ex.Message, 0);
                 MoveFileToFolder(folderPath, fileName, "ERROR");
@@ -428,7 +429,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         public void MoveFileToFolder(string folderPath, string fileName, string category)
         {
             string destPath = System.IO.Path.Combine(folderPath, category, fileName);
-            if(System.IO.File.Exists(destPath))
+            if (System.IO.File.Exists(destPath))
             {
                 System.IO.File.Delete(destPath);
             }
@@ -511,7 +512,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
                 MoveFileToFolder(FolderPath, FileName, "DONE");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Utility.SaveLog("Read Commercial Subcon", NintexNo, File, ex.Message, 0);
                 MoveFileToFolder(FolderPath, FileName, "ERROR");
