@@ -1,4 +1,5 @@
 ﻿using Daikin.BusinessLogics.Apps.Master.Model;
+using Daikin.BusinessLogics.Apps.Master.Repository;
 using Daikin.BusinessLogics.Common;
 using Microsoft.SharePoint;
 using System;
@@ -13,10 +14,17 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 {
     public class GeneralController
     {
-        private readonly DatabaseManager db = new DatabaseManager();
+        private readonly DatabaseManager db;
+        private readonly MasterRepository repo;
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
+
+        public GeneralController()
+        {
+            db = new DatabaseManager();
+            repo = new MasterRepository(db);
+        }
 
         public void ExecuteNonQuery(string query)
         {
@@ -34,27 +42,8 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
         public List<GeneralHistoryLogModel> GetHistoryLog(string Form_No, string ModuleCode, int Transaction_ID)
         {
-            try
-            {
-                string query = ModuleCode == "M011" ? "dbo.usp_Utility_GetHistoryLogByTransId" : "dbo.usp_Utility_GetHistoryLogByTransId_New";
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = query;
-                db.cmd.CommandType = CommandType.StoredProcedure;
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "Form_No", Form_No);
-                db.AddInParameter(db.cmd, "Module_Code", ModuleCode);
-                db.AddInParameter(db.cmd, "Transaction_ID", Transaction_ID);
-                reader = db.cmd.ExecuteReader();
-                dt = new DataTable();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                db.CloseConnection(ref conn);
-                return Utility.ConvertDataTableToList<GeneralHistoryLogModel>(dt);
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            var logs = repo.GetHistoryLog(Form_No, ModuleCode, Transaction_ID);
+            return logs;
         }
 
         public int GetTransactionIDByFormNo(string Form_No, string Module_Code)
@@ -115,46 +104,7 @@ namespace Daikin.BusinessLogics.Apps.Master.Controller
 
         public List<GeneralHeaderModel> ListData(FilterHeaderSearchModel model, out int RecordCount, out decimal GrandTotal)
         {
-            dt = new DataTable();
-            RecordCount = 0;
-            try
-            {
-                db.OpenConnection(ref conn);
-                db.cmd.CommandText = "usp_Utility_ListData";
-                db.cmd.CommandType = CommandType.StoredProcedure;
-
-                db.cmd.Parameters.Clear();
-                db.AddInParameter(db.cmd, "TableName", model.TableName);
-                db.AddInParameter(db.cmd, "PageIndex", model.PageIndex);
-                db.AddInParameter(db.cmd, "PageSize", 10);
-                db.AddInParameter(db.cmd, "FilterBy", model.FilterBy);
-                db.AddInParameter(db.cmd, "StartDate", model.StartDate);
-                db.AddInParameter(db.cmd, "EndDate", model.EndDate);
-                db.AddInParameter(db.cmd, "SearchBy", model.SearchBy);
-                db.AddInParameter(db.cmd, "Keywords", model.Keywords);
-                db.AddInParameter(db.cmd, "PaymentStatus", model.PaymentStatus);
-                db.AddInParameter(db.cmd, "PostingStatus", model.PostingStatus);
-                db.AddInParameter(db.cmd, "BranchName", model.BranchName);
-                db.AddInParameter(db.cmd, "ModuleId", model.ModuleId);
-                db.AddInParameter(db.cmd, "Plant_Code", model.Plant_Code);
-                db.AddInParameter(db.cmd, "PendingApproverRoleID", model.PendingApproverRoleID);
-                db.AddInParameter(db.cmd, "PendingApproverRole", model.PendingApproverRole);
-
-                db.AddInParameter(db.cmd, "CurrentLogin", model.CurrentLogin);
-                db.AddOutParameter(db.cmd, "@RecordCount", SqlDbType.Int);
-                db.AddOutParameter(db.cmd, "@GrandTotal", SqlDbType.Decimal);
-
-                reader = db.cmd.ExecuteReader();
-                dt.Load(reader);
-                db.CloseDataReader(reader);
-                RecordCount = Convert.ToInt32(db.cmd.Parameters["@RecordCount"].Value);
-                GrandTotal = Convert.ToDecimal(db.cmd.Parameters["@GrandTotal"].Value);
-                return dt.Rows.Count > 0 ? Utility.ConvertDataTableToList<GeneralHeaderModel>(dt) : new List<GeneralHeaderModel>();
-            }
-            finally
-            {
-                db.CloseConnection(ref conn);
-            }
+            return repo.ListData(model, out RecordCount, out GrandTotal);
         }
 
 
