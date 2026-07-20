@@ -21,24 +21,8 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         SqlConnection conn = new SqlConnection();
         SqlDataReader reader = null;
         DataTable dt = new DataTable();
-        string SPList = "Commercials";
         SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager nintexCloudManager = new NintexCloudManager();
-        public void FOB_PostToSAP()
-        {
-            try
-            {
-                //Buat Logic create txt file untuk put di shared folder
-                //Update flag Post_To_SAP = 1, Post_Date = GETDATE()
-                //di-proses secara berkala oleh Task Scheduler
-                //Berdasarkan Approval_Status = '7' dan Post_To_SAP = 0
-            }
-            catch (Exception ex)
-            {
-                db.CloseConnection(ref conn);
-                throw ex;
-            }
-        }
 
         public void UpdateRemarks(List<FOBRemarksModel> listRemarks, string CurrentLoginName)
         {
@@ -47,12 +31,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.OpenConnection(ref conn, true);
                 foreach (FOBRemarksModel r in listRemarks)
                 {
-                    //if (string.IsNullOrEmpty(r.Outcome) && string.IsNullOrEmpty(r.Reason_Rejection))
-                    //{
-                    //    db.CloseConnection(ref conn);
-                    //    throw new Exception("Please tick if OK for " + r.Remarks + "\n if not, then specify the reason of rejection");
-                    //}
-
                     db.cmd.CommandText = "dbo.[usp_FOBRemarks_SaveUpdate]";
                     db.cmd.CommandType = CommandType.StoredProcedure;
                     db.cmd.Parameters.Clear();
@@ -65,10 +43,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
                 db.CloseConnection(ref conn, true);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -81,7 +58,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 {
                     return new CommonResponseModel { Success = false, Message = "Error occurred when retrieving Task Responder on Commercial_GetTaskResponder method" };
                 }
-                new ListController().CustomFormUpdateApprover(HeaderID, ListName, taskResponder.UserName, taskResponder.FullName, Comment);
+                ListController.CustomFormUpdateApprover(HeaderID, ListName, taskResponder.UserName, taskResponder.FullName, Comment);
                 var transactionData = Aprroval.GetListDataIDByHeaderID_New(ListName, HeaderID);
                 var taskAssignmentResponse = nintexCloudManager.GetTaskAssignment(transactionData[0].NAC_Guid, Form_No);
                 if (!taskAssignmentResponse.Success || taskAssignmentResponse.TaskAssignments == null)
@@ -128,10 +105,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 return list;
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -164,10 +140,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 }
 
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public FOBHeaderModel GetData(string Form_No)
@@ -194,10 +169,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     return new FOBHeaderModel();
                 }
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
         public CommonSaveResponseModel SaveSPList(string SiteUrl, FOBHeaderModel h, string Status)
@@ -235,7 +209,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 web.AllowUnsafeUpdates = false;
                 return new CommonSaveResponseModel { ID = ListItemId, Success = true, Message = "Save SP List FOB OK" };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 web.AllowUnsafeUpdates = false;
                 return new CommonSaveResponseModel { ID = 0, Success = false, Message = $"Error save SP List FOB method : {ex.Message}" };
@@ -262,10 +236,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 return Utility.ConvertDataTableToList<FOBRemarksModel>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
 
         }
@@ -275,15 +248,12 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             try
             {
                 if (!string.IsNullOrEmpty(Form_No)) return Form_No;
-                db.OpenConnection(ref conn);
                 string Generated_Code = db.Autocounter("Form_No", Table_Header, "Form_No", Format_Code, 4);
-                db.CloseConnection(ref conn);
                 return Generated_Code;
             }
-            catch(Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
@@ -324,7 +294,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 return new SaveHeaderFOBModel { ID = Header_ID, Header = h, Message = "Save FOB header OK", Success = true };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
                 return new SaveHeaderFOBModel { ID = 0, Header = h, Message = $"Error at Save Header method | {ex.Message}", Success = false };
@@ -372,7 +342,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 return new CommonResponseModel { Success = true, Message = "OK" };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
                 return new CommonResponseModel { Success = false, Message = $"Error occured at Save Remarks method | {ex.Message}" };
@@ -414,10 +384,10 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.CloseConnection(ref conn);
                 return new CommonResponseModel { Success = true, Message = "OK" };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 db.CloseConnection(ref conn);
-                return new CommonResponseModel { Success = false, Message = $"Error at Save Detail method | {ex.Message}"};
+                return new CommonResponseModel { Success = false, Message = $"Error at Save Detail method | {ex.Message}" };
             }
         }
 
@@ -448,8 +418,11 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     NAC_WorkflowId = Utility.GetStringValue(row, "NAC_Workflow_ID");
                 }
 
-                Task.Run(async () => { await nintexCloudManager.Commercial_StartWorkflow(
-                    saveHeaderResponse.Header.Item_ID, saveHeaderResponse.Header.ID, "M010", NAC_WorkflowId); }).Wait();
+                Task.Run(async () =>
+                {
+                    await nintexCloudManager.Commercial_StartWorkflow(
+                    saveHeaderResponse.Header.Item_ID, saveHeaderResponse.Header.ID, "M010", NAC_WorkflowId);
+                }).Wait();
                 return new CommonSaveResponseModel { Success = true, Message = "OK", ID = saveHeaderResponse.ID };
             }
             catch (Exception ex)
@@ -498,10 +471,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.cmd.ExecuteNonQuery();
                 db.CloseConnection(ref conn);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                Console.WriteLine($"Error saving log: {ex.Message}");
             }
         }
 
@@ -540,7 +512,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     var BP_Name = listBussPlace.Where(w => w.Code.ToUpper() == BP_Code.ToUpper());
                     if (BP_Name.Any())
                     {
-                        string Name = BP_Name.First().Name;
+                        string Name = BP_Name.FirstOrDefault().Name;
                         row["Business_Place_Name"] = Name;
                     }
                     else
@@ -552,10 +524,9 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
 
                 return Utility.ConvertDataTableToList<FOBDetailModel>(dt);
             }
-            catch (Exception ex)
+            finally
             {
                 db.CloseConnection(ref conn);
-                throw ex;
             }
         }
 
