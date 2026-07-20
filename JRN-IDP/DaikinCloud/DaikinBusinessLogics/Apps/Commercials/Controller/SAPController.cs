@@ -111,59 +111,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
             }
         }
 
-        public void ReadFeedbackSAP_ServiceCost()
-        {
-            try
-            {
-                string folder = util.GetConfigValue("NetworkPath");
-                folder += @"\LC\SAP Feedback";
-
-                foreach (string file in System.IO.Directory.EnumerateFiles(folder, "*.txt"))
-                {
-                    string file_name = System.IO.Path.GetFileName(file);
-                    try
-                    {
-                        string[] lines = System.IO.File.ReadAllLines(file);
-                        foreach (string line in lines)
-                        {
-                            string[] split_data = line.Split(';');
-
-                            #region Read & Save
-                            SaveFeedbackSAP_ServiceCost(split_data);
-                            #endregion
-
-                            Utility.SaveLog("Read Feedback SAP LC", split_data[0], file, "", 1);
-                            Console.WriteLine(line);
-
-                        }
-
-                        string DoneFilePath = folder + "\\DONE\\" + file_name;
-                        if (System.IO.File.Exists(DoneFilePath))
-                        {
-                            System.IO.File.Delete(DoneFilePath);
-                        }
-                        System.IO.File.Move(folder + "\\" + file_name, DoneFilePath);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Utility.SaveLog("Read Feedback SAP LC", "", file, ex.Message, 0);
-                        string ErrorFilePath = folder + "\\ERROR\\" + file_name;
-                        if (System.IO.File.Exists(ErrorFilePath))
-                        {
-                            System.IO.File.Delete(ErrorFilePath);
-                        }
-                        System.IO.File.Move(folder + "\\" + file_name, ErrorFilePath);
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                Utility.SaveLog("Read Feedback SAP LC - ReadAllLines", "", "", ex.Message, 0);
-            }
-        }
-
         public List<BatchModel> GetBatchFileContents(string moduleCode, int headerID, int No, bool isOpen = false)
         {
             dt = new DataTable();
@@ -304,7 +251,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                             System.IO.File.Delete(folderDone);
                         }
                         System.IO.File.Move(folder + "\\" + file_name, folderDone);
-                    
+
                     }
                     catch (Exception ex)
                     {
@@ -392,7 +339,7 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                 db.AddInParameter(db.cmd, "Item_Text", data[R_idx_ItemText]);
                 db.AddInParameter(db.cmd, "Amount", data[R_idx_Amount].Replace(",", ""));
                 db.AddInParameter(db.cmd, "Currency", data[R_idx_Currency]);
-                db.AddInParameter(db.cmd, "Amount_In_Local_Currency", data[R_idx_AmountInLocalCurr].Replace(",",""));
+                db.AddInParameter(db.cmd, "Amount_In_Local_Currency", data[R_idx_AmountInLocalCurr].Replace(",", ""));
                 db.AddInParameter(db.cmd, "Local_Currency", data[R_idx_LocalCurr]);
                 db.AddInParameter(db.cmd, "Revise_Indicator", data[R_idx_ReviseIndicator]);
 
