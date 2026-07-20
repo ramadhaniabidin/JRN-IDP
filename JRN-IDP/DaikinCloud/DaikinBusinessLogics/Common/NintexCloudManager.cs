@@ -26,8 +26,6 @@ namespace Daikin.BusinessLogics.Common
         private readonly CommonLogic _func = new CommonLogic();
         private readonly string NACBaseURL = ConfigurationManager.AppSettings["NAC_BASE_URL"];
         private readonly string NAC_TASK_URL = ConfigurationManager.AppSettings["NAC_TASKS_URL"];
-        private readonly string GetAttachmentWorkflowURL = "/workflows/v1/designs/91ad22e2-f7bc-4853-864f-0720a2b7eb19/instances";
-        private readonly string PAL_WORKFLOW_DEV = "34450d42-417e-4e68-987b-6649f25ed62d";
         private readonly string NON_COMMERCIAL_WORKFLOW_ID = ConfigurationManager.AppSettings["NONCOMM_WORKFLOW_ID"];
         private readonly string COMMERCIAL_WORKFLOW_ID = ConfigurationManager.AppSettings["COMMERCIAL_WORKFLOW_ID"];
         private readonly string CLAIM_REIMBURSEMENT_WORKFLOW_ID = ConfigurationManager.AppSettings["CLAIM_REIMBURSEMENT_WORKFLOW_ID"];
@@ -51,29 +49,6 @@ namespace Daikin.BusinessLogics.Common
                 grant_type = ConfigurationManager.AppSettings["NAC_GRANT_TYPE"]
             };
             return serializer.Serialize(requestBody);
-        }
-
-        public string GetNACWorfklowID(string Module_Code)
-        {
-            string Workflow_ID = string.Empty;
-            using (var _con = new SqlConnection(Utility.GetSqlConnection()))
-            {
-                _con.Open();
-                var query = "SELECT NAC_Workflow_Id FROM NWC_MasterModule WHERE Module_Code = @Module_Code";
-                using (var cmd = new SqlCommand(query, _con))
-                {
-                    cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(new SqlParameter { ParameterName = "@Module_Code", Value = Module_Code, SqlDbType = SqlDbType.VarChar, Direction = ParameterDirection.Input });
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            Workflow_ID = reader.GetString(0);
-                        }
-                    }
-                }
-            }
-            return Workflow_ID;
         }
 
         public async Task<string> GetNACWorkflowIDAsync(string Module_Code, SqlConnection _conn, SqlTransaction _trans)
