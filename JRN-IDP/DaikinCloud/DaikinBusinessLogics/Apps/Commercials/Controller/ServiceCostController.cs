@@ -22,7 +22,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
         DataTable dt = new DataTable();
         SharePointManager sp = new SharePointManager();
         private readonly NintexCloudManager nintexCloudManager = new NintexCloudManager();
-        public string SPList = "Commercials";
 
         public void SaveInbound(int Header_ID)
         {
@@ -236,25 +235,6 @@ namespace Daikin.BusinessLogics.Apps.Commercials.Controller
                     Message = $"Error save to SharePoint List: {ex.Message}"
                 };
             }
-        }
-
-        public void NotifAccountingMIRO(int ListItemId, string MiroNo, string NintexNo)
-        {
-            string SiteUrl = new Utility().GetConfigValue("SiteUrl");
-            SPWeb web = new SPSite(SiteUrl).OpenWeb();
-            SPList list = web.Lists[SPList];
-            web.AllowUnsafeUpdates = true;
-
-            SPListItem item;
-            item = list.GetItemById(ListItemId);
-            item["Status"] = "1";
-            item["Notify"] = "2";
-            item["MIRO No"] = MiroNo;
-            item["Nintex No"] = NintexNo;
-
-            item.Update();
-            web.AllowUnsafeUpdates = false;
-
         }
 
         public List<WHTOptionModel> BindingMasterSPListWHT()
