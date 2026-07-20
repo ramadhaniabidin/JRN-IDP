@@ -51,22 +51,6 @@ namespace Daikin.BusinessLogics.Common
             return serializer.Serialize(requestBody);
         }
 
-        public async Task<string> GetNACWorkflowIDAsync(string Module_Code, SqlConnection _conn, SqlTransaction _trans)
-        {
-            string query = "SELECT NAC_Workflow_Id FROM NWC_MasterModule WHERE Module_Code = @Module_Code";
-            using (SqlCommand cmd = new SqlCommand(query, _conn, _trans))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.Add(db.AddInParameter("Module_Code", Module_Code));
-                object result = await cmd.ExecuteScalarAsync().ConfigureAwait(configureAwait);
-                if (result != null && result != DBNull.Value)
-                {
-                    return Convert.ToString(result);
-                }
-            }
-            return string.Empty;
-        }
-
         public async Task<string> GetNACWorkflowIDAsync(string Module_Code)
         {
             using (SqlConnection _conn = new SqlConnection(Utility.GetSqlConnection()))
