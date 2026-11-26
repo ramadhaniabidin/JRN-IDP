@@ -200,7 +200,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository
                     cmd.Parameters.Add(CreateSQLParam("@Form_No", typeString, Form_No));
                     using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
                     {
-                        var list = await Utility.MapReaderToList<AffiliateNotClaimHeader>(reader).ConfigureAwait(configAwait);
+                        var list = await Utility.MapReaderToListAsync<AffiliateNotClaimHeader>(reader).ConfigureAwait(configAwait);
                         if (list != null && list.Count > 0) return list[0];
                         return null;
                     }
@@ -208,19 +208,17 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository
             }
         }
 
-        public async Task<List<AffiliateNotClaimDetail>> GetDetailDataAsync(int Header_ID)
+        public List<AffiliateNotClaimDetail> GetDetailData(int Header_ID)
         {
-            using (SqlConnection _conn = new SqlConnection(connectionString))
+            using (var con = new SqlConnection(connectionString))
+            using (var cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", con))
             {
-                await _conn.OpenAsync().ConfigureAwait(configAwait);
-                using (SqlCommand cmd = new SqlCommand("usp_AffiliateNotClaimDetail_GetData", _conn))
+                con.Open();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
+                using (var r = cmd.ExecuteReader())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
-                    using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
-                    {
-                        return await Utility.MapReaderToList<AffiliateNotClaimDetail>(r).ConfigureAwait(configAwait);
-                    }
+                    return Utility.MapReaderToList<AffiliateNotClaimDetail>(r);
                 }
             }
         }
@@ -236,7 +234,7 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository
                     cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
                     using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
                     {
-                        return await Utility.MapReaderToList<AffiliateNotClaimAttachment>(r).ConfigureAwait(configAwait);
+                        return await Utility.MapReaderToListAsync<AffiliateNotClaimAttachment>(r).ConfigureAwait(configAwait);
                     }
                 }
             }
@@ -253,10 +251,14 @@ namespace Daikin.BusinessLogics.Apps.ClaimReimbursement.Repository
                     cmd.Parameters.Add(CreateSQLParam("@Header_ID", typeInt, Header_ID));
                     using (SqlDataReader r = await cmd.ExecuteReaderAsync().ConfigureAwait(configAwait))
                     {
-                        return await Utility.MapReaderToList<ServiceCostRemarks>(r).ConfigureAwait(configAwait);
+                        return await Utility.MapReaderToListAsync<ServiceCostRemarks>(r).ConfigureAwait(configAwait);
                     }
                 }
             }
         }
+
+
+
+
     }
 }
