@@ -127,7 +127,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="DaikinJobSchedulers\Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
