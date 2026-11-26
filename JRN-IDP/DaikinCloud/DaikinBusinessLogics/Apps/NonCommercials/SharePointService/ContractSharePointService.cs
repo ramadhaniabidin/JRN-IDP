@@ -21,55 +21,64 @@ namespace Daikin.BusinessLogics.Apps.NonCommercials.SharePointService
             _spManager = spManager;
         }
 
-        public int SaveSPListContract(string siteUrl, ContractHeader ch, int totalItems, string status)
+        public int SaveSPList(string siteUrl, ContractHeader ch, int totalItems, string status)
         {
             if (ch == null) throw new ArgumentNullException(nameof(ch));
             int itemId = 0;
             int id;
             if (ch.Item_ID != null && int.TryParse(ch.Item_ID.ToString(), out id)) itemId = id;
 
-            using (var site = new SPSite(siteUrl))
-            using (var web = site.OpenWeb())
+            SPSecurity.RunWithElevatedPrivileges(delegate ()
             {
-                var list = web.Lists[listName];
-                web.AllowUnsafeUpdates = true;
-                try
+                using (var site = new SPSite(siteUrl))
+                using (var web = site.OpenWeb())
                 {
-                    SPListItem item;
-                    if (itemId == 0)
+                    var list = web.Lists[listName];
+                    web.AllowUnsafeUpdates = true;
+                    try
                     {
-                        item = list.AddItem();
-                        item["Title"] = ch.Form_No;
-                        item["Contract Remarks"] = ch.Remarks;
-                        item["Request Date"] = ch.Request_Date;
-                        item["Requester Branch"] = ch.Branch;
-                        item["Requester Department"] = ch.Requester_Department;
-                        item["Requester Name"] = ch.Requester_Name;
-                        item["Requester Email"] = ch.Requester_Email;
-                        item["Requester Account"] = _spManager.GetCurrentUserLogin();
-                        item["Contract Type"] = ch.Contract_Type_ID;
-                        item["Module"] = "M014";
-                        item["Workflow Status"] = generatedStatus;
+                        SPListItem item;
+                        if (itemId == 0)
+                        {
+                            item = list.AddItem();
+                            item["Title"] = ch.Form_No;
+                            item["Contract Remarks"] = ch.Remarks;
+                            item["Request Date"] = ch.Request_Date;
+                            item["Requester Branch"] = ch.Branch;
+                            item["Requester Department"] = ch.Requester_Department;
+                            item["Requester Name"] = ch.Requester_Name;
+                            item["Requester Email"] = ch.Requester_Email;
+                            item["Requester Account"] = _spManager.GetCurrentUserLogin();
+                            item["Contract Type"] = ch.Contract_Type_ID;
+                            item["Module"] = "M014";
+                            item["Workflow Status"] = generatedStatus;
+                        }
+                        else
+                        {
+                            item = list.GetItemById(itemId);
+                            if (ch.ID > 0) item["Transaction ID"] = ch.ID;
+                        }
+                        item["Procurement Department"] = ch.Procurement_Department;
+                        item["Grand Total"] = ch.Grand_Total;
+                        item["Approval Status"] = generatedStatus;
+                        item["Form Status"] = status;
+                        item.Update();
+                        itemId = item.ID;
                     }
-                    else
+                    finally
                     {
-                        item = list.GetItemById(itemId);
-                        if (ch.ID > 0) item["Transaction ID"] = ch.ID;
+                        web.AllowUnsafeUpdates = false;
                     }
-                    item["Procurement Department"] = ch.Procurement_Department;
-                    item["Grand Total"] = ch.Grand_Total;
-                    item["Approval Status"] = generatedStatus;
-                    item["Form Status"] = status;
-                    item.Update();
-                    return item.ID;
                 }
-                finally
-                {
-                    web.AllowUnsafeUpdates = false;
-                }
-            }
+            });
+
+            return itemId;
         }
 
-
+        public void UploadAttachment(int itemId, string siteUrl, string attachmentFileName, string serverPath)
+        {
+            var pathFile = serverPath + attachmentFileName;
+            _spManager.UploadFileInCustomList(listName, itemId, pathFile, siteUrl);
+        }
     }
 }
