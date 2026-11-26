@@ -127,23 +127,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="APIHandler.cs" />
-    <Compile Include="Model\EncryptionModel.cs" />
-    <Compile Include="Model\NACModel.cs" />
-    <Compile Include="Model\PayloadModel.cs" />
-    <Compile Include="Model\SPOFileModel.cs" />
-    <Compile Include="Model\TaskAssignmentModel.cs" />
-    <Compile Include="Model\TaskItemModel.cs" />
-    <Compile Include="Model\TaskResponseModel.cs" />
-    <Compile Include="NACHandler.cs" />
-    <Compile Include="NintexTaskHandler.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProsnapHandler.cs" />
-    <Compile Include="SPOHandler.cs" />
-    <Compile Include="Utility.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
