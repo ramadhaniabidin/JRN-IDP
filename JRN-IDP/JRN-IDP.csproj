@@ -127,7 +127,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DaikinCloud\DaikinJobSchedulers\Program.cs" />
+    <Compile Include="DaikinCloud\DaikinBusinessLogics\Apps\Batch\Controller\BatchController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
